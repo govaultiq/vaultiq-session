@@ -1,27 +1,27 @@
-package vaultiq.session.redis.service;
+package vaultiq.session.jpa.service;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import vaultiq.session.core.VaultiqSession;
 import vaultiq.session.core.VaultiqSessionManager;
+import vaultiq.session.jpa.repository.VaultiqSessionRepository;
 
 import java.util.List;
 
 @Service
-@ConditionalOnBean(name = "vaultiqCacheManager")
-@ConditionalOnProperty(prefix = "vaultiq.session.persistence.via-redis",
-        name = "allow-inflight-cache-management",
+@ConditionalOnBean(VaultiqSessionRepository.class)
+@ConditionalOnProperty(
+        prefix = "vaultiq.session.persistence.via-jpa",
+        name = "allow-inflight-entity-creation",
         havingValue = "true")
-public class VaultiqSessionManagerViaRedis implements VaultiqSessionManager {
+public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
 
-    private final CacheManager cacheManager;
+    private final VaultiqSessionRepository sessionRepository;
 
-    public VaultiqSessionManagerViaRedis(@Qualifier("vaultiqCacheManager") CacheManager cacheManager) {
-        this.cacheManager = cacheManager;
+    public VaultiqSessionManagerViaJpa(VaultiqSessionRepository sessionRepository) {
+        this.sessionRepository = sessionRepository;
     }
 
     @Override
