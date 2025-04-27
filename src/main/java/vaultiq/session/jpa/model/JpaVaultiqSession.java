@@ -6,7 +6,7 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "vaultiq_session_pool")
-public class VaultiqSession {
+public class JpaVaultiqSession {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -25,8 +25,8 @@ public class VaultiqSession {
     @Column(name = "last_active_at", nullable = false)
     private Instant lastActiveAt;
 
-    public static VaultiqSession create(String userId, String deviceFingerPrint) {
-        VaultiqSession vaultiqSession = new VaultiqSession();
+    public static JpaVaultiqSession create(String userId, String deviceFingerPrint) {
+        JpaVaultiqSession vaultiqSession = new JpaVaultiqSession();
         vaultiqSession.userId = userId;
         vaultiqSession.deviceFingerPrint = deviceFingerPrint;
         vaultiqSession.createdAt = Instant.now();

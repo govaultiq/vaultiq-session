@@ -4,19 +4,19 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
 
-public final class VaultiqSession implements Serializable {
+public final class RedisVaultiqSession implements Serializable {
     private String sessionId;
     private String userId;
     private String deviceFingerPrint;
     private Instant createdAt;
     private Instant lastActiveAt;
 
-    private VaultiqSession() {
+    private RedisVaultiqSession() {
         // Avoiding Direct Instantiation
     }
 
-    public static VaultiqSession create(String userId, String deviceFingerPrint){
-        VaultiqSession vaultiqSession = new VaultiqSession();
+    public static RedisVaultiqSession create(String userId, String deviceFingerPrint){
+        RedisVaultiqSession vaultiqSession = new RedisVaultiqSession();
         vaultiqSession.sessionId = UUID.randomUUID().toString();
         vaultiqSession.userId = userId;
         vaultiqSession.deviceFingerPrint = deviceFingerPrint;
@@ -54,7 +54,7 @@ public final class VaultiqSession implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        VaultiqSession that = (VaultiqSession) o;
+        RedisVaultiqSession that = (RedisVaultiqSession) o;
 
         return sessionId.equals(that.sessionId);
     }
