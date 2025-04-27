@@ -2,7 +2,7 @@ package vaultiq.session.core;
 
 import java.time.Instant;
 
-public class VaultiqSession {
+public final class VaultiqSession {
     private String sessionId;
     private String userId;
     private String deviceFingerPrint;
