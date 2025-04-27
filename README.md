@@ -24,7 +24,8 @@
 
 ## Installation
 
-To include `vaultiq-session` in your project, add the dependency to your `pom.xml`:
+comming soon, via maven central
+<!-- To include `vaultiq-session` in your project, add the dependency to your `pom.xml`:
 
 ```xml
 <dependency>
@@ -33,6 +34,7 @@ To include `vaultiq-session` in your project, add the dependency to your `pom.xm
     <version>1.0.0</version>
 </dependency>
 ```
+-->
 
 Or, if you're using Gradle:
 
