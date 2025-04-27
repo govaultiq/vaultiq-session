@@ -34,13 +34,14 @@ coming soon, via Maven Central.
     <version>1.0.0</version>
 </dependency>
 ```
--->
+
 
 Or, if you're using Gradle:
 
 ```groovy
 implementation 'com.vaultiq:vaultiq-session:1.0.0'
 ```
+-->
 
 ## Configuration
 
