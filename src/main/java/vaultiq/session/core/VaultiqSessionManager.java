@@ -10,7 +10,7 @@ public interface VaultiqSessionManager {
 
     VaultiqSession getSession(String sessionId);
 
-    void updateSession(VaultiqSession session);
+    void updateToCurrentlyActive(VaultiqSession session);
 
     void deleteSession(String sessionId);
 
