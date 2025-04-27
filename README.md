@@ -24,7 +24,7 @@
 
 ## Installation
 
-comming soon, via maven central
+coming soon, via Maven Central.
 <!-- To include `vaultiq-session` in your project, add the dependency to your `pom.xml`:
 
 ```xml
