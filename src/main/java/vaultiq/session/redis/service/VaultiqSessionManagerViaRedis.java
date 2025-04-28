@@ -11,9 +11,9 @@ import vaultiq.session.core.VaultiqSession;
 import vaultiq.session.core.VaultiqSessionManager;
 import vaultiq.session.fingerprint.DeviceFingerprintGenerator;
 import vaultiq.session.redis.model.RedisVaultiqSession;
+import vaultiq.session.redis.model.UserSessionPool;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -39,7 +39,11 @@ public class VaultiqSessionManagerViaRedis implements VaultiqSessionManager {
         var redisVaultiqSession = RedisVaultiqSession.create(userId, fingerprint);
 
         var cache = autoResolveCache();
-        cache.put(redisVaultiqSession.getSessionId(), redisVaultiqSession);
+        var sessionPool = Optional.ofNullable(this.getUserSessionPool())
+                .orElseGet(UserSessionPool::createEmpty);
+
+        sessionPool.addSession(redisVaultiqSession);
+        cache.put(userId, sessionPool);
 
         return toVaultiqSession(redisVaultiqSession);
     }
@@ -52,6 +56,13 @@ public class VaultiqSessionManagerViaRedis implements VaultiqSessionManager {
                 .orElseThrow(() -> new IllegalStateException("Cache not found by name: " + cacheName));
     }
 
+    private UserSessionPool getUserSessionPool() {
+        var userId = Optional.ofNullable(RedisCacheContext.getUserId())
+                .orElseThrow(() -> new IllegalStateException("No userId set in RedisCacheContext. Please call RedisCacheContext.setUserId() before using VaultiqSessionManagerViaRedis."));
+        var cache = this.autoResolveCache();
+        return cache.get(userId, UserSessionPool.class);
+    }
+
     private VaultiqSession toVaultiqSession(RedisVaultiqSession source) {
         return VaultiqSession.builder()
                 .sessionId(source.getSessionId())
@@ -62,33 +73,46 @@ public class VaultiqSessionManagerViaRedis implements VaultiqSessionManager {
                 .build();
     }
 
-    private RedisVaultiqSession getRedisVaultiqSession(String sessionId) {
-        var cache = this.autoResolveCache();
-        return Optional.ofNullable(cache.get(sessionId, RedisVaultiqSession.class))
-                .orElseThrow(() -> new NoSuchElementException("No session found with id: " + sessionId));
-    }
-
     @Override
     public VaultiqSession getSession(String sessionId) {
-        var session = this.getRedisVaultiqSession(sessionId);
-        return this.toVaultiqSession(session);
+        return Optional.ofNullable(this.getUserSessionPool())
+                .map(sessionPool -> sessionPool.getSession(sessionId))
+                .map(this::toVaultiqSession)
+                .orElse(null);
     }
 
     @Override
     public void updateToCurrentlyActive(String sessionId) {
-        var redisVaultiqSession = this.getRedisVaultiqSession(sessionId);
-        redisVaultiqSession.currentlyActive();
-        this.autoResolveCache().put(sessionId, redisVaultiqSession);
+        Optional.ofNullable(this.getUserSessionPool())
+                .ifPresent(sessionPool -> {
+                    var session = sessionPool.getSession(sessionId);
+
+                    Optional.ofNullable(session)
+                            .ifPresent(RedisVaultiqSession::currentlyActive);
+
+                    putSessionPool(sessionPool);
+                });
     }
 
     @Override
     public void deleteSession(String sessionId) {
-        var cache = this.autoResolveCache();
-        cache.evict(sessionId);
+        Optional.ofNullable(this.getUserSessionPool())
+                .ifPresent(sessionPool -> {
+                    sessionPool.deleteSession(sessionId);
+                    putSessionPool(sessionPool);
+                });
+    }
+
+    private void putSessionPool(UserSessionPool sessionPool) {
+        Optional.ofNullable(RedisCacheContext.getUserId())
+                .ifPresent(userId -> this.autoResolveCache().put(userId, sessionPool));
     }
 
     @Override
     public List<VaultiqSession> getSessionsByUser(String userId) {
-        return List.of();
+        return this.getUserSessionPool().getSessions()
+                .stream()
+                .map(this::toVaultiqSession)
+                .toList();
     }
 }
