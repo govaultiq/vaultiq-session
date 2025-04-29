@@ -27,7 +27,7 @@ public class VaultiqSessionProperties {
 
     public static class ViaRedis {
         private boolean enabled;
-        private boolean allowInFlightCacheManagement;
+        private boolean allowInflightCacheManagement;
 
         public boolean isEnabled() {
             return enabled;
@@ -37,18 +37,20 @@ public class VaultiqSessionProperties {
             this.enabled = enabled;
         }
 
-        public boolean isAllowInFlightCacheManagement() {
-            return allowInFlightCacheManagement;
+        public boolean isAllowInflightCacheManagement() {
+            return allowInflightCacheManagement;
         }
 
-        public void setAllowInFlightCacheManagement(boolean allowInFlightCacheManagement) {
-            this.allowInFlightCacheManagement = allowInFlightCacheManagement;
+        public void setAllowInflightCacheManagement(boolean allowInflightCacheManagement) {
+            this.allowInflightCacheManagement = allowInflightCacheManagement;
         }
     }
 
     public static class ViaJpa {
         private boolean enabled;
-        private boolean allowInFlightEntityCreation;
+        private boolean allowInflightEntityCreation;
+        private boolean enableCaching;
+        private String cacheManagerName;
 
         public boolean isEnabled() {
             return enabled;
@@ -58,12 +60,28 @@ public class VaultiqSessionProperties {
             this.enabled = enabled;
         }
 
-        public boolean isAllowInFlightEntityCreation() {
-            return allowInFlightEntityCreation;
+        public boolean isAllowInflightEntityCreation() {
+            return allowInflightEntityCreation;
         }
 
-        public void setAllowInFlightEntityCreation(boolean allowInFlightEntityCreation) {
-            this.allowInFlightEntityCreation = allowInFlightEntityCreation;
+        public void setAllowInflightEntityCreation(boolean allowInflightEntityCreation) {
+            this.allowInflightEntityCreation = allowInflightEntityCreation;
+        }
+
+        public boolean isEnableCaching() {
+            return enableCaching;
+        }
+
+        public void setEnableCaching(boolean enableCaching) {
+            this.enableCaching = enableCaching;
+        }
+
+        public String getCacheManagerName() {
+            return cacheManagerName;
+        }
+
+        public void setCacheManagerName(String cacheManagerName) {
+            this.cacheManagerName = cacheManagerName;
         }
     }
 }

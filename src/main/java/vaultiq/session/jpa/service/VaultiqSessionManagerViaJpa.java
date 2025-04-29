@@ -1,12 +1,14 @@
 package vaultiq.session.jpa.service;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
+import vaultiq.session.config.VaultiqSessionProperties;
 import vaultiq.session.core.VaultiqSession;
 import vaultiq.session.core.VaultiqSessionManager;
 import vaultiq.session.fingerprint.DeviceFingerprintGenerator;
@@ -15,7 +17,7 @@ import vaultiq.session.jpa.model.JpaVaultiqSession;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
 @ConditionalOnBean(VaultiqSessionRepository.class)
@@ -27,12 +29,20 @@ public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
 
     private final VaultiqSessionRepository sessionRepository;
     private final DeviceFingerprintGenerator fingerprintGenerator;
+    private final Boolean isCachingEnabled;
+    private final String cacheManagerName;
+    private final CacheManager vaultiqCacheManager;
 
     public VaultiqSessionManagerViaJpa(
             VaultiqSessionRepository sessionRepository,
-            DeviceFingerprintGenerator fingerprintGenerator) {
+            DeviceFingerprintGenerator fingerprintGenerator,
+            VaultiqSessionProperties props,
+            @Qualifier("vaultiqCacheManager") @Nullable CacheManager vaultiqCacheManager) {
         this.sessionRepository = sessionRepository;
         this.fingerprintGenerator = fingerprintGenerator;
+        this.isCachingEnabled = props.getViaJpa().isEnableCaching();
+        this.cacheManagerName = props.getViaJpa().getCacheManagerName();
+        this.vaultiqCacheManager = vaultiqCacheManager;
     }
 
     @Override
@@ -50,21 +60,27 @@ public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
         VaultiqSession session = mapToVaultiqSession(entity);
 
         // Save in cache as well
-        cacheSession(session);
-        evictUserSessions(entity.getUserId());
+        if (isCachingEnabled) {
+            cacheSession(session);
+            evictUserSessions(entity.getUserId());
+        }
+
         return session;
     }
 
     @Override
-    @Cacheable(
-            cacheNames = "vaultiq-session-pool",
-            key = "#sessionId",
-            cacheManager = "vaultiqCacheManager"
-    )
     public VaultiqSession getSession(String sessionId) {
-        return sessionRepository.findById(sessionId)
-                .map(this::mapToVaultiqSession)
-                .orElse(null);
+        VaultiqSession session = null;
+        if (isCachingEnabled) {
+            session = getSessionViaCache(sessionId);
+        }
+        return Optional.ofNullable(session)
+                .orElseGet(() -> sessionRepository.findById(sessionId)
+                        .map(entity -> {
+                            VaultiqSession vs = mapToVaultiqSession(entity);
+                            if (isCachingEnabled) cacheSession(vs);
+                            return vs;
+                        }).orElse(null));
     }
 
     @Override
@@ -74,18 +90,14 @@ public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
                     entity.setLastActiveAt(Instant.now());
                     JpaVaultiqSession updated = sessionRepository.save(entity);
                     VaultiqSession session = mapToVaultiqSession(updated);
-                    // Update the cache too
-                    cacheSession(session);
-                    evictUserSessions(entity.getUserId());
+
+                    if (isCachingEnabled) {
+                        cacheSession(session);
+                        evictUserSessions(entity.getUserId());
+                    }
                 });
     }
 
-    @Override
-    @CacheEvict(
-            cacheNames = "vaultiq-session-pool",
-            key = "#sessionId",
-            cacheManager = "vaultiqCacheManager"
-    )
     public void deleteSession(String sessionId) {
         sessionRepository.findById(sessionId).ifPresent(entity -> {
             sessionRepository.delete(entity);
@@ -93,26 +105,41 @@ public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
         });
     }
 
-    @CacheEvict(
-            cacheNames = "vaultiq-session-pool",
-            key = "'userSessions:' + #userId",
-            cacheManager = "vaultiqCacheManager"
-    )
     public void evictUserSessions(String userId) {
-        // no implementation, the method evicts cache based on userId
+        if (isCachingEnabled) {
+            getCache().ifPresent(cache -> cache.evict(userSessionCacheKey(userId)));
+        }
+    }
+
+    private static String userSessionCacheKey(String userId) {
+        return "userSessions:" + userId;
     }
 
     @Override
-    @Cacheable(
-            cacheNames = "vaultiq-session-pool",
-            key = "'userSessions:' + #userId",
-            cacheManager = "vaultiqCacheManager"
-    )
     public List<VaultiqSession> getSessionsByUser(String userId) {
-        List<JpaVaultiqSession> entities = sessionRepository.findAllByUserId(userId);
-        return entities.stream()
-                .map(this::mapToVaultiqSession)
-                .collect(Collectors.toList());
+        List<VaultiqSession> sessions = null;
+
+        if(isCachingEnabled)
+            sessions = getCachedUserSessions(userId);
+
+        sessions = Optional.ofNullable(sessions)
+                .orElseGet(() -> sessionRepository.findAllByUserId(userId).stream()
+                        .map(this::mapToVaultiqSession)
+                        .toList());
+
+        if (isCachingEnabled && !sessions.isEmpty()) {
+            List<VaultiqSession> finalSessions = sessions;
+            getCache().ifPresent(cache -> cache.put(userSessionCacheKey(userId), finalSessions));
+        }
+
+        return sessions;
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<VaultiqSession> getCachedUserSessions(String userId) {
+        return getCache()
+                .map(cache -> cache.get(userSessionCacheKey(userId), List.class))
+                .orElse(null);
     }
 
     /**
@@ -131,12 +158,18 @@ public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
     /**
      * Helper method to put session into cache after manual changes.
      */
-    @CachePut(
-            cacheNames = "vaultiq-session-pool",
-            key = "#session.sessionId",
-            cacheManager = "vaultiqCacheManager"
-    )
-    public VaultiqSession cacheSession(VaultiqSession session) {
-        return session;
+    private void cacheSession(VaultiqSession session) {
+        getCache().ifPresent(cache -> cache.put(session.getSessionId(), session));
+    }
+
+    private VaultiqSession getSessionViaCache(String sessionId) {
+        return getCache()
+                .map(cache -> cache.get(sessionId, VaultiqSession.class))
+                .orElse(null);
+    }
+
+    private Optional<Cache> getCache() {
+        return Optional.ofNullable(vaultiqCacheManager)
+                .flatMap(cacheManager -> Optional.ofNullable(cacheManager.getCache(cacheManagerName)));
     }
 }
