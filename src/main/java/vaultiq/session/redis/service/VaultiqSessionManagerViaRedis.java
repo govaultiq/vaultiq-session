@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-@ConditionalOnBean(name = "vaultiqCacheManager")
 @ConditionalOnProperty(prefix = "vaultiq.session.persistence.via-redis",
         name = "allow-inflight-cache-management",
         havingValue = "true")
