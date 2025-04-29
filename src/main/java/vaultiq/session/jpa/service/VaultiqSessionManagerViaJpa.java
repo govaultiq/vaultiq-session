@@ -170,6 +170,6 @@ public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
 
     private Optional<Cache> getCache() {
         return Optional.ofNullable(vaultiqCacheManager)
-                .flatMap(cacheManager -> Optional.ofNullable(cacheManager.getCache(cacheManagerName)));
+                .flatMap(cacheManager -> Optional.ofNullable(cacheManager.getCache("vaultiq-session-pool")));
     }
 }
