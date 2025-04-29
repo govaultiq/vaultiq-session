@@ -51,9 +51,7 @@ To use Redis for session management, you need to configure a `CacheManager` bean
    ```java
    @Bean
    public CacheManager vaultiqCacheManager(RedisConnectionFactory redisConnectionFactory) {
-       return RedisCacheManager.builder(RedisCacheWriter.nonLockingRedisCacheWriter(redisConnectionFactory))
-                               .cacheDefaults(RedisCacheConfiguration.defaultCacheConfig())
-                               .build();
+       // configure and return CacheManager for Redis
    }
    ```
 
@@ -65,6 +63,8 @@ To use Redis for session management, you need to configure a `CacheManager` bean
          via-redis:
            enabled: true
            allow-inflight-cache-management: true
+           cache-manager-name: vaultiqCacheManager
+           cache-name: vaultiq-session-pool
    ```
 
 ### JPA Support
@@ -98,6 +98,7 @@ vaultiq:
         allow-inflight-entity-creation: true
         enable-caching: true
         cache-manager-name: vaultiqCacheManager
+        cache-name: vaultiq-session-pool
 ```
 
 This allows the library to persist session data in a relational database and cache sessions using the configured `CacheManager`.
