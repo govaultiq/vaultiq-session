@@ -37,14 +37,14 @@ public class VaultiqSessionManagerViaRedis implements VaultiqSessionManager {
         String cacheManagerName = props.getViaRedis().getCacheManagerName();
         this.cacheManager = Optional.ofNullable(cacheManagerName)
                 .map(cacheManagers::get)
-                .orElse(null);
-
-        if (cacheManager == null) {
-            log.warn("CacheManager '{}' not found, Redis session caching may fail.", cacheManagerName);
-        }
+                .orElseThrow(() -> {
+                    log.error("CacheManager '{}' not found in provided cacheManagers map.", cacheManagerName);
+                    return new IllegalStateException("Required CacheManager '" + cacheManagerName + "' not found.");
+                });
 
         this.fingerprintGenerator = fingerprintGenerator;
     }
+
 
     @Override
     public VaultiqSession createSession(String userId, HttpServletRequest request) throws IllegalStateException {
@@ -68,34 +68,37 @@ public class VaultiqSessionManagerViaRedis implements VaultiqSessionManager {
 
     @Override
     public VaultiqSession getSession(String sessionId) {
-        var userSessions = this.getUserSessionPool();
-        var session = Optional.ofNullable(userSessions.getSession(sessionId))
+        var session = Optional.ofNullable(this.getUserSessionPool())
+                .map(sessionPool -> sessionPool.getSession(sessionId))
                 .map(this::toVaultiqSession)
                 .orElse(null);
-
         log.debug("Retrieved sessionId={} from session pool, found={}", sessionId, session != null);
         return session;
     }
 
     @Override
     public void updateToCurrentlyActive(String sessionId) {
-        var userSessions = this.getUserSessionPool();
-        Optional.ofNullable(userSessions.getSession(sessionId))
-                .ifPresent(s -> {
-                    s.currentlyActive();
-                    putSessionPool(userSessions);
-                    log.info("Marked sessionId={} as currently active", sessionId);
+        Optional.ofNullable(this.getUserSessionPool())
+                .ifPresent(sessionPool -> {
+                    var session = sessionPool.getSession(sessionId);
+
+                    Optional.ofNullable(session)
+                            .ifPresent(s -> {
+                                s.currentlyActive();
+                                log.info("Marked sessionId={} as currently active", sessionId);
+                            });
+
+                    putSessionPool(sessionPool);
                 });
     }
 
     @Override
     public void deleteSession(String sessionId) {
-        var userSessions = this.getUserSessionPool();
-        Optional.ofNullable(userSessions.getSession(sessionId))
-                .ifPresent(s -> {
-                    userSessions.deleteSession(sessionId);
-                    putSessionPool(userSessions);
+        Optional.ofNullable(this.getUserSessionPool())
+                .ifPresent(sessionPool -> {
+                    sessionPool.deleteSession(sessionId);
                     log.info("Deleted sessionId={} from session pool", sessionId);
+                    putSessionPool(sessionPool);
                 });
     }
 
@@ -110,18 +113,17 @@ public class VaultiqSessionManagerViaRedis implements VaultiqSessionManager {
     }
 
     private Cache autoResolveCache() {
-        var cacheName = RedisCacheContext.getCacheName();
-        if (cacheName == null) {
-            log.error("Cache name not set in RedisCacheContext.");
-            throw new IllegalStateException("No cacheName set in RedisCacheContext.");
-        }
+        var cacheName = Optional.ofNullable(RedisCacheContext.getCacheName())
+                .orElseThrow(() -> {
+                    log.error("Cache name not set in RedisCacheContext.");
+                    return new IllegalStateException("No cacheName set in RedisCacheContext. Please call RedisCacheContext.setCacheName() before using VaultiqSessionManagerViaRedis.");
+                });
 
-        var cache = cacheManager.getCache(cacheName);
-        if (cache == null) {
-            log.error("Cache '{}' not found in CacheManager.", cacheName);
-            throw new IllegalStateException("Cache not found by name: " + cacheName);
-        }
-        return cache;
+        return Optional.ofNullable(cacheManager.getCache(cacheName))
+                .orElseThrow(() -> {
+                    log.error("Cache '{}' not found in CacheManager.", cacheName);
+                    return new IllegalStateException("Cache not found by name: " + cacheName);
+                });
     }
 
     private UserSessionPool getUserSessionPool() {
