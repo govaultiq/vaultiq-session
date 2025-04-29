@@ -28,6 +28,8 @@ public class VaultiqSessionProperties {
     public static class ViaRedis {
         private boolean enabled;
         private boolean allowInflightCacheManagement;
+        private String cacheManagerName;
+        private String cacheName;
 
         public boolean isEnabled() {
             return enabled;
@@ -44,6 +46,22 @@ public class VaultiqSessionProperties {
         public void setAllowInflightCacheManagement(boolean allowInflightCacheManagement) {
             this.allowInflightCacheManagement = allowInflightCacheManagement;
         }
+
+        public String getCacheManagerName() {
+            return cacheManagerName;
+        }
+
+        public void setCacheManagerName(String cacheManagerName) {
+            this.cacheManagerName = cacheManagerName;
+        }
+
+        public String getCacheName() {
+            return cacheName;
+        }
+
+        public void setCacheName(String cacheName) {
+            this.cacheName = cacheName;
+        }
     }
 
     public static class ViaJpa {
@@ -51,6 +69,7 @@ public class VaultiqSessionProperties {
         private boolean allowInflightEntityCreation;
         private boolean enableCaching;
         private String cacheManagerName;
+        private String cacheName;
 
         public boolean isEnabled() {
             return enabled;
@@ -82,6 +101,14 @@ public class VaultiqSessionProperties {
 
         public void setCacheManagerName(String cacheManagerName) {
             this.cacheManagerName = cacheManagerName;
+        }
+
+        public String getCacheName() {
+            return cacheName;
+        }
+
+        public void setCacheName(String cacheName) {
+            this.cacheName = cacheName;
         }
     }
 }
