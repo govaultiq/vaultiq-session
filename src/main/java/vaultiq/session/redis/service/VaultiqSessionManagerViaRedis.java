@@ -11,6 +11,7 @@ import vaultiq.session.config.VaultiqSessionProperties;
 import vaultiq.session.core.VaultiqSession;
 import vaultiq.session.core.VaultiqSessionManager;
 import vaultiq.session.fingerprint.DeviceFingerprintGenerator;
+import vaultiq.session.redis.contract.UserIdentityAware;
 import vaultiq.session.redis.model.RedisVaultiqSession;
 import vaultiq.session.redis.model.UserSessionPool;
 
@@ -27,22 +28,31 @@ public class VaultiqSessionManagerViaRedis implements VaultiqSessionManager {
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionManagerViaRedis.class);
 
     private final CacheManager cacheManager;
+    private final String cacheName;
     private final DeviceFingerprintGenerator fingerprintGenerator;
+    private final UserIdentityAware userIdentityAware;
 
     public VaultiqSessionManagerViaRedis(
             VaultiqSessionProperties props,
             Map<String, CacheManager> cacheManagers,
-            DeviceFingerprintGenerator fingerprintGenerator) {
+            DeviceFingerprintGenerator fingerprintGenerator,
+            UserIdentityAware userIdentityAware) {
 
-        String cacheManagerName = props.getViaRedis().getCacheManagerName();
-        this.cacheManager = Optional.ofNullable(cacheManagerName)
-                .map(cacheManagers::get)
-                .orElseThrow(() -> {
-                    log.error("CacheManager '{}' not found in provided cacheManagers map.", cacheManagerName);
-                    return new IllegalStateException("Required CacheManager '" + cacheManagerName + "' not found.");
-                });
+        String configuredCacheManagerName = props.getViaRedis().getCacheManagerName();
+        if (configuredCacheManagerName == null || !cacheManagers.containsKey(configuredCacheManagerName)) {
+            log.error("CacheManager '{}' not found in provided cacheManagers map.", configuredCacheManagerName);
+            throw new IllegalStateException("Required CacheManager '" + configuredCacheManagerName + "' not found.");
+        }
+        this.cacheManager = cacheManagers.get(configuredCacheManagerName);
+
+        this.cacheName = props.getViaRedis().getCacheName();
+        if (this.cacheName == null) {
+            log.error("Cache name not set in VaultiqSessionProperties.");
+            throw new IllegalStateException("Missing 'cache-name' in configuration: vaultiq.session.persistence.via-redis.cache-name");
+        }
 
         this.fingerprintGenerator = fingerprintGenerator;
+        this.userIdentityAware = userIdentityAware;
     }
 
 
@@ -113,12 +123,6 @@ public class VaultiqSessionManagerViaRedis implements VaultiqSessionManager {
     }
 
     private Cache autoResolveCache() {
-        var cacheName = Optional.ofNullable(RedisCacheContext.getCacheName())
-                .orElseThrow(() -> {
-                    log.error("Cache name not set in RedisCacheContext.");
-                    return new IllegalStateException("No cacheName set in RedisCacheContext. Please call RedisCacheContext.setCacheName() before using VaultiqSessionManagerViaRedis.");
-                });
-
         return Optional.ofNullable(cacheManager.getCache(cacheName))
                 .orElseThrow(() -> {
                     log.error("Cache '{}' not found in CacheManager.", cacheName);
@@ -127,7 +131,7 @@ public class VaultiqSessionManagerViaRedis implements VaultiqSessionManager {
     }
 
     private UserSessionPool getUserSessionPool() {
-        var userId = Optional.ofNullable(RedisCacheContext.getUserId())
+        var userId = Optional.ofNullable(userIdentityAware.getCurrentUserId())
                 .orElseThrow(() -> {
                     log.error("User ID not set in RedisCacheContext.");
                     return new IllegalStateException("No userId set in RedisCacheContext. Please call RedisCacheContext.setUserId() before using VaultiqSessionManagerViaRedis.");
@@ -139,7 +143,7 @@ public class VaultiqSessionManagerViaRedis implements VaultiqSessionManager {
     }
 
     private void putSessionPool(UserSessionPool sessionPool) {
-        Optional.ofNullable(RedisCacheContext.getUserId())
+        Optional.ofNullable(userIdentityAware.getCurrentUserId())
                 .ifPresent(userId -> {
                     this.autoResolveCache().put(userId, sessionPool);
                     log.debug("Updated session pool in cache for userId={}", userId);
