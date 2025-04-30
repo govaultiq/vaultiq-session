@@ -15,4 +15,6 @@ public interface VaultiqSessionManager {
     void deleteSession(String sessionId);
 
     List<VaultiqSession> getSessionsByUser(String userId);
+
+    int totalUserSessions(String userId);
 }

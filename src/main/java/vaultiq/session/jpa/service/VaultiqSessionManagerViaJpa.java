@@ -173,6 +173,13 @@ public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
         return sessions;
     }
 
+    @Override
+    public int totalUserSessions(String userId) {
+        return Optional.ofNullable(getSessionsByUser(userId))
+                .map(List::size)
+                .orElseGet(() -> sessionRepository.countByUserId(userId));
+    }
+
     @SuppressWarnings("unchecked")
     private List<VaultiqSession> getCachedUserSessions(String userId) {
         return getCache()

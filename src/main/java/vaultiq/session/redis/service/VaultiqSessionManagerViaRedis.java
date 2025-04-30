@@ -122,6 +122,11 @@ public class VaultiqSessionManagerViaRedis implements VaultiqSessionManager {
         return sessions;
     }
 
+    @Override
+    public int totalUserSessions(String userId) {
+        return getSessionsByUser(userId).size();
+    }
+
     private Cache autoResolveCache() {
         return Optional.ofNullable(cacheManager.getCache(cacheName))
                 .orElseThrow(() -> {
