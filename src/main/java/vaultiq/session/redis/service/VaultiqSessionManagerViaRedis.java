@@ -7,6 +7,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
+import vaultiq.session.config.ConditionalOnVaultiqPersistence;
+import vaultiq.session.config.VaultiqPersistenceMode;
 import vaultiq.session.config.VaultiqSessionProperties;
 import vaultiq.session.core.VaultiqSession;
 import vaultiq.session.core.VaultiqSessionManager;
@@ -20,9 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
-@ConditionalOnProperty(prefix = "vaultiq.session.persistence.via-redis",
-        name = "allow-inflight-cache-management",
-        havingValue = "true")
+@ConditionalOnVaultiqPersistence(VaultiqPersistenceMode.CACHE_ONLY)
 public class VaultiqSessionManagerViaRedis implements VaultiqSessionManager {
 
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionManagerViaRedis.class);
@@ -38,17 +38,17 @@ public class VaultiqSessionManagerViaRedis implements VaultiqSessionManager {
             DeviceFingerprintGenerator fingerprintGenerator,
             UserIdentityAware userIdentityAware) {
 
-        String configuredCacheManagerName = props.getViaRedis().getCacheManagerName();
+        String configuredCacheManagerName = props.getCache().getManager();
         if (configuredCacheManagerName == null || !cacheManagers.containsKey(configuredCacheManagerName)) {
-            log.error("CacheManager '{}' not found in provided cacheManagers map.", configuredCacheManagerName);
+            log.error("CacheManager `{}` not found, isConfigured: {}", configuredCacheManagerName, configuredCacheManagerName != null && !configuredCacheManagerName.isBlank());
             throw new IllegalStateException("Required CacheManager '" + configuredCacheManagerName + "' not found.");
         }
         this.cacheManager = cacheManagers.get(configuredCacheManagerName);
 
-        this.cacheName = props.getViaRedis().getCacheName();
+        this.cacheName = props.getCache().getSessionPool();
         if (this.cacheName == null) {
-            log.error("Cache name not set in VaultiqSessionProperties.");
-            throw new IllegalStateException("Missing 'cache-name' in configuration: vaultiq.session.persistence.via-redis.cache-name");
+            log.error("cache 'session-pool' name is not set");
+            throw new IllegalStateException("Missing 'session-pool' in configuration: vaultiq.session.persistence.cache.session-pool");
         }
 
         this.fingerprintGenerator = fingerprintGenerator;

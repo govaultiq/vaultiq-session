@@ -11,5 +11,5 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Conditional(VaultiqPersistenceCondition.class)
 public @interface ConditionalOnVaultiqPersistence {
-    VaultiqPersistenceMode mode();
+     VaultiqPersistenceMode value();
 }
