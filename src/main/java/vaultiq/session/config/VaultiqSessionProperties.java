@@ -6,30 +6,42 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties("vaultiq.session.persistence")
 public class VaultiqSessionProperties {
-    private ViaRedis viaRedis;
-    private ViaJpa viaJpa;
+    private Jpa jpa;
+    private Cache cache;
 
-    public ViaRedis getViaRedis() {
-        return viaRedis;
+    public Jpa getJpa() {
+        return jpa;
     }
 
-    public void setViaRedis(ViaRedis viaRedis) {
-        this.viaRedis = viaRedis;
+    public void setJpa(Jpa jpa) {
+        this.jpa = jpa;
     }
 
-    public ViaJpa getViaJpa() {
-        return viaJpa;
+    public Cache getCache() {
+        return cache;
     }
 
-    public void setViaJpa(ViaJpa viaJpa) {
-        this.viaJpa = viaJpa;
+    public void setCache(Cache cache) {
+        this.cache = cache;
     }
 
-    public static class ViaRedis {
+    public static class Jpa {
         private boolean enabled;
-        private boolean allowInflightCacheManagement;
-        private String cacheManagerName;
-        private String cacheName;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+    }
+
+    public static class Cache {
+        private boolean enabled;
+        private String manager;
+        private String sessionPool;
+        private String blocklistPool;
 
         public boolean isEnabled() {
             return enabled;
@@ -39,76 +51,28 @@ public class VaultiqSessionProperties {
             this.enabled = enabled;
         }
 
-        public boolean isAllowInflightCacheManagement() {
-            return allowInflightCacheManagement;
+        public String getManager() {
+            return manager;
         }
 
-        public void setAllowInflightCacheManagement(boolean allowInflightCacheManagement) {
-            this.allowInflightCacheManagement = allowInflightCacheManagement;
+        public void setManager(String manager) {
+            this.manager = manager;
         }
 
-        public String getCacheManagerName() {
-            return cacheManagerName;
+        public String getSessionPool() {
+            return sessionPool;
         }
 
-        public void setCacheManagerName(String cacheManagerName) {
-            this.cacheManagerName = cacheManagerName;
+        public void setSessionPool(String sessionPool) {
+            this.sessionPool = sessionPool;
         }
 
-        public String getCacheName() {
-            return cacheName;
+        public String getBlocklistPool() {
+            return blocklistPool;
         }
 
-        public void setCacheName(String cacheName) {
-            this.cacheName = cacheName;
-        }
-    }
-
-    public static class ViaJpa {
-        private boolean enabled;
-        private boolean allowInflightEntityCreation;
-        private boolean enableCaching;
-        private String cacheManagerName;
-        private String cacheName;
-
-        public boolean isEnabled() {
-            return enabled;
-        }
-
-        public void setEnabled(boolean enabled) {
-            this.enabled = enabled;
-        }
-
-        public boolean isAllowInflightEntityCreation() {
-            return allowInflightEntityCreation;
-        }
-
-        public void setAllowInflightEntityCreation(boolean allowInflightEntityCreation) {
-            this.allowInflightEntityCreation = allowInflightEntityCreation;
-        }
-
-        public boolean isEnableCaching() {
-            return enableCaching;
-        }
-
-        public void setEnableCaching(boolean enableCaching) {
-            this.enableCaching = enableCaching;
-        }
-
-        public String getCacheManagerName() {
-            return cacheManagerName;
-        }
-
-        public void setCacheManagerName(String cacheManagerName) {
-            this.cacheManagerName = cacheManagerName;
-        }
-
-        public String getCacheName() {
-            return cacheName;
-        }
-
-        public void setCacheName(String cacheName) {
-            this.cacheName = cacheName;
+        public void setBlocklistPool(String blocklistPool) {
+            this.blocklistPool = blocklistPool;
         }
     }
 }
