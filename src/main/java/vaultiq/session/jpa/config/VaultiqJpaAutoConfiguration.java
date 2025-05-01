@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnProperty(prefix = "vaultiq.session.persistence.via-jpa", name = "allow-inflight-entity-creation", havingValue = "true")
+@ConditionalOnProperty(prefix = "vaultiq.session.persistence.jpa", name = "enabled", havingValue = "true")
 @EntityScan("vaultiq.session.jpa.model")
 @EnableJpaRepositories("vaultiq.session.jpa.repository")
 public final class VaultiqJpaAutoConfiguration {
