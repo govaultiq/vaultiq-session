@@ -1,160 +1,220 @@
 # Vaultiq-Session
 
-`vaultiq-session` is a robust session management library designed for applications needing device-based session handling. It supports both **JPA** and **Redis** persistence backends, allowing seamless integration into your Spring Boot applications. The library offers flexibility in how sessions are managed and stored, supporting cache management and entity persistence for device sessions.
+**`vaultiq-session`** is a flexible, pluggable session management library for Spring Boot applications that simplifies per-device session tracking with support for **JPA**, **in-memory caching**, or a hybrid approach.
 
-## Features
+## 🔧 Features
 
-🔐 **Session Management**: Creates and manages device sessions for users, with support for updating activity and deletion.  
-🚀 **Redis Support**: Use Redis for in-memory session caching, optimizing performance.  
-🗄️ **JPA Support**: Persist sessions in a relational database via JPA for reliable storage.  
-🧠 **Caching Layer (JPA)**: Optional in-memory cache for JPA sessions using a named `CacheManager`.  
-🖥️ **Device Fingerprinting**: Ensures that sessions are tied to specific devices using customizable device fingerprints.  
-🔗 **Seamless Integration**: Integrates effortlessly with Vaultiq’s ecosystem and any Spring Boot application.
+- ✅ **Device-Based Session Management** - Track and manage sessions per device
+- 📔 **JPA Support** - Durable, persistent storage for session data
+- ⚡ **Cache Support** - High-speed lookups with Redis or other cache providers
+- 🔁 **Hybrid JPA + Cache Mode** - Get the best of both worlds for performance and durability
+- 🖥️ **Smart Device Fingerprinting** - Built-in logic with customization options
+- 🔒 **Session Security** - Efficient blocklisting mechanisms for terminated sessions
+- 🔗 **Seamless Integration** - Works with Vaultiq's ecosystem and any Spring Boot application
+- ✨ **Fully Configurable** - Managed internally but easily customizable
 
-## Table of Contents
+---
 
-- [Installation](#installation)
-- [Configuration](#configuration)
-  - [Redis Support](#redis-support)
-  - [JPA Support](#jpa-support)
-- [Usage](#usage)
-  - [Session Management](#session-management)
-  - [Device Fingerprinting](#device-fingerprinting)
-- [Contributing](#contributing)
-- [License](#license)
+## 📦 Installation
 
-## Installation
-
-Coming soon, via Maven Central.
-
-## Configuration
-
-### Redis Support
-
-To use Redis for session management, you need to configure a `CacheManager` bean in your application.
-
-#### Steps:
-1. Add the required Redis dependency to your project:
-   ```xml
-   <dependency>
-       <groupId>org.springframework.boot</groupId>
-       <artifactId>spring-boot-starter-data-redis</artifactId>
-   </dependency>
-   <dependency> <!-- not yet available -->
-      <groupId>com.vaultiq</groupId>
-      <artifactId>vaultiq-session</artifactId>
-      <version>1.0.0</version>
-   </dependency>
-   ```
-
-2. Configure your `CacheManager` bean:
-   ```java
-   @Bean
-   public CacheManager vaultiqCacheManager(RedisConnectionFactory redisConnectionFactory) {
-       // configure and return CacheManager for Redis
-   }
-   ```
-
-3. Enable Redis session management in your configuration:
-   ```yaml
-   vaultiq:
-     session:
-       persistence:
-         via-redis:
-           enabled: true
-           allow-inflight-cache-management: true
-           cache-manager-name: vaultiqCacheManager
-           cache-name: vaultiq-session-pool
-   ```
-
-### JPA Support
-
-To use JPA for session management, add the following dependencies:
+Coming soon on Maven Central.
 
 ```xml
 <dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-data-jpa</artifactId>
-</dependency>
-<dependency>
-   <groupId>org.springframework.boot</groupId>
-   <artifactId>spring-boot-starter-data-redis</artifactId>
-</dependency>
-<dependency> <!-- not yet available -->
-    <groupId>com.vaultiq</groupId>
-    <artifactId>vaultiq-session</artifactId>
-    <version>1.0.0</version>
+  <groupId>com.vaultiq</groupId>
+  <artifactId>vaultiq-session</artifactId>
+  <version>1.0.0</version>
 </dependency>
 ```
 
-Enable JPA and optional caching support in your configuration:
+---
+
+## ⚙️ Configuration
+
+Use the following structure in your `application.yml` to enable your preferred session management mode:
+
+### Option 1: JPA-Only Mode
 
 ```yaml
 vaultiq:
   session:
     persistence:
-      via-jpa:
+      jpa:
         enabled: true
-        allow-inflight-entity-creation: true
-        enable-caching: true
-        cache-manager-name: vaultiqCacheManager
-        cache-name: vaultiq-session-pool
+      cache:
+        enabled: false
 ```
 
-This allows the library to persist session data in a relational database and cache sessions using the configured `CacheManager`.
+### Option 2: Cache-Only Mode (e.g., Redis)
 
-## Usage
-
-### Session Management
-
-Interact with the `VaultiqSessionManager` interface, which provides the following methods:
-
-- `createSession(String userId, HttpServletRequest request)` - Creates a new session for a user.
-- `getSession(String sessionId)` - Retrieves a session by ID.
-- `deleteSession(String sessionId)` - Deletes a session.
-- `updateToCurrentlyActive(String sessionId)` - Updates the last active timestamp.
-- `getSessionsByUser(String userId)` - Gets all sessions for a user.
-
-```java
-@Autowired
-private VaultiqSessionManager sessionManager;
-
-VaultiqSession session = sessionManager.createSession("user123", request);
-VaultiqSession existingSession = sessionManager.getSession(sessionId);
-sessionManager.updateToCurrentlyActive(sessionId);
-sessionManager.deleteSession(sessionId);
-List<VaultiqSession> userSessions = sessionManager.getSessionsByUser("user123");
+```yaml
+vaultiq:
+  session:
+    persistence:
+      jpa:
+        enabled: false
+      cache:
+        enabled: true
+        manager: vaultiqCacheManager
+        sessionPool: vaultiq-session-pool
+        blocklistPool: vaultiq-blocklist-pool
 ```
 
-### Device Fingerprinting
-
-The library uses device fingerprints to tie sessions to specific devices.
-
-- Implement `DeviceFingerprintGenerator` to customize fingerprint logic.
-- Implement `DeviceFingerprintValidator` to validate fingerprints if needed.
+> ⚠️ When using cache-only mode, you **must implement** `UserIdentityAware` to provide current user context.
 
 ```java
 @Component
-public class CustomDeviceFingerprintGenerator implements DeviceFingerprintGenerator {
+public class SecurityContextUserIdentity implements UserIdentityAware {
     @Override
-    public String generateFingerprint(HttpServletRequest request) {
-        return request.getHeader("User-Agent") + "::" + request.getRemoteAddr();
+    public String getCurrentUserId() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 }
 ```
 
-## Contributing
+### Option 3: Hybrid Mode (JPA + Cache)
 
-We welcome contributions. To get started:
+```yaml
+vaultiq:
+  session:
+    persistence:
+      jpa:
+        enabled: true
+      cache:
+        enabled: true
+        manager: vaultiqCacheManager
+        sessionPool: vaultiq-session-pool
+        blocklistPool: vaultiq-blocklist-pool
+```
 
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature/your-feature`).
-3. Make your changes.
-4. Commit (`git commit -am 'Add new feature'`).
-5. Push (`git push origin feature/your-feature`).
-6. Open a pull request.
+---
 
-## License
+## 🧠 Custom Device Fingerprinting
 
-This library is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
+The default fingerprinting works out of the box, but you can implement your own strategy:
 
+```java
+@Component
+public class MyDeviceFingerprintGenerator implements DeviceFingerprintGenerator {
+    @Override
+    public String generateFingerprint(HttpServletRequest request) {
+        // Your custom implementation here
+        // E.g., combine IP, user-agent, and other device identifiers
+        return customFingerprint;
+    }
+}
+```
+
+---
+
+## 🚀 Usage Examples
+
+### Basic Operations
+
+Inject the session manager in your components:
+
+```java
+@Autowired
+private VaultiqSessionManager sessionManager;
+```
+
+Create and manage sessions:
+
+```java
+// Create a new session for a user
+VaultiqSession session = sessionManager.createSession("user123", request);
+
+// Retrieve an existing session
+VaultiqSession fetched = sessionManager.getSession(session.getSessionId());
+
+// Mark a session as currently active
+sessionManager.updateToCurrentlyActive(fetched.getSessionId());
+
+// End a session
+sessionManager.deleteSession(fetched.getSessionId());
+
+// List all sessions for a user
+List<VaultiqSession> userSessions = sessionManager.getSessionsByUser("user123");
+
+// Count active sessions
+int sessionCount = sessionManager.totalUserSessions("user123");
+```
+
+### Integration with Authentication
+
+```java
+@RestController
+public class AuthController {
+    @Autowired
+    private VaultiqSessionManager sessionManager;
+    
+    @PostMapping("/login")
+    public LoginResponse login(@RequestBody LoginRequest request, HttpServletRequest httpRequest) {
+        // Authenticate user...
+        
+        // Create a new session
+        VaultiqSession session = sessionManager.createSession(user.getId(), httpRequest);
+        
+        return LoginResponse.builder()
+            .token(generateJwt(user, session.getSessionId()))
+            .build();
+    }
+    
+    @PostMapping("/logout")
+    public void logout(@RequestHeader("Authorization") String token) {
+        String sessionId = extractSessionFromJwt(token);
+        sessionManager.deleteSession(sessionId);
+    }
+}
+```
+
+---
+
+## 📊 Performance Considerations
+
+- **JPA-Only Mode**: Best for applications where durability is critical
+- **Cache-Only Mode**: Optimal for high-traffic applications requiring speed
+- **Hybrid Mode**: Recommended for most production deployments to balance performance and reliability
+
+---
+
+## 🛠️ Advanced Configuration
+
+### Custom TTL Settings
+
+```yaml
+vaultiq:
+  session:
+    ttl:
+      default: 3600 # Default session TTL in seconds
+      extended: 86400 # Extended session TTL for "remember me"
+```
+
+### Customizing Entity Classes
+
+If you need to extend the default session entity:
+
+```java
+@EntityListeners(AuditingEntityListener.class)
+@Entity
+@Table(name = "my_custom_sessions")
+public class CustomSessionEntity extends VaultiqSessionEntity {
+    // Additional fields and methods
+}
+```
+
+---
+
+## 🤝 Contributing
+
+1. Fork and clone the repo
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a pull request
+
+---
+
+## 📝 License
+
+Licensed under the [MIT License](LICENSE).
