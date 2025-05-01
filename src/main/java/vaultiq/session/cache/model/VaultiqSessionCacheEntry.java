@@ -1,22 +1,22 @@
-package vaultiq.session.redis.model;
+package vaultiq.session.cache.model;
 
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
 
-public final class RedisVaultiqSession implements Serializable {
+public final class VaultiqSessionCacheEntry implements Serializable {
     private String sessionId;
     private String userId;
     private String deviceFingerPrint;
     private Instant createdAt;
     private Instant lastActiveAt;
 
-    private RedisVaultiqSession() {
+    private VaultiqSessionCacheEntry() {
         // Avoiding Direct Instantiation
     }
 
-    public static RedisVaultiqSession create(String userId, String deviceFingerPrint){
-        RedisVaultiqSession vaultiqSession = new RedisVaultiqSession();
+    public static VaultiqSessionCacheEntry create(String userId, String deviceFingerPrint){
+        VaultiqSessionCacheEntry vaultiqSession = new VaultiqSessionCacheEntry();
         vaultiqSession.sessionId = UUID.randomUUID().toString();
         vaultiqSession.userId = userId;
         vaultiqSession.deviceFingerPrint = deviceFingerPrint;
@@ -54,7 +54,7 @@ public final class RedisVaultiqSession implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RedisVaultiqSession that = (RedisVaultiqSession) o;
+        VaultiqSessionCacheEntry that = (VaultiqSessionCacheEntry) o;
 
         return sessionId.equals(that.sessionId);
     }

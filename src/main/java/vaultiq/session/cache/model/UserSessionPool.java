@@ -1,4 +1,4 @@
-package vaultiq.session.redis.model;
+package vaultiq.session.cache.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Optional;
 
 public class UserSessionPool implements Serializable {
-    List<RedisVaultiqSession> sessions;
+    List<VaultiqSessionCacheEntry> sessions;
 
-    public UserSessionPool(List<RedisVaultiqSession> sessions) {
+    public UserSessionPool(List<VaultiqSessionCacheEntry> sessions) {
         this.sessions = sessions;
     }
 
@@ -16,15 +16,15 @@ public class UserSessionPool implements Serializable {
         return new UserSessionPool(new ArrayList<>());
     }
 
-    public List<RedisVaultiqSession> getSessions() {
+    public List<VaultiqSessionCacheEntry> getSessions() {
         return Optional.ofNullable(sessions).orElseGet(ArrayList::new);
     }
 
-    public void setSessions(List<RedisVaultiqSession> sessions) {
+    public void setSessions(List<VaultiqSessionCacheEntry> sessions) {
         this.sessions = sessions;
     }
 
-    public void addSession(RedisVaultiqSession session) {
+    public void addSession(VaultiqSessionCacheEntry session) {
         var didUpdate = this.updateSession(session);
         if(!didUpdate)
             sessions.add(session);
@@ -38,8 +38,8 @@ public class UserSessionPool implements Serializable {
         return sessions.isEmpty();
     }
 
-    public RedisVaultiqSession getSession(String sessionId) {
-        for (RedisVaultiqSession session : sessions) {
+    public VaultiqSessionCacheEntry getSession(String sessionId) {
+        for (VaultiqSessionCacheEntry session : sessions) {
             if (session.getSessionId().equals(sessionId)) {
                 return session;
             }
@@ -47,7 +47,7 @@ public class UserSessionPool implements Serializable {
         return null;
     }
 
-    public boolean updateSession(RedisVaultiqSession session) {
+    public boolean updateSession(VaultiqSessionCacheEntry session) {
         for (int i = 0; i < sessions.size(); i++) {
             if (sessions.get(i).getSessionId().equals(session.getSessionId())) {
                 sessions.set(i, session);

@@ -1,4 +1,4 @@
-package vaultiq.session.redis.contract;
+package vaultiq.session.cache.contract;
 
 @FunctionalInterface
 public interface UserIdentityAware {

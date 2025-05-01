@@ -1,9 +1,8 @@
-package vaultiq.session.redis.service;
+package vaultiq.session.cache.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
@@ -13,9 +12,9 @@ import vaultiq.session.config.VaultiqSessionProperties;
 import vaultiq.session.core.VaultiqSession;
 import vaultiq.session.core.VaultiqSessionManager;
 import vaultiq.session.fingerprint.DeviceFingerprintGenerator;
-import vaultiq.session.redis.contract.UserIdentityAware;
-import vaultiq.session.redis.model.RedisVaultiqSession;
-import vaultiq.session.redis.model.UserSessionPool;
+import vaultiq.session.cache.contract.UserIdentityAware;
+import vaultiq.session.cache.model.VaultiqSessionCacheEntry;
+import vaultiq.session.cache.model.UserSessionPool;
 
 import java.util.List;
 import java.util.Map;
@@ -23,16 +22,16 @@ import java.util.Optional;
 
 @Service
 @ConditionalOnVaultiqPersistence(VaultiqPersistenceMode.CACHE_ONLY)
-public class VaultiqSessionManagerViaRedis implements VaultiqSessionManager {
+public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
 
-    private static final Logger log = LoggerFactory.getLogger(VaultiqSessionManagerViaRedis.class);
+    private static final Logger log = LoggerFactory.getLogger(VaultiqSessionManagerViaCache.class);
 
     private final CacheManager cacheManager;
     private final String cacheName;
     private final DeviceFingerprintGenerator fingerprintGenerator;
     private final UserIdentityAware userIdentityAware;
 
-    public VaultiqSessionManagerViaRedis(
+    public VaultiqSessionManagerViaCache(
             VaultiqSessionProperties props,
             Map<String, CacheManager> cacheManagers,
             DeviceFingerprintGenerator fingerprintGenerator,
@@ -59,7 +58,7 @@ public class VaultiqSessionManagerViaRedis implements VaultiqSessionManager {
     @Override
     public VaultiqSession createSession(String userId, HttpServletRequest request) throws IllegalStateException {
         var fingerprint = fingerprintGenerator.generateFingerprint(request);
-        var redisVaultiqSession = RedisVaultiqSession.create(userId, fingerprint);
+        var redisVaultiqSession = VaultiqSessionCacheEntry.create(userId, fingerprint);
         log.info("Creating session for userId={}, deviceFingerprint={}", userId, fingerprint);
 
         var cache = autoResolveCache();
@@ -155,7 +154,7 @@ public class VaultiqSessionManagerViaRedis implements VaultiqSessionManager {
                 });
     }
 
-    private VaultiqSession toVaultiqSession(RedisVaultiqSession source) {
+    private VaultiqSession toVaultiqSession(VaultiqSessionCacheEntry source) {
         return VaultiqSession.builder()
                 .sessionId(source.getSessionId())
                 .userId(source.getUserId())
