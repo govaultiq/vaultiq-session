@@ -85,7 +85,6 @@ public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
         return session;
     }
 
-    @Override
     public void updateToCurrentlyActive(String sessionId) {
         Optional.ofNullable(this.getUserSessionPool())
                 .ifPresent(sessionPool -> {

@@ -45,7 +45,6 @@ public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionMa
         return sessionService.get(sessionId);
     }
 
-    @Override
     @CachePut(key = "#result.sessionId")
     public void updateToCurrentlyActive(String sessionId) {
         log.debug("Updating lastActiveAt status for session '{}' in cache.", sessionId);
