@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import vaultiq.session.config.ConditionalOnVaultiqPersistence;
 import vaultiq.session.config.VaultiqPersistenceMode;
 import vaultiq.session.core.VaultiqSession;
+import vaultiq.session.core.VaultiqSessionManager;
 
 import java.util.List;
 
@@ -19,7 +20,7 @@ import java.util.List;
 )
 @ConditionalOnBean(VaultiqSessionService.class)
 @ConditionalOnVaultiqPersistence(VaultiqPersistenceMode.JPA_AND_CACHE)
-public class VaultiqSessionManagerViaJpaCacheEnabled {
+public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionManager {
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionManagerViaJpaCacheEnabled.class);
 
     private final VaultiqSessionService sessionService;
@@ -29,30 +30,34 @@ public class VaultiqSessionManagerViaJpaCacheEnabled {
         this.sessionService = sessionService;
     }
 
+    @Override
     @CachePut(key = "#result.sessionId")
-    public VaultiqSession create(String userId, HttpServletRequest request) {
+    public VaultiqSession createSession(String userId, HttpServletRequest request) {
         VaultiqSession session = sessionService.create(userId, request);
         log.debug("Storing newly created session '{}' in cache.", session.getSessionId());
         return session;
     }
 
+    @Override
     @Cacheable(key = "#sessionId")
-    public VaultiqSession get(String sessionId) {
+    public VaultiqSession getSession(String sessionId) {
         log.debug("Fetching session '{}' from cache or DB.", sessionId);
         return sessionService.get(sessionId);
     }
 
+    @Override
     @CachePut(key = "#result.sessionId")
-    public VaultiqSession touch(String sessionId) {
+    public void updateToCurrentlyActive(String sessionId) {
         log.debug("Updating lastActiveAt status for session '{}' in cache.", sessionId);
-        return sessionService.touch(sessionId);
+        sessionService.touch(sessionId);
     }
 
+    @Override
     @CacheEvict(key = "#sessionId")
-    public void delete(String sessionId) {
+    public void deleteSession(String sessionId) {
         log.debug("Deleting session '{}' and evicting from cache.", sessionId);
 
-        var session = this.get(sessionId);
+        var session = this.getSession(sessionId);
 
         if (session != null) {
             sessionService.delete(sessionId);
@@ -63,21 +68,22 @@ public class VaultiqSessionManagerViaJpaCacheEnabled {
 
     }
 
-    public List<VaultiqSession> list(String userId) {
+    @Override
+    public List<VaultiqSession> getSessionsByUser(String userId) {
         log.debug("Fetching sessions for user '{}'.", userId);
         var sessionIds = this.getSessionIdsByUser(userId);
 
         if (!sessionIds.isEmpty()) {
             return sessionIds.stream()
-                    .map(this::get)
+                    .map(this::getSession)
                     .toList();
         } else {
             return sessionService.list(userId);
         }
-
     }
 
-    public int count(String userId) {
+    @Override
+    public int totalUserSessions(String userId) {
         log.debug("Counting sessions for user '{}'.", userId);
         var sessionIds = this.getSessionIdsByUser(userId);
 
