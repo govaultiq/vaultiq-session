@@ -2,6 +2,8 @@
 
 **`vaultiq-session`** is a flexible, pluggable session management library for Spring Boot applications that simplifies per-device session tracking with support for **JPA**, **in-memory caching**, or a hybrid approach.
 
+<br>
+
 ## 🔧 Features
 
 - ✅ **Device-Based Session Management** - Track and manage sessions per device
@@ -13,7 +15,7 @@
 - 🔗 **Seamless Integration** - Works with Vaultiq's ecosystem and any Spring Boot application
 - ✨ **Fully Configurable** - Managed internally but easily customizable
 
----
+<br>
 
 ## 📦 Installation
 
@@ -27,7 +29,7 @@ Coming soon on Maven Central.
 </dependency>
 ```
 
----
+<br>
 
 ## ⚙️ Configuration
 
@@ -87,7 +89,7 @@ vaultiq:
         blocklistPool: vaultiq-blocklist-pool
 ```
 
----
+<br>
 
 ## 🧠 Custom Device Fingerprinting
 
@@ -105,7 +107,7 @@ public class MyDeviceFingerprintGenerator implements DeviceFingerprintGenerator 
 }
 ```
 
----
+<br>
 
 ## 🚀 Usage Examples
 
@@ -159,16 +161,10 @@ public class AuthController {
             .token(generateJwt(user, session.getSessionId()))
             .build();
     }
-    
-    @PostMapping("/logout")
-    public void logout(@RequestHeader("Authorization") String token) {
-        String sessionId = extractSessionFromJwt(token);
-        sessionManager.deleteSession(sessionId);
-    }
 }
 ```
 
----
+<br>
 
 ## 📊 Performance Considerations
 
@@ -176,34 +172,7 @@ public class AuthController {
 - **Cache-Only Mode**: Optimal for high-traffic applications requiring speed
 - **Hybrid Mode**: Recommended for most production deployments to balance performance and reliability
 
----
-
-## 🛠️ Advanced Configuration
-
-### Custom TTL Settings
-
-```yaml
-vaultiq:
-  session:
-    ttl:
-      default: 3600 # Default session TTL in seconds
-      extended: 86400 # Extended session TTL for "remember me"
-```
-
-### Customizing Entity Classes
-
-If you need to extend the default session entity:
-
-```java
-@EntityListeners(AuditingEntityListener.class)
-@Entity
-@Table(name = "my_custom_sessions")
-public class CustomSessionEntity extends VaultiqSessionEntity {
-    // Additional fields and methods
-}
-```
-
----
+<br>
 
 ## 🤝 Contributing
 
@@ -213,7 +182,7 @@ public class CustomSessionEntity extends VaultiqSessionEntity {
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a pull request
 
----
+<br>
 
 ## 📝 License
 
