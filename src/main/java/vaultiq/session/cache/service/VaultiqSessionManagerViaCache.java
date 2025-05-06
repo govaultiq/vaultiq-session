@@ -44,7 +44,7 @@ public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
         }
         this.cacheManager = cacheManagers.get(configuredCacheManagerName);
 
-        this.cacheName = props.getCache().getSessionPool();
+        this.cacheName = props.getCache().getCacheNames().getSessions();
         if (this.cacheName == null) {
             log.error("cache 'session-pool' name is not set");
             throw new IllegalStateException("Missing 'session-pool' in configuration: vaultiq.session.persistence.cache.session-pool");
@@ -85,7 +85,6 @@ public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
         return session;
     }
 
-    @Override
     public void updateToCurrentlyActive(String sessionId) {
         Optional.ofNullable(this.getUserSessionPool())
                 .ifPresent(sessionPool -> {
