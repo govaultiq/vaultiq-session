@@ -15,8 +15,8 @@ import java.util.List;
 
 @Service
 @CacheConfig(
-        cacheNames = "${vaultiq.session.persistence.jpa.session-pool}",
-        cacheManager = "${vaultiq.session.persistence.jpa.manager}"
+        cacheNames = "${vaultiq.session.persistence.cache.cache-names.sessions}",
+        cacheManager = "${vaultiq.session.persistence.cache.manager}"
 )
 @ConditionalOnBean(VaultiqSessionService.class)
 @ConditionalOnVaultiqPersistence(VaultiqPersistenceMode.JPA_AND_CACHE)
