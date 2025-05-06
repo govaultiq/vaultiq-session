@@ -1,5 +1,7 @@
 package vaultiq.session.cache.model;
 
+import vaultiq.session.core.VaultiqSession;
+
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
@@ -23,6 +25,16 @@ public final class VaultiqSessionCacheEntry implements Serializable {
         vaultiqSession.createdAt = Instant.now();
         vaultiqSession.lastActiveAt = Instant.now();
         return vaultiqSession;
+    }
+
+    public static VaultiqSessionCacheEntry copy(VaultiqSession source) {
+        VaultiqSessionCacheEntry cacheEntry = new VaultiqSessionCacheEntry();
+        cacheEntry.sessionId = source.getSessionId();
+        cacheEntry.userId = source.getUserId();
+        cacheEntry.deviceFingerPrint = source.getDeviceFingerPrint();
+        cacheEntry.createdAt = source.getCreatedAt();
+        cacheEntry.lastActiveAt = source.getLastActiveAt();
+        return cacheEntry;
     }
 
     public void currentlyActive() {

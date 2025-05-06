@@ -3,6 +3,7 @@ package vaultiq.session.cache.service;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import java.time.Instant;
 import java.util.*;
 
 @Service
+@ConditionalOnProperty(prefix = "vaultiq.session.persistence.cache", name = "enabled", havingValue = "true")
 public class VaultiqSessionCacheService {
 
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionCacheService.class);
@@ -88,6 +90,12 @@ public class VaultiqSessionCacheService {
         return toVaultiqSession(sessionEntry);
     }
 
+    public void cacheSession(VaultiqSession vaultiqSession) {
+        log.info("Caching session with sessionId={}", vaultiqSession.getSessionId());
+        VaultiqSessionCacheEntry cacheEntry = VaultiqSessionCacheEntry.copy(vaultiqSession);
+        sessionPoolCache.put(keyForSession(vaultiqSession.getSessionId()), cacheEntry);
+    }
+
     public VaultiqSession getSession(String sessionId) {
         var session = Optional.ofNullable(sessionPoolCache.get(keyForSession(sessionId), VaultiqSessionCacheEntry.class))
                 .map(this::toVaultiqSession)
@@ -145,7 +153,7 @@ public class VaultiqSessionCacheService {
         userSessionMappingCache.put(keyForUserSessionMapping(userId), updated);
     }
 
-    private List<String> getUserSessionIds(String userId) {
+    public List<String> getUserSessionIds(String userId) {
         return Optional.ofNullable(userSessionMappingCache.get(keyForUserSessionMapping(userId), SessionIds.class))
                 .map(SessionIds::getSessions)
                 .orElseGet(ArrayList::new);
@@ -159,6 +167,14 @@ public class VaultiqSessionCacheService {
                 .createdAt(source.getCreatedAt())
                 .lastActiveAt(source.getLastActiveAt())
                 .build();
+    }
+
+    public void cacheUserSessions(String userId, List<VaultiqSession> sessions) {
+        sessions.forEach(this::cacheSession);
+        var sessionIds = sessions.stream().map(VaultiqSession::getSessionId).toList();
+        SessionIds ids = new SessionIds();
+        ids.setSessions(sessionIds);
+        userSessionMappingCache.put(keyForUserSessionMapping(userId), ids);
     }
 
     private static class SessionIds implements Serializable {
