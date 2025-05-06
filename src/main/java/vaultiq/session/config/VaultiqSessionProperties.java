@@ -3,11 +3,14 @@ package vaultiq.session.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
+
 @Component
 @ConfigurationProperties("vaultiq.session.persistence")
 public class VaultiqSessionProperties {
     private Jpa jpa;
     private Cache cache;
+    private Duration syncInterval = Duration.ofMinutes(5);
 
     public Jpa getJpa() {
         return jpa;
@@ -25,6 +28,14 @@ public class VaultiqSessionProperties {
         this.cache = cache;
     }
 
+    public Duration getSyncInterval() {
+        return syncInterval;
+    }
+
+    public void setSyncInterval(Duration syncInterval) {
+        this.syncInterval = syncInterval;
+    }
+
     public static class Jpa {
         private boolean enabled;
 
@@ -40,8 +51,7 @@ public class VaultiqSessionProperties {
     public static class Cache {
         private boolean enabled;
         private String manager;
-        private String sessionPool;
-        private String blocklistPool;
+        private CacheNames cacheNames;
 
         public boolean isEnabled() {
             return enabled;
@@ -59,20 +69,51 @@ public class VaultiqSessionProperties {
             this.manager = manager;
         }
 
-        public String getSessionPool() {
-            return sessionPool;
+        public CacheNames getCacheNames() {
+            return cacheNames;
         }
 
-        public void setSessionPool(String sessionPool) {
-            this.sessionPool = sessionPool;
+        public void setCacheNames(CacheNames cacheNames) {
+            this.cacheNames = cacheNames;
+        }
+    }
+
+    public static class CacheNames {
+        private String sessions = "session-pool";
+        private String userSessionMapping = "user-session-mapping";
+        private String lastActiveTimestamps = "last-active-timestamps";
+        private String blocklist = "blacklist";
+
+        public String getSessions() {
+            return sessions;
         }
 
-        public String getBlocklistPool() {
-            return blocklistPool;
+        public void setSessions(String sessions) {
+            this.sessions = sessions;
         }
 
-        public void setBlocklistPool(String blocklistPool) {
-            this.blocklistPool = blocklistPool;
+        public String getUserSessionMapping() {
+            return userSessionMapping;
+        }
+
+        public void setUserSessionMapping(String userSessionMapping) {
+            this.userSessionMapping = userSessionMapping;
+        }
+
+        public String getLastActiveTimestamps() {
+            return lastActiveTimestamps;
+        }
+
+        public void setLastActiveTimestamps(String lastActiveTimestamps) {
+            this.lastActiveTimestamps = lastActiveTimestamps;
+        }
+
+        public String getBlocklist() {
+            return blocklist;
+        }
+
+        public void setBlocklist(String blocklist) {
+            this.blocklist = blocklist;
         }
     }
 }
