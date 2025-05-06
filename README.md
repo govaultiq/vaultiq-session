@@ -58,8 +58,12 @@ vaultiq:
       cache:
         enabled: true
         manager: vaultiqCacheManager
-        sessionPool: vaultiq-session-pool
-        blocklistPool: vaultiq-blocklist-pool
+        # Setting up cache-names can be ignored unless you choose to use different cache-names overriding the default.
+        cache-names:
+          sessions: "my-session-pool"
+          user-session-mapping: "my-user-sessions"
+          last-active-timestamps: "my-user-activity"
+          blocklist: "my-blocklist"
 ```
 
 > ⚠️ When using cache-only mode, you **must implement** `UserIdentityAware` to provide current user context.
@@ -85,8 +89,12 @@ vaultiq:
       cache:
         enabled: true
         manager: vaultiqCacheManager
-        sessionPool: vaultiq-session-pool
-        blocklistPool: vaultiq-blocklist-pool
+        # Setting up cache-names can be ignored unless you choose to use different cache-names overriding the default.
+        cache-names:
+          sessions: "my-session-pool"
+          user-session-mapping: "my-user-sessions"
+          last-active-timestamps: "my-user-activity"
+          blocklist: "my-blocklist"
 ```
 
 <br>
