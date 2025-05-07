@@ -5,15 +5,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
-import vaultiq.session.config.VaultiqSessionProperties;
+import vaultiq.session.cache.model.SessionIds;
+import vaultiq.session.cache.utility.VaultiqCacheContext;
 import vaultiq.session.core.VaultiqSession;
 import vaultiq.session.fingerprint.DeviceFingerprintGenerator;
 import vaultiq.session.cache.model.VaultiqSessionCacheEntry;
 
-import java.io.Serializable;
 import java.util.*;
+
+import static vaultiq.session.cache.utility.CacheKeyResolver.keyForSession;
+import static vaultiq.session.cache.utility.CacheKeyResolver.keyForUserSessionMapping;
 
 @Service
 @ConditionalOnProperty(prefix = "vaultiq.session.persistence.cache", name = "enabled", havingValue = "true")
@@ -26,48 +28,11 @@ public class VaultiqSessionCacheService {
     private final DeviceFingerprintGenerator fingerprintGenerator;
 
     public VaultiqSessionCacheService(
-            VaultiqSessionProperties props,
-            Map<String, CacheManager> cacheManagers,
+            VaultiqCacheContext cacheContainer,
             DeviceFingerprintGenerator fingerprintGenerator) {
-
-        String configuredCacheManagerName = props.getCache().getManager();
-        if (configuredCacheManagerName == null || !cacheManagers.containsKey(configuredCacheManagerName)) {
-            log.error("CacheManager `{}` not found, isConfigured: {}", configuredCacheManagerName,
-                    configuredCacheManagerName != null && !configuredCacheManagerName.isBlank());
-            throw new IllegalStateException("Required CacheManager '" + configuredCacheManagerName + "' not found.");
-        }
-
-        CacheManager cacheManager = cacheManagers.get(configuredCacheManagerName);
-        VaultiqSessionProperties.CacheNames cacheNames = props.getCache().getCacheNames();
-
-        this.sessionPoolCache = getRequiredCache(cacheManager, cacheNames.getSessions());
-        this.userSessionMappingCache = getOptionalCache(cacheManager, cacheNames.getUserSessionMapping(), "user-session-mapping");
-
+        this.sessionPoolCache = cacheContainer.getSessionPoolCache();
+        this.userSessionMappingCache = cacheContainer.getUserSessionMappingCache();
         this.fingerprintGenerator = fingerprintGenerator;
-    }
-
-    private Cache getRequiredCache(CacheManager cacheManager, String name) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalStateException("Missing cache name for type 'session-pool'");
-        }
-        Cache cache = cacheManager.getCache(name);
-        if (cache == null) {
-            throw new IllegalStateException("Cache named '" + name + "' not found in configured CacheManager.");
-        }
-        return cache;
-    }
-
-    private Cache getOptionalCache(CacheManager manager, String name, String label) {
-        if (name == null || name.isBlank()) {
-            log.warn("No cache name configured for '{}', falling back to session-pool.", label);
-            return sessionPoolCache;
-        }
-        Cache cache = manager.getCache(name);
-        if (cache == null) {
-            log.warn("Cache '{}' not found in CacheManager, falling back to session-pool.", name);
-            return sessionPoolCache;
-        }
-        return cache;
     }
 
     public VaultiqSession createSession(String userId, HttpServletRequest request) {
@@ -158,29 +123,5 @@ public class VaultiqSessionCacheService {
         SessionIds ids = new SessionIds();
         ids.setSessions(sessionIds);
         userSessionMappingCache.put(keyForUserSessionMapping(userId), ids);
-    }
-
-    private static class SessionIds implements Serializable {
-        private List<String> sessions = new ArrayList<>();
-
-        public List<String> getSessions() {
-            return sessions;
-        }
-
-        public void setSessions(List<String> sessions) {
-            this.sessions = sessions != null ? sessions : new ArrayList<>();
-        }
-    }
-
-    private static String keyForSession(String sessionId) {
-        return "session-pool-" + sessionId;
-    }
-
-    private static String keyForUserSessionMapping(String userId) {
-        return "user-sessions-" + userId;
-    }
-
-    private static String keyForLastActiveTimestamp(String userId) {
-        return "last-active-" + userId;
     }
 }

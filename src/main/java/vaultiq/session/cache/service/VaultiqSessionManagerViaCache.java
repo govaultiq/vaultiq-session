@@ -16,9 +16,13 @@ import java.util.List;
 public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
 
     private final VaultiqSessionCacheService vaultiqSessionCacheService;
+    private final BlocklistSessionCacheService blocklistSessionCacheService;
 
-    public VaultiqSessionManagerViaCache(VaultiqSessionCacheService vaultiqSessionCacheService) {
+    public VaultiqSessionManagerViaCache(
+            VaultiqSessionCacheService vaultiqSessionCacheService,
+            BlocklistSessionCacheService blocklistSessionCacheService) {
         this.vaultiqSessionCacheService = vaultiqSessionCacheService;
+        this.blocklistSessionCacheService = blocklistSessionCacheService;
     }
 
     @Override
@@ -44,5 +48,10 @@ public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
     @Override
     public int totalUserSessions(String userId) {
         return vaultiqSessionCacheService.totalUserSessions(userId);
+    }
+
+    @Override
+    public void blocklistSession(String sessionId) {
+        blocklistSessionCacheService.blocklistSession(sessionId);
     }
 }
