@@ -6,7 +6,7 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "vaultiq_session_pool")
-public class JpaVaultiqSession {
+public final class JpaVaultiqSession {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

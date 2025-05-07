@@ -10,7 +10,7 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "user_activity_records")
-public class JpaUserActivityRecord {
+public final class JpaUserActivityRecord {
 
     @Id
     @Column(name = "user_id", updatable = false, nullable = false)
