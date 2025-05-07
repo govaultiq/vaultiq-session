@@ -5,10 +5,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cache.Cache;
 import org.springframework.stereotype.Service;
+import vaultiq.session.cache.model.SessionIds;
 import vaultiq.session.cache.utility.VaultiqCacheContext;
 
 import java.time.Instant;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static vaultiq.session.cache.utility.CacheKeyResolver.keyForBlacklist;
 
@@ -31,9 +33,18 @@ public class BlocklistSessionCacheService {
         var session = vaultiqSessionCacheService.getSession(sessionId);
         Optional.ofNullable(session)
                 .ifPresent(s -> {
-                    blocklistCache.put(keyForBlacklist(sessionId), Instant.now().toEpochMilli());
+                    var sessionIds = getBlockedSessions(s.getUserId());
+                    sessionIds.getSessions().add(sessionId);
+
+                    blocklistCache.put(keyForBlacklist(s.getUserId()), sessionIds);
                     vaultiqSessionCacheService.deleteSession(sessionId);
+
                     log.debug("Session with sessionId={} blocked", sessionId);
                 });
     }
+
+    public SessionIds getBlockedSessions(String userId) {
+        return blocklistCache.get(keyForBlacklist(userId), SessionIds.class);
+    }
+
 }
