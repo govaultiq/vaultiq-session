@@ -36,11 +36,6 @@ public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
         return sessionService.get(sessionId);
     }
 
-    public void updateToCurrentlyActive(String sessionId) {
-        log.debug("Updating lastActiveAt status for session '{}' via JPA.", sessionId);
-        sessionService.touch(sessionId);
-    }
-
     @Override
     public void deleteSession(String sessionId) {
         log.debug("Deleting session '{}' via JPA.", sessionId);

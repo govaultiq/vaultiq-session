@@ -37,7 +37,6 @@ public class VaultiqSessionService {
         entity.setUserId(userId);
         entity.setDeviceFingerPrint(deviceFingerPrint);
         entity.setCreatedAt(now);
-        entity.setLastActiveAt(now);
 
         entity = sessionRepository.save(entity);
         log.info("Persisted new session '{}' for user '{}'.", entity.getSessionId(), userId);
@@ -55,20 +54,6 @@ public class VaultiqSessionService {
         else log.debug("Session '{}' loaded from database.", sessionId);
 
         return session;
-    }
-
-    public VaultiqSession touch(String sessionId) {
-        return sessionRepository.findById(sessionId)
-                .map(entity -> {
-
-                    entity.setLastActiveAt(Instant.now());
-                    JpaVaultiqSession updated = sessionRepository.save(entity);
-
-                    log.info("Updated 'lastActiveAt' for session '{}'.", sessionId);
-                    return mapToVaultiqSession(updated);
-
-                })
-                .orElse(null);
     }
 
     public void delete(String sessionId) {
