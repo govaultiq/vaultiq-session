@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import vaultiq.session.config.VaultiqSessionProperties;
 import vaultiq.session.core.VaultiqSession;
 import vaultiq.session.fingerprint.DeviceFingerprintGenerator;
-import vaultiq.session.cache.contract.UserIdentityAware;
 import vaultiq.session.cache.model.VaultiqSessionCacheEntry;
 
 import java.io.Serializable;
@@ -29,8 +28,7 @@ public class VaultiqSessionCacheService {
     public VaultiqSessionCacheService(
             VaultiqSessionProperties props,
             Map<String, CacheManager> cacheManagers,
-            DeviceFingerprintGenerator fingerprintGenerator,
-            UserIdentityAware userIdentityAware) {
+            DeviceFingerprintGenerator fingerprintGenerator) {
 
         String configuredCacheManagerName = props.getCache().getManager();
         if (configuredCacheManagerName == null || !cacheManagers.containsKey(configuredCacheManagerName)) {
