@@ -8,9 +8,7 @@ import org.springframework.stereotype.Service;
 import vaultiq.session.cache.model.SessionIds;
 import vaultiq.session.cache.utility.VaultiqCacheContext;
 
-import java.time.Instant;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static vaultiq.session.cache.utility.CacheKeyResolver.keyForBlacklist;
 
