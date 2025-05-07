@@ -165,7 +165,6 @@ public class VaultiqSessionCacheService {
                 .userId(source.getUserId())
                 .deviceFingerPrint(source.getDeviceFingerPrint())
                 .createdAt(source.getCreatedAt())
-                .lastActiveAt(source.getLastActiveAt())
                 .build();
     }
 

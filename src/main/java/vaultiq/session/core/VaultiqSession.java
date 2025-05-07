@@ -7,18 +7,16 @@ public final class VaultiqSession {
     private String userId;
     private String deviceFingerPrint;
     private Instant createdAt;
-    private Instant lastActiveAt;
 
     private VaultiqSession() {
         // avoiding external instantiation
     }
 
-    private VaultiqSession(String sessionId, String userId, String deviceFingerPrint, Instant createdAt, Instant lastActiveAt) {
+    private VaultiqSession(String sessionId, String userId, String deviceFingerPrint, Instant createdAt) {
         this.sessionId = sessionId;
         this.userId = userId;
         this.deviceFingerPrint = deviceFingerPrint;
         this.createdAt = createdAt;
-        this.lastActiveAt = lastActiveAt;
     }
 
     public static VaultiqSessionBuilder builder() {
@@ -41,16 +39,12 @@ public final class VaultiqSession {
         return createdAt;
     }
 
-    public Instant getLastActiveAt() {
-        return lastActiveAt;
-    }
 
     public static class VaultiqSessionBuilder {
         private String sessionId;
         private String userId;
         private String deviceFingerPrint;
         private Instant createdAt;
-        private Instant lastActiveAt;
 
         public VaultiqSessionBuilder sessionId(String sessionId) {
             this.sessionId = sessionId;
@@ -72,18 +66,12 @@ public final class VaultiqSession {
             return this;
         }
 
-        public VaultiqSessionBuilder lastActiveAt(Instant lastActiveAt) {
-            this.lastActiveAt = lastActiveAt;
-            return this;
-        }
-
         public VaultiqSession build() {
             return new VaultiqSession(
                     sessionId,
                     userId,
                     deviceFingerPrint,
-                    createdAt,
-                    lastActiveAt
+                    createdAt
             );
         }
     }

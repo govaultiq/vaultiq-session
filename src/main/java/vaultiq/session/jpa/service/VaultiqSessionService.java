@@ -96,7 +96,6 @@ public class VaultiqSessionService {
                 .userId(entity.getUserId())
                 .deviceFingerPrint(entity.getDeviceFingerPrint())
                 .createdAt(entity.getCreatedAt())
-                .lastActiveAt(entity.getLastActiveAt())
                 .build();
     }
 }
