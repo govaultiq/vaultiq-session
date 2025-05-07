@@ -1,4 +1,4 @@
-package vaultiq.session.cache.service;
+package vaultiq.session.utility;
 
 import jakarta.servlet.http.HttpServletRequest;
 
