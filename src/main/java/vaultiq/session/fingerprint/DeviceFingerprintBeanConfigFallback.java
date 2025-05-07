@@ -2,12 +2,22 @@ package vaultiq.session.fingerprint;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
+import vaultiq.session.core.VaultiqSessionManager;
+import vaultiq.session.utility.VaultiqRequestContext;
+
+import java.util.Optional;
 
 @Component
+@ConditionalOnBean(VaultiqSessionManager.class)
 public class DeviceFingerprintBeanConfigFallback {
+
+    private static final Logger log = LoggerFactory.getLogger(DeviceFingerprintBeanConfigFallback.class);
 
     @Bean
     @ConditionalOnMissingBean
@@ -35,10 +45,24 @@ public class DeviceFingerprintBeanConfigFallback {
 
     @Bean
     @ConditionalOnMissingBean
-    DeviceFingerprintValidator deviceFingerprintValidator(DeviceFingerprintGenerator fingerprintGenerator) {
-        return (request, session) -> {
-            var fingerprint = fingerprintGenerator.generateFingerprint(request);
-            return session.getDeviceFingerPrint().equals(fingerprint);
+    DeviceFingerprintValidator deviceFingerprintValidator(DeviceFingerprintGenerator fingerprintGenerator, VaultiqSessionManager sessionManager) {
+        return (request) -> {
+            var sessionId = VaultiqRequestContext.getSessionId(request);
+
+            if (sessionId == null) {
+                log.error("sessionId with key 'vaultiq.sid' is missing in the request.");
+                return false;
+            }
+
+            var session = sessionManager.getSession(sessionId);
+
+            if (session != null) {
+                var fingerprint = fingerprintGenerator.generateFingerprint(request);
+                return session.getDeviceFingerPrint().equals(fingerprint);
+            } else {
+                log.error("Could not find session for sessionId: {}", sessionId);
+                return false;
+            }
         };
     }
 
