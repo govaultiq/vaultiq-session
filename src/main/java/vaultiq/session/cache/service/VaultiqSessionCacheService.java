@@ -14,7 +14,6 @@ import vaultiq.session.cache.contract.UserIdentityAware;
 import vaultiq.session.cache.model.VaultiqSessionCacheEntry;
 
 import java.io.Serializable;
-import java.time.Instant;
 import java.util.*;
 
 @Service
@@ -25,9 +24,7 @@ public class VaultiqSessionCacheService {
 
     private final Cache sessionPoolCache;
     private final Cache userSessionMappingCache;
-    private final Cache lastActiveTimestampsCache;
     private final DeviceFingerprintGenerator fingerprintGenerator;
-    private final UserIdentityAware userIdentityAware;
 
     public VaultiqSessionCacheService(
             VaultiqSessionProperties props,
@@ -47,10 +44,8 @@ public class VaultiqSessionCacheService {
 
         this.sessionPoolCache = getRequiredCache(cacheManager, cacheNames.getSessions());
         this.userSessionMappingCache = getOptionalCache(cacheManager, cacheNames.getUserSessionMapping(), "user-session-mapping");
-        this.lastActiveTimestampsCache = getOptionalCache(cacheManager, cacheNames.getLastActiveTimestamps(), "last-active-timestamps");
 
         this.fingerprintGenerator = fingerprintGenerator;
-        this.userIdentityAware = userIdentityAware;
     }
 
     private Cache getRequiredCache(CacheManager cacheManager, String name) {
@@ -84,7 +79,6 @@ public class VaultiqSessionCacheService {
 
         sessionPoolCache.put(keyForSession(sessionEntry.getSessionId()), sessionEntry);
         mapNewSessionIdToUser(userId, sessionEntry);
-        recordUserAsCurrentlyActive(userId);
 
         log.debug("Session added to pool and cached for userId={}, sessionId={}", userId, sessionEntry.getSessionId());
         return toVaultiqSession(sessionEntry);
@@ -102,10 +96,6 @@ public class VaultiqSessionCacheService {
                 .orElse(null);
 
         log.debug("Retrieved sessionId={} from session pool, found={}", sessionId, session != null);
-
-        if (session != null) {
-            recordUserAsCurrentlyActive(session.getUserId());
-        }
 
         return session;
     }
@@ -138,10 +128,6 @@ public class VaultiqSessionCacheService {
 
     public int totalUserSessions(String userId) {
         return getUserSessionIds(userId).size();
-    }
-
-    private void recordUserAsCurrentlyActive(String userId) {
-        lastActiveTimestampsCache.put(keyForLastActiveTimestamp(userId), Instant.now().toEpochMilli());
     }
 
     private void mapNewSessionIdToUser(String userId, VaultiqSessionCacheEntry sessionEntry) {
