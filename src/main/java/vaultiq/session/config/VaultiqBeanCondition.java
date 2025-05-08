@@ -30,17 +30,17 @@ public class VaultiqBeanCondition implements Condition {
         VaultiqSessionContext sessionContext =
                 context.getBeanFactory().getBean(VaultiqSessionContext.class);
 
-        return sessionContext.getModelConfigs().stream()
-                .filter(cfg -> modelType.equals(cfg.modelType()))
-                .anyMatch(cfg -> {
-                    boolean useCache = cfg.useCache();
-                    boolean useJpa = cfg.useJpa();
-                    return switch (mode) {
-                        case CACHE_ONLY -> useCache && !useJpa;
-                        case JPA_ONLY -> !useCache && useJpa;
-                        case JPA_AND_CACHE -> useCache && useJpa;
-                    };
-                });
+        var cfg = sessionContext.getModelConfig(modelType);
+        if (cfg == null)
+            return false;
+
+        boolean useCache = cfg.useCache();
+        boolean useJpa = cfg.useJpa();
+        return switch (mode) {
+            case CACHE_ONLY -> useCache && !useJpa;
+            case JPA_ONLY -> !useCache && useJpa;
+            case JPA_AND_CACHE -> useCache && useJpa;
+        };
     }
 
 }

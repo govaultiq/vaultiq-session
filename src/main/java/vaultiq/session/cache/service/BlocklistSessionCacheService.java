@@ -5,9 +5,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cache.Cache;
 import org.springframework.stereotype.Service;
+import vaultiq.session.cache.model.ModelType;
 import vaultiq.session.cache.model.SessionIds;
 import vaultiq.session.cache.utility.VaultiqCacheContext;
-import vaultiq.session.config.VaultiqSessionProperties;
+import vaultiq.session.core.VaultiqSessionContext;
 
 import java.util.Optional;
 
@@ -22,11 +23,12 @@ public class BlocklistSessionCacheService {
     private final Cache blocklistCache;
 
     public BlocklistSessionCacheService(
-            VaultiqSessionProperties props,
+            VaultiqSessionContext context,
             VaultiqCacheContext cacheContext,
             VaultiqSessionCacheService vaultiqSessionCacheService) {
         this.vaultiqSessionCacheService = vaultiqSessionCacheService;
-        this.blocklistCache = cacheContext.getCacheMandatory(props.getCache().getCacheNames().getBlocklist(), "vaultiq.session.persistence.cache.cache-names.blocklist");
+        var blocklistModelConfig = context.getModelConfig(ModelType.BLOCKLIST);
+        this.blocklistCache = cacheContext.getCacheMandatory(blocklistModelConfig.cacheName(), "vaultiq.session.persistence.cache.cache-names.blocklist");
     }
 
     public void blocklistSession(String sessionId) {

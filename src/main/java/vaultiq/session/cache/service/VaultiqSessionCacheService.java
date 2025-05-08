@@ -6,10 +6,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.Cache;
 import org.springframework.stereotype.Service;
+import vaultiq.session.cache.model.ModelType;
 import vaultiq.session.cache.model.SessionIds;
 import vaultiq.session.cache.utility.VaultiqCacheContext;
-import vaultiq.session.config.VaultiqSessionProperties;
 import vaultiq.session.core.VaultiqSession;
+import vaultiq.session.core.VaultiqSessionContext;
 import vaultiq.session.fingerprint.DeviceFingerprintGenerator;
 import vaultiq.session.cache.model.VaultiqSessionCacheEntry;
 
@@ -29,17 +30,16 @@ public class VaultiqSessionCacheService {
     private final DeviceFingerprintGenerator fingerprintGenerator;
 
     public VaultiqSessionCacheService(
-            VaultiqSessionProperties props,
+            VaultiqSessionContext context,
             VaultiqCacheContext cacheContext,
             DeviceFingerprintGenerator fingerprintGenerator) {
 
-        var cacheNames = props.getCache().getCacheNames();
         var propertyPrefix = "vaultiq.session.persistence.cache.cache-names";
 
-        this.sessionPoolCache = cacheContext.getCacheMandatory(cacheNames.getSessions(), propertyPrefix + ".sessions");
+        this.sessionPoolCache = cacheContext.getCacheMandatory(context.getModelConfig(ModelType.SESSION).cacheName(), propertyPrefix + ".sessions");
         this.userSessionMappingCache = cacheContext.getCacheOptional(
-                cacheNames.getUserSessionMapping(),
-                propertyPrefix + ".user-session-mapping")
+                        context.getModelConfig(ModelType.USER_SESSION_MAPPING).cacheName(),
+                        propertyPrefix + ".user-session-mapping")
                 .orFallbackTo(sessionPoolCache, propertyPrefix + ".sessions");
 
         this.fingerprintGenerator = fingerprintGenerator;

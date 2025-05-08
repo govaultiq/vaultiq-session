@@ -5,12 +5,13 @@ import vaultiq.session.config.VaultiqSessionProperties;
 import vaultiq.session.core.model.VaultiqModelConfig;
 
 import java.time.Duration;
-import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public final class VaultiqModelConfigEnhancer {
 
-    public static List<VaultiqModelConfig> enhance(VaultiqSessionProperties props) {
+    public static Map<ModelType, VaultiqModelConfig> enhance(VaultiqSessionProperties props) {
         var zenMode = props.isZenMode();
         var global = props.getPersistence().getCacheConfig();
 
@@ -25,13 +26,17 @@ public final class VaultiqModelConfigEnhancer {
                                     .orElseGet(() -> props.getPersistence().getCacheConfig().getSyncInterval());
 
                     String cacheName = model.getCacheName();
-                    if (cacheName == null || cacheName.isBlank()) {
-                        cacheName = type.name().toLowerCase().replace("_", "-");
-                    }
+                    // fallback to default
+                    if (cacheName == null || cacheName.isBlank())
+                        cacheName = type.getAlias();
 
                     return new VaultiqModelConfig(type, cacheName, useJpa, useCache, syncInterval);
                 })
-                .toList();
+                .collect(Collectors.toMap(
+                        VaultiqModelConfig::modelType,
+                        model -> model,
+                        (key1, key2) -> key2 // In case of duplicate keys, replace it with the second one
+                ));
     }
 
     private static boolean resolve(Boolean specific, Boolean global, boolean zenMode) {
