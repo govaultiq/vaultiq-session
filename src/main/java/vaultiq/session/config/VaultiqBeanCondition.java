@@ -13,20 +13,34 @@ public class VaultiqBeanCondition implements Condition {
 
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-        Map<String, Object> attributes = metadata.getAnnotationAttributes(ConditionalOnVaultiqPersistence.class.getName());
-        if (attributes == null) return false;
+        String[] beanNames = Objects.requireNonNull(context.getBeanFactory())
+                .getBeanNamesForType(VaultiqSessionContext.class, false, false);
+        if (beanNames.length == 0) {
+            return false;
+        }
 
-        VaultiqPersistenceMode mode = (VaultiqPersistenceMode) attributes.get("mode");
-        ModelType modelType = (ModelType) attributes.get("type");
+        Map<String, Object> attrs = metadata.getAnnotationAttributes(
+                ConditionalOnVaultiqPersistence.class.getName());
+        if (attrs == null) {
+            return false;
+        }
+        VaultiqPersistenceMode mode = (VaultiqPersistenceMode) attrs.get("mode");
+        ModelType modelType = (ModelType) attrs.get("type");
 
-        VaultiqSessionContext sessionContext = Objects.requireNonNull(context.getBeanFactory()).getBean(VaultiqSessionContext.class);
+        VaultiqSessionContext sessionContext =
+                context.getBeanFactory().getBean(VaultiqSessionContext.class);
 
         return sessionContext.getModelConfigs().stream()
-                .filter(cfg -> cfg.modelType() == modelType)
-                .anyMatch(cfg -> switch (mode) {
-                    case CACHE_ONLY -> cfg.useCache() && !cfg.useJpa();
-                    case JPA_ONLY -> !cfg.useCache() && cfg.useJpa();
-                    case JPA_AND_CACHE -> cfg.useCache() && cfg.useJpa();
+                .filter(cfg -> modelType.equals(cfg.modelType()))
+                .anyMatch(cfg -> {
+                    boolean useCache = cfg.useCache();
+                    boolean useJpa = cfg.useJpa();
+                    return switch (mode) {
+                        case CACHE_ONLY -> useCache && !useJpa;
+                        case JPA_ONLY -> !useCache && useJpa;
+                        case JPA_AND_CACHE -> useCache && useJpa;
+                    };
                 });
     }
+
 }
