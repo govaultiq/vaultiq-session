@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
+import vaultiq.session.cache.service.BlocklistSessionCacheService;
 import vaultiq.session.cache.service.VaultiqSessionCacheService;
 import vaultiq.session.config.ConditionalOnVaultiqPersistence;
 import vaultiq.session.config.VaultiqPersistenceMode;
@@ -22,11 +23,14 @@ public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionMa
 
     private final VaultiqSessionService sessionService;
     private final VaultiqSessionCacheService cacheService;
+    private final BlocklistSessionCacheService blocklistCacheService;
 
     public VaultiqSessionManagerViaJpaCacheEnabled(VaultiqSessionService sessionService,
-                                                   VaultiqSessionCacheService cacheService) {
+                                                   VaultiqSessionCacheService cacheService,
+                                                   BlocklistSessionCacheService blocklistCacheService) {
         this.sessionService = sessionService;
         this.cacheService = cacheService;
+        this.blocklistCacheService = blocklistCacheService;
     }
 
     @Override
@@ -81,5 +85,11 @@ public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionMa
         } else {
             return sessionService.count(userId);
         }
+    }
+
+    @Override
+    public void blocklistSession(String sessionId) {
+        deleteSession(sessionId);
+        blocklistCacheService.blocklistSession(sessionId);
     }
 }
