@@ -7,8 +7,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 import vaultiq.session.cache.service.BlocklistSessionCacheService;
 import vaultiq.session.cache.service.VaultiqSessionCacheService;
-import vaultiq.session.config.ConditionalOnVaultiqPersistence;
-import vaultiq.session.config.VaultiqPersistenceMode;
 import vaultiq.session.core.VaultiqSession;
 import vaultiq.session.core.VaultiqSessionManager;
 
@@ -16,7 +14,6 @@ import java.util.List;
 
 @Service
 @ConditionalOnBean({VaultiqSessionService.class, VaultiqSessionCacheService.class})
-@ConditionalOnVaultiqPersistence(VaultiqPersistenceMode.JPA_AND_CACHE)
 public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionManager {
 
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionManagerViaJpaCacheEnabled.class);
