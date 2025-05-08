@@ -2,63 +2,75 @@ package vaultiq.session.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+import vaultiq.session.cache.model.ModelType;
 
 import java.time.Duration;
+import java.util.List;
 
 @Component
-@ConfigurationProperties("vaultiq.session.persistence")
+@ConfigurationProperties("vaultiq.session")
 public class VaultiqSessionProperties {
-    private Jpa jpa;
-    private Cache cache;
-    private Duration syncInterval = Duration.ofMinutes(5);
 
-    public Jpa getJpa() {
-        return jpa;
+    private boolean zenMode = false;
+    private Persistence persistence;
+
+    public boolean isZenMode() {
+        return zenMode;
     }
 
-    public void setJpa(Jpa jpa) {
-        this.jpa = jpa;
+    public void setZenMode(boolean zenMode) {
+        this.zenMode = zenMode;
     }
 
-    public Cache getCache() {
-        return cache;
+    public Persistence getPersistence() {
+        return persistence;
     }
 
-    public void setCache(Cache cache) {
-        this.cache = cache;
+    public void setPersistence(Persistence persistence) {
+        this.persistence = persistence == null ? new Persistence() : persistence;
     }
 
-    public Duration getSyncInterval() {
-        return syncInterval;
-    }
+    public static class Persistence {
+        private CacheConfig cacheConfig;
+        private List<ModelPersistenceConfig> models;
 
-    public void setSyncInterval(Duration syncInterval) {
-        this.syncInterval = syncInterval;
-    }
-
-    public static class Jpa {
-        private boolean enabled;
-
-        public boolean isEnabled() {
-            return enabled;
+        public CacheConfig getCacheConfig() {
+            return cacheConfig == null ? new CacheConfig() : cacheConfig;
         }
 
-        public void setEnabled(boolean enabled) {
-            this.enabled = enabled;
+        public void setCacheConfig(CacheConfig cacheConfig) {
+            this.cacheConfig = cacheConfig;
+        }
+
+        public List<ModelPersistenceConfig> getModels() {
+            return models;
+        }
+
+        public void setModels(List<ModelPersistenceConfig> models) {
+            this.models = models;
         }
     }
 
-    public static class Cache {
-        private boolean enabled;
-        private String manager;
-        private CacheNames cacheNames;
+    public static class CacheConfig {
+        private boolean useJpa = false;
+        private boolean useCache = false;
+        private String manager = "cacheManager";
+        private Duration syncInterval = Duration.ofMinutes(5);
 
-        public boolean isEnabled() {
-            return enabled;
+        public boolean isUseJpa() {
+            return useJpa;
         }
 
-        public void setEnabled(boolean enabled) {
-            this.enabled = enabled;
+        public void setUseJpa(boolean useJpa) {
+            this.useJpa = useJpa;
+        }
+
+        public boolean isUseCache() {
+            return useCache;
+        }
+
+        public void setUseCache(boolean useCache) {
+            this.useCache = useCache;
         }
 
         public String getManager() {
@@ -69,51 +81,60 @@ public class VaultiqSessionProperties {
             this.manager = manager;
         }
 
-        public CacheNames getCacheNames() {
-            return cacheNames;
+        public Duration getSyncInterval() {
+            return syncInterval;
         }
 
-        public void setCacheNames(CacheNames cacheNames) {
-            this.cacheNames = cacheNames;
+        public void setSyncInterval(Duration syncInterval) {
+            this.syncInterval = syncInterval;
         }
     }
 
-    public static class CacheNames {
-        private String sessions = "session-pool";
-        private String userSessionMapping = "user-session-mapping";
-        private String lastActiveTimestamps = "last-active-timestamps";
-        private String blocklist = "blacklist";
+    public static class ModelPersistenceConfig {
+        private ModelType type;
+        private String cacheName;
+        private Boolean useJpa;
+        private Boolean useCache;
+        private Duration syncInterval;
 
-        public String getSessions() {
-            return sessions;
+        public ModelType getType() {
+            return type;
         }
 
-        public void setSessions(String sessions) {
-            this.sessions = sessions;
+        public void setType(ModelType type) {
+            this.type = type;
         }
 
-        public String getUserSessionMapping() {
-            return userSessionMapping;
+        public String getCacheName() {
+            return cacheName;
         }
 
-        public void setUserSessionMapping(String userSessionMapping) {
-            this.userSessionMapping = userSessionMapping;
+        public void setCacheName(String cacheName) {
+            this.cacheName = cacheName;
         }
 
-        public String getLastActiveTimestamps() {
-            return lastActiveTimestamps;
+        public Boolean getUseJpa() {
+            return useJpa;
         }
 
-        public void setLastActiveTimestamps(String lastActiveTimestamps) {
-            this.lastActiveTimestamps = lastActiveTimestamps;
+        public void setUseJpa(Boolean useJpa) {
+            this.useJpa = useJpa;
         }
 
-        public String getBlocklist() {
-            return blocklist;
+        public Boolean getUseCache() {
+            return useCache;
         }
 
-        public void setBlocklist(String blocklist) {
-            this.blocklist = blocklist;
+        public void setUseCache(Boolean useCache) {
+            this.useCache = useCache;
+        }
+
+        public Duration getSyncInterval() {
+            return syncInterval;
+        }
+
+        public void setSyncInterval(Duration syncInterval) {
+            this.syncInterval = syncInterval;
         }
     }
 }
