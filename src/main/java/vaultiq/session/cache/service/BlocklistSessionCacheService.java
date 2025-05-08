@@ -7,6 +7,7 @@ import org.springframework.cache.Cache;
 import org.springframework.stereotype.Service;
 import vaultiq.session.cache.model.SessionIds;
 import vaultiq.session.cache.utility.VaultiqCacheContext;
+import vaultiq.session.config.VaultiqSessionProperties;
 
 import java.util.Optional;
 
@@ -21,10 +22,11 @@ public class BlocklistSessionCacheService {
     private final Cache blocklistCache;
 
     public BlocklistSessionCacheService(
-            VaultiqCacheContext cacheContainer,
+            VaultiqSessionProperties props,
+            VaultiqCacheContext cacheContext,
             VaultiqSessionCacheService vaultiqSessionCacheService) {
         this.vaultiqSessionCacheService = vaultiqSessionCacheService;
-        this.blocklistCache = cacheContainer.getBlocklistCache();
+        this.blocklistCache = cacheContext.getCacheMandatory(props.getCache().getCacheNames().getBlocklist(), "vaultiq.session.persistence.cache.cache-names.blocklist");
     }
 
     public void blocklistSession(String sessionId) {

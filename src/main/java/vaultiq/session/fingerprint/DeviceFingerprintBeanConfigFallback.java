@@ -24,7 +24,7 @@ public class DeviceFingerprintBeanConfigFallback {
     DeviceFingerprintGenerator deviceFingerprintGenerator() {
         return request -> {
             String deviceId = safeHeader(request, "X-Device-Id");
-            // fallback if X-Device-Id is not present
+            // orFallbackTo if X-Device-Id is not present
             deviceId = fallbackOrThrow(request, deviceId);
 
             String language = safeHeader(request, "Accept-Language");

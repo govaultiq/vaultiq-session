@@ -8,6 +8,7 @@ import org.springframework.cache.Cache;
 import org.springframework.stereotype.Service;
 import vaultiq.session.cache.model.SessionIds;
 import vaultiq.session.cache.utility.VaultiqCacheContext;
+import vaultiq.session.config.VaultiqSessionProperties;
 import vaultiq.session.core.VaultiqSession;
 import vaultiq.session.fingerprint.DeviceFingerprintGenerator;
 import vaultiq.session.cache.model.VaultiqSessionCacheEntry;
@@ -28,10 +29,19 @@ public class VaultiqSessionCacheService {
     private final DeviceFingerprintGenerator fingerprintGenerator;
 
     public VaultiqSessionCacheService(
-            VaultiqCacheContext cacheContainer,
+            VaultiqSessionProperties props,
+            VaultiqCacheContext cacheContext,
             DeviceFingerprintGenerator fingerprintGenerator) {
-        this.sessionPoolCache = cacheContainer.getSessionPoolCache();
-        this.userSessionMappingCache = cacheContainer.getUserSessionMappingCache();
+
+        var cacheNames = props.getCache().getCacheNames();
+        var propertyPrefix = "vaultiq.session.persistence.cache.cache-names";
+
+        this.sessionPoolCache = cacheContext.getCacheMandatory(cacheNames.getSessions(), propertyPrefix + ".sessions");
+        this.userSessionMappingCache = cacheContext.getCacheOptional(
+                cacheNames.getUserSessionMapping(),
+                propertyPrefix + ".user-session-mapping")
+                .orFallbackTo(sessionPoolCache, propertyPrefix + ".sessions");
+
         this.fingerprintGenerator = fingerprintGenerator;
     }
 
