@@ -8,21 +8,21 @@ import org.springframework.stereotype.Service;
 import vaultiq.session.cache.service.BlocklistSessionCacheService;
 import vaultiq.session.cache.service.VaultiqSessionCacheService;
 import vaultiq.session.core.VaultiqSession;
-import vaultiq.session.core.VaultiqSessionService;
+import vaultiq.session.core.VaultiqSessionManager;
 
 import java.util.List;
 
 @Service
 @ConditionalOnBean({vaultiq.session.jpa.service.VaultiqSessionService.class, VaultiqSessionCacheService.class})
-public class VaultiqSessionServiceViaJpaCacheEnabled implements VaultiqSessionService {
+public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionManager {
 
-    private static final Logger log = LoggerFactory.getLogger(VaultiqSessionServiceViaJpaCacheEnabled.class);
+    private static final Logger log = LoggerFactory.getLogger(VaultiqSessionManagerViaJpaCacheEnabled.class);
 
     private final vaultiq.session.jpa.service.VaultiqSessionService sessionService;
     private final VaultiqSessionCacheService cacheService;
     private final BlocklistSessionCacheService blocklistCacheService;
 
-    public VaultiqSessionServiceViaJpaCacheEnabled(vaultiq.session.jpa.service.VaultiqSessionService sessionService,
+    public VaultiqSessionManagerViaJpaCacheEnabled(vaultiq.session.jpa.service.VaultiqSessionService sessionService,
                                                    VaultiqSessionCacheService cacheService,
                                                    BlocklistSessionCacheService blocklistCacheService) {
         this.sessionService = sessionService;

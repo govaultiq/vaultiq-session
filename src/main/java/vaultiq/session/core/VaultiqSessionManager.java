@@ -4,7 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
 
-public interface VaultiqSessionService {
+public interface VaultiqSessionManager {
 
     VaultiqSession createSession(String userId, HttpServletRequest request);
 

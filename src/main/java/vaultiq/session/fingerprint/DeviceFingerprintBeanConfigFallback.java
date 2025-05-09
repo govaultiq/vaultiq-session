@@ -8,11 +8,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-import vaultiq.session.core.VaultiqSessionService;
+import vaultiq.session.core.VaultiqSessionManager;
 import vaultiq.session.utility.VaultiqRequestContext;
 
 @Component
-@ConditionalOnBean(VaultiqSessionService.class)
+@ConditionalOnBean(VaultiqSessionManager.class)
 public class DeviceFingerprintBeanConfigFallback {
 
     private static final Logger log = LoggerFactory.getLogger(DeviceFingerprintBeanConfigFallback.class);
@@ -43,7 +43,7 @@ public class DeviceFingerprintBeanConfigFallback {
 
     @Bean
     @ConditionalOnMissingBean
-    DeviceFingerprintValidator deviceFingerprintValidator(DeviceFingerprintGenerator fingerprintGenerator, VaultiqSessionService sessionManager) {
+    DeviceFingerprintValidator deviceFingerprintValidator(DeviceFingerprintGenerator fingerprintGenerator, VaultiqSessionManager sessionManager) {
         return (request) -> {
             var sessionId = VaultiqRequestContext.getSessionId(request);
 
