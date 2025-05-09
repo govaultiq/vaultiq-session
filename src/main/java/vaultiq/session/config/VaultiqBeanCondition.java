@@ -1,3 +1,4 @@
+
 package vaultiq.session.config;
 
 import org.springframework.context.annotation.Condition;
@@ -25,22 +26,39 @@ public class VaultiqBeanCondition implements Condition {
             return false;
         }
         VaultiqPersistenceMode mode = (VaultiqPersistenceMode) attrs.get("mode");
-        ModelType modelType = (ModelType) attrs.get("type");
+
+        Object typesObj = attrs.get("type");
+        ModelType[] modelTypes;
+        if (typesObj instanceof ModelType[]) {
+            modelTypes = (ModelType[]) typesObj;
+        } else if (typesObj instanceof ModelType) {
+            modelTypes = new ModelType[] {(ModelType) typesObj};
+        } else {
+            return false;
+        }
 
         VaultiqSessionContext sessionContext =
                 context.getBeanFactory().getBean(VaultiqSessionContext.class);
 
-        var cfg = sessionContext.getModelConfig(modelType);
-        if (cfg == null)
-            return false;
+        for (ModelType modelType : modelTypes) {
+            var cfg = sessionContext.getModelConfig(modelType);
+            if (cfg == null)
+                continue;
 
-        boolean useCache = cfg.useCache();
-        boolean useJpa = cfg.useJpa();
-        return switch (mode) {
-            case CACHE_ONLY -> useCache && !useJpa;
-            case JPA_ONLY -> !useCache && useJpa;
-            case JPA_AND_CACHE -> useCache && useJpa;
-        };
+            boolean useCache = cfg.useCache();
+            boolean useJpa = cfg.useJpa();
+            boolean matches = switch (mode) {
+                case CACHE_ONLY -> useCache && !useJpa;
+                case JPA_ONLY -> !useCache && useJpa;
+                case JPA_AND_CACHE -> useCache && useJpa;
+            };
+
+            if (matches) {
+                return true;
+            }
+        }
+
+        // None matched
+        return false;
     }
-
 }

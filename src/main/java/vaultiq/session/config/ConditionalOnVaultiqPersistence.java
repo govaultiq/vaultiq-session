@@ -1,3 +1,4 @@
+
 package vaultiq.session.config;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -21,5 +22,5 @@ public @interface ConditionalOnVaultiqPersistence {
 
     VaultiqPersistenceMode mode();
 
-    ModelType type();
+    ModelType[] type();
 }
