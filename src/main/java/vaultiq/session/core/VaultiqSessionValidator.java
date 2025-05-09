@@ -6,13 +6,13 @@ import org.springframework.stereotype.Component;
 import vaultiq.session.fingerprint.DeviceFingerprintValidator;
 
 @Component
-@ConditionalOnBean(VaultiqSessionManager.class)
+@ConditionalOnBean(VaultiqSessionService.class)
 public class VaultiqSessionValidator {
-    private final VaultiqSessionManager sessionManager;
+    private final VaultiqSessionService sessionManager;
     private final DeviceFingerprintValidator deviceFingerprintValidator;
 
     public VaultiqSessionValidator(
-            VaultiqSessionManager sessionManager,
+            VaultiqSessionService sessionManager,
             DeviceFingerprintValidator deviceFingerprintValidator) {
         this.sessionManager = sessionManager;
         this.deviceFingerprintValidator = deviceFingerprintValidator;

@@ -31,7 +31,7 @@ public class VaultiqCacheContext {
     public VaultiqCacheContext(
             VaultiqSessionProperties props,
             Map<String, CacheManager> cacheManagers) {
-        String configuredCacheManagerName = props.getCache().getManager();
+        String configuredCacheManagerName = props.getPersistence().getCacheConfig().getManager();
         if (configuredCacheManagerName == null || !cacheManagers.containsKey(configuredCacheManagerName)) {
             log.error("CacheManager `{}` not found, isConfigured: {}", configuredCacheManagerName,
                     configuredCacheManagerName != null && !configuredCacheManagerName.isBlank());

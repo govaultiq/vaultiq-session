@@ -4,18 +4,18 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 import vaultiq.session.core.VaultiqSession;
-import vaultiq.session.core.VaultiqSessionManager;
+import vaultiq.session.core.VaultiqSessionService;
 
 import java.util.List;
 
 @Service
 @ConditionalOnBean(VaultiqSessionCacheService.class)
-public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
+public class VaultiqSessionServiceViaCache implements VaultiqSessionService {
 
     private final VaultiqSessionCacheService vaultiqSessionCacheService;
     private final BlocklistSessionCacheService blocklistSessionCacheService;
 
-    public VaultiqSessionManagerViaCache(
+    public VaultiqSessionServiceViaCache(
             VaultiqSessionCacheService vaultiqSessionCacheService,
             BlocklistSessionCacheService blocklistSessionCacheService) {
         this.vaultiqSessionCacheService = vaultiqSessionCacheService;
@@ -45,10 +45,5 @@ public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
     @Override
     public int totalUserSessions(String userId) {
         return vaultiqSessionCacheService.totalUserSessions(userId);
-    }
-
-    @Override
-    public void blocklistSession(String sessionId) {
-        blocklistSessionCacheService.blocklistSession(sessionId);
     }
 }

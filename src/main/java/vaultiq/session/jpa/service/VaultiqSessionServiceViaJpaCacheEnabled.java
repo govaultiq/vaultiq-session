@@ -8,21 +8,21 @@ import org.springframework.stereotype.Service;
 import vaultiq.session.cache.service.BlocklistSessionCacheService;
 import vaultiq.session.cache.service.VaultiqSessionCacheService;
 import vaultiq.session.core.VaultiqSession;
-import vaultiq.session.core.VaultiqSessionManager;
+import vaultiq.session.core.VaultiqSessionService;
 
 import java.util.List;
 
 @Service
-@ConditionalOnBean({VaultiqSessionService.class, VaultiqSessionCacheService.class})
-public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionManager {
+@ConditionalOnBean({vaultiq.session.jpa.service.VaultiqSessionService.class, VaultiqSessionCacheService.class})
+public class VaultiqSessionServiceViaJpaCacheEnabled implements VaultiqSessionService {
 
-    private static final Logger log = LoggerFactory.getLogger(VaultiqSessionManagerViaJpaCacheEnabled.class);
+    private static final Logger log = LoggerFactory.getLogger(VaultiqSessionServiceViaJpaCacheEnabled.class);
 
-    private final VaultiqSessionService sessionService;
+    private final vaultiq.session.jpa.service.VaultiqSessionService sessionService;
     private final VaultiqSessionCacheService cacheService;
     private final BlocklistSessionCacheService blocklistCacheService;
 
-    public VaultiqSessionManagerViaJpaCacheEnabled(VaultiqSessionService sessionService,
+    public VaultiqSessionServiceViaJpaCacheEnabled(vaultiq.session.jpa.service.VaultiqSessionService sessionService,
                                                    VaultiqSessionCacheService cacheService,
                                                    BlocklistSessionCacheService blocklistCacheService) {
         this.sessionService = sessionService;
@@ -82,11 +82,5 @@ public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionMa
         } else {
             return sessionService.count(userId);
         }
-    }
-
-    @Override
-    public void blocklistSession(String sessionId) {
-        deleteSession(sessionId);
-        blocklistCacheService.blocklistSession(sessionId);
     }
 }
