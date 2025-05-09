@@ -5,24 +5,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
-import vaultiq.session.cache.service.BlocklistSessionCacheService;
-import vaultiq.session.cache.service.VaultiqSessionCacheService;
-import vaultiq.session.core.VaultiqSession;
+import vaultiq.session.cache.service.internal.BlocklistSessionCacheService;
+import vaultiq.session.cache.service.internal.VaultiqSessionCacheService;
+import vaultiq.session.core.model.VaultiqSession;
 import vaultiq.session.core.VaultiqSessionManager;
+import vaultiq.session.jpa.service.internal.VaultiqSessionService;
 
 import java.util.List;
 
 @Service
-@ConditionalOnBean({vaultiq.session.jpa.service.VaultiqSessionService.class, VaultiqSessionCacheService.class})
+@ConditionalOnBean({VaultiqSessionService.class, VaultiqSessionCacheService.class})
 public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionManager {
 
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionManagerViaJpaCacheEnabled.class);
 
-    private final vaultiq.session.jpa.service.VaultiqSessionService sessionService;
+    private final VaultiqSessionService sessionService;
     private final VaultiqSessionCacheService cacheService;
     private final BlocklistSessionCacheService blocklistCacheService;
 
-    public VaultiqSessionManagerViaJpaCacheEnabled(vaultiq.session.jpa.service.VaultiqSessionService sessionService,
+    public VaultiqSessionManagerViaJpaCacheEnabled(VaultiqSessionService sessionService,
                                                    VaultiqSessionCacheService cacheService,
                                                    BlocklistSessionCacheService blocklistCacheService) {
         this.sessionService = sessionService;

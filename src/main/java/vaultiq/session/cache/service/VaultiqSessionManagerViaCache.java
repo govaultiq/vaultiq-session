@@ -3,7 +3,9 @@ package vaultiq.session.cache.service;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
-import vaultiq.session.core.VaultiqSession;
+import vaultiq.session.cache.service.internal.BlocklistSessionCacheService;
+import vaultiq.session.cache.service.internal.VaultiqSessionCacheService;
+import vaultiq.session.core.model.VaultiqSession;
 import vaultiq.session.core.VaultiqSessionManager;
 
 import java.util.List;

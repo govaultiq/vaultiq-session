@@ -1,11 +1,11 @@
-package vaultiq.session.jpa.service;
+package vaultiq.session.jpa.service.internal;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
-import vaultiq.session.core.VaultiqSession;
+import vaultiq.session.core.model.VaultiqSession;
 import vaultiq.session.fingerprint.DeviceFingerprintGenerator;
 import vaultiq.session.jpa.model.JpaVaultiqSession;
 import vaultiq.session.jpa.repository.VaultiqSessionRepository;

@@ -1,4 +1,4 @@
-package vaultiq.session.cache.service;
+package vaultiq.session.cache.service.internal;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -8,16 +8,16 @@ import org.springframework.cache.Cache;
 import org.springframework.stereotype.Service;
 import vaultiq.session.cache.model.ModelType;
 import vaultiq.session.cache.model.SessionIds;
-import vaultiq.session.cache.utility.VaultiqCacheContext;
-import vaultiq.session.core.VaultiqSession;
-import vaultiq.session.core.VaultiqSessionContext;
+import vaultiq.session.cache.util.VaultiqCacheContext;
+import vaultiq.session.core.model.VaultiqSession;
+import vaultiq.session.core.util.VaultiqSessionContext;
 import vaultiq.session.fingerprint.DeviceFingerprintGenerator;
 import vaultiq.session.cache.model.VaultiqSessionCacheEntry;
 
 import java.util.*;
 
-import static vaultiq.session.cache.utility.CacheKeyResolver.keyForSession;
-import static vaultiq.session.cache.utility.CacheKeyResolver.keyForUserSessionMapping;
+import static vaultiq.session.cache.util.CacheKeyResolver.keyForSession;
+import static vaultiq.session.cache.util.CacheKeyResolver.keyForUserSessionMapping;
 
 @Service
 @ConditionalOnProperty(prefix = "vaultiq.session.persistence.cache", name = "enabled", havingValue = "true")

@@ -1,4 +1,4 @@
-package vaultiq.session.cache.utility;
+package vaultiq.session.cache.util;
 
 public final class CacheKeyResolver {
 

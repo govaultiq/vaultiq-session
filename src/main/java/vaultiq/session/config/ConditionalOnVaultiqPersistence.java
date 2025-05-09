@@ -1,10 +1,8 @@
 
 package vaultiq.session.config;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Conditional;
 import vaultiq.session.cache.model.ModelType;
-import vaultiq.session.core.VaultiqSessionContext;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

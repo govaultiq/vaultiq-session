@@ -5,19 +5,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
-import vaultiq.session.core.VaultiqSession;
+import vaultiq.session.core.model.VaultiqSession;
 import vaultiq.session.core.VaultiqSessionManager;
+import vaultiq.session.jpa.service.internal.VaultiqSessionService;
 
 import java.util.List;
 
 @Service
-@ConditionalOnBean(vaultiq.session.jpa.service.VaultiqSessionService.class)
+@ConditionalOnBean(VaultiqSessionService.class)
 public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionManagerViaJpa.class);
 
-    private final vaultiq.session.jpa.service.VaultiqSessionService sessionService;
+    private final VaultiqSessionService sessionService;
 
-    public VaultiqSessionManagerViaJpa(vaultiq.session.jpa.service.VaultiqSessionService sessionService) {
+    public VaultiqSessionManagerViaJpa(VaultiqSessionService sessionService) {
         this.sessionService = sessionService;
     }
 

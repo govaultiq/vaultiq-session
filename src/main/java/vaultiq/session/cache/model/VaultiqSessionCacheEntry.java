@@ -1,6 +1,6 @@
 package vaultiq.session.cache.model;
 
-import vaultiq.session.core.VaultiqSession;
+import vaultiq.session.core.model.VaultiqSession;
 
 import java.io.Serializable;
 import java.time.Instant;

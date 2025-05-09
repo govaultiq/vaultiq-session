@@ -4,7 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import vaultiq.session.core.UserActivityRecord;
+import vaultiq.session.core.model.UserActivityRecord;
 
 import java.time.Instant;
 

@@ -1,6 +1,7 @@
 package vaultiq.session.core;
 
 import jakarta.servlet.http.HttpServletRequest;
+import vaultiq.session.core.model.VaultiqSession;
 
 import java.util.List;
 

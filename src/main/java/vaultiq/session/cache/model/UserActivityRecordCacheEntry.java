@@ -1,6 +1,6 @@
 package vaultiq.session.cache.model;
 
-import vaultiq.session.core.UserActivityRecord;
+import vaultiq.session.core.model.UserActivityRecord;
 
 import java.time.Instant;
 
