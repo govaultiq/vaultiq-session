@@ -1,16 +1,20 @@
 package vaultiq.session.cache.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class SessionIds {
-    private List<String> sessions = new ArrayList<>();
+    private Set<String> sessionIds = new HashSet<>();
 
-    public List<String> getSessions() {
-        return sessions;
+    public Set<String> getSessionIds() {
+        return sessionIds;
     }
 
-    public void setSessions(List<String> sessions) {
-        this.sessions = sessions != null ? sessions : new ArrayList<>();
+    public void setSessionIds(Set<String> sessionIds) {
+        this.sessionIds = sessionIds != null ? sessionIds : new HashSet<>();
+    }
+
+    public void addSessionId(String sessionId) {
+        sessionIds.add(sessionId);
     }
 }

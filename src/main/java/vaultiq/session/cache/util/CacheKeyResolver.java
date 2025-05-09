@@ -22,4 +22,8 @@ public final class CacheKeyResolver {
         return "blacklist-" + sessionId;
     }
 
+    public static String keyForBlacklistByUser(String sessionId) {
+        return "blacklist-by-user-" + sessionId;
+    }
+
 }

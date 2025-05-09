@@ -83,7 +83,7 @@ public class VaultiqSessionCacheService {
             sessionIds.remove(sessionId);
 
             SessionIds updated = new SessionIds();
-            updated.setSessions(sessionIds);
+            updated.setSessionIds(sessionIds);
             userSessionMappingCache.put(keyForUserSessionMapping(session.getUserId()), updated);
         }
     }
@@ -108,13 +108,13 @@ public class VaultiqSessionCacheService {
         sessionIds.add(sessionEntry.getSessionId());
 
         SessionIds updated = new SessionIds();
-        updated.setSessions(sessionIds);
+        updated.setSessionIds(sessionIds);
         userSessionMappingCache.put(keyForUserSessionMapping(userId), updated);
     }
 
     public List<String> getUserSessionIds(String userId) {
         return Optional.ofNullable(userSessionMappingCache.get(keyForUserSessionMapping(userId), SessionIds.class))
-                .map(SessionIds::getSessions)
+                .map(SessionIds::getSessionIds)
                 .orElseGet(ArrayList::new);
     }
 
@@ -131,7 +131,7 @@ public class VaultiqSessionCacheService {
         sessions.forEach(this::cacheSession);
         var sessionIds = sessions.stream().map(VaultiqSession::getSessionId).toList();
         SessionIds ids = new SessionIds();
-        ids.setSessions(sessionIds);
+        ids.setSessionIds(sessionIds);
         userSessionMappingCache.put(keyForUserSessionMapping(userId), ids);
     }
 }
