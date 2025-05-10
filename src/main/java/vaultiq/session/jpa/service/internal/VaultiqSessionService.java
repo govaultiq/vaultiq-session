@@ -5,6 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
+import vaultiq.session.cache.model.ModelType;
+import vaultiq.session.config.VaultiqPersistenceMethod;
+import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.core.model.VaultiqSession;
 import vaultiq.session.fingerprint.DeviceFingerprintGenerator;
 import vaultiq.session.jpa.model.JpaVaultiqSession;
@@ -15,6 +18,7 @@ import java.util.List;
 
 @Service
 @ConditionalOnBean(VaultiqSessionRepository.class)
+@ConditionalOnVaultiqModelConfig(method = VaultiqPersistenceMethod.USE_JPA, type = {ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
 public class VaultiqSessionService {
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionService.class);
     private final VaultiqSessionRepository sessionRepository;
