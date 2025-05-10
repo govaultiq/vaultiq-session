@@ -23,13 +23,13 @@ import static vaultiq.session.cache.util.CacheKeyResolver.*;
 @Service
 @ConditionalOnBean(VaultiqCacheContext.class)
 @ConditionalOnVaultiqModelConfig(method = VaultiqPersistenceMethod.USE_CACHE, type = ModelType.BLOCKLIST)
-public class BlocklistSessionCacheService {
-    private static final Logger log = LoggerFactory.getLogger(BlocklistSessionCacheService.class);
+public class SessionBlocklistCacheService {
+    private static final Logger log = LoggerFactory.getLogger(SessionBlocklistCacheService.class);
 
     private final VaultiqSessionCacheService vaultiqSessionCacheService;
     private final Cache blocklistCache;
 
-    public BlocklistSessionCacheService(
+    public SessionBlocklistCacheService(
             VaultiqSessionContext context,
             VaultiqCacheContext cacheContext,
             VaultiqSessionCacheService vaultiqSessionCacheService) {

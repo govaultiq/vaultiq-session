@@ -19,23 +19,23 @@ import java.util.Set;
  * <p>
  * This implementation is enabled only when Vaultiq is configured for cache-only blocklist management
  * ({@code VaultiqPersistenceMode.CACHE_ONLY} for {@code ModelType.BLOCKLIST}).
- * Delegates all business logic to an injected {@link BlocklistSessionCacheService}.
+ * Delegates all business logic to an injected {@link SessionBlocklistCacheService}.
  *
- * @see BlocklistSessionCacheService
+ * @see SessionBlocklistCacheService
  */
 @Service
 @ConditionalOnBean(VaultiqSessionContext.class)
 @ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.CACHE_ONLY, type = ModelType.BLOCKLIST)
 public class SessionBacklistManagerViaCache implements SessionBacklistManager {
     private static final Logger log = LoggerFactory.getLogger(SessionBacklistManagerViaCache.class);
-    private final BlocklistSessionCacheService cacheService;
+    private final SessionBlocklistCacheService cacheService;
 
     /**
      * Constructs the manager with the required cache-based blocklist service.
      *
      * @param cacheService Cache-backed blocklist handler (must not be null)
      */
-    public SessionBacklistManagerViaCache(BlocklistSessionCacheService cacheService) {
+    public SessionBacklistManagerViaCache(SessionBlocklistCacheService cacheService) {
         this.cacheService = cacheService;
     }
 
