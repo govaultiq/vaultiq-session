@@ -3,7 +3,6 @@ package vaultiq.session.cache.service;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
-import vaultiq.session.cache.service.internal.BlocklistSessionCacheService;
 import vaultiq.session.cache.service.internal.VaultiqSessionCacheService;
 import vaultiq.session.core.model.VaultiqSession;
 import vaultiq.session.core.VaultiqSessionManager;
@@ -15,13 +14,9 @@ import java.util.List;
 public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
 
     private final VaultiqSessionCacheService vaultiqSessionCacheService;
-    private final BlocklistSessionCacheService blocklistSessionCacheService;
 
-    public VaultiqSessionManagerViaCache(
-            VaultiqSessionCacheService vaultiqSessionCacheService,
-            BlocklistSessionCacheService blocklistSessionCacheService) {
+    public VaultiqSessionManagerViaCache(VaultiqSessionCacheService vaultiqSessionCacheService) {
         this.vaultiqSessionCacheService = vaultiqSessionCacheService;
-        this.blocklistSessionCacheService = blocklistSessionCacheService;
     }
 
     @Override

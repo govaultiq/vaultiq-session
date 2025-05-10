@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import vaultiq.session.cache.model.ModelType;
 import vaultiq.session.cache.model.SessionIds;
 import vaultiq.session.cache.util.VaultiqCacheContext;
-import vaultiq.session.core.SessionBacklistManager;
 import vaultiq.session.core.util.VaultiqSessionContext;
 
 import java.util.*;

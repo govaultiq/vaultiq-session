@@ -15,6 +15,7 @@ import vaultiq.session.fingerprint.DeviceFingerprintGenerator;
 import vaultiq.session.cache.model.VaultiqSessionCacheEntry;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static vaultiq.session.cache.util.CacheKeyResolver.keyForSession;
 import static vaultiq.session.cache.util.CacheKeyResolver.keyForUserSessionMapping;
@@ -104,7 +105,7 @@ public class VaultiqSessionCacheService {
     }
 
     private void mapNewSessionIdToUser(String userId, VaultiqSessionCacheEntry sessionEntry) {
-        List<String> sessionIds = getUserSessionIds(userId);
+        var sessionIds = getUserSessionIds(userId);
         sessionIds.add(sessionEntry.getSessionId());
 
         SessionIds updated = new SessionIds();
@@ -112,10 +113,10 @@ public class VaultiqSessionCacheService {
         userSessionMappingCache.put(keyForUserSessionMapping(userId), updated);
     }
 
-    public List<String> getUserSessionIds(String userId) {
+    public Set<String> getUserSessionIds(String userId) {
         return Optional.ofNullable(userSessionMappingCache.get(keyForUserSessionMapping(userId), SessionIds.class))
                 .map(SessionIds::getSessionIds)
-                .orElseGet(ArrayList::new);
+                .orElseGet(HashSet::new);
     }
 
     private VaultiqSession toVaultiqSession(VaultiqSessionCacheEntry source) {
@@ -129,7 +130,7 @@ public class VaultiqSessionCacheService {
 
     public void cacheUserSessions(String userId, List<VaultiqSession> sessions) {
         sessions.forEach(this::cacheSession);
-        var sessionIds = sessions.stream().map(VaultiqSession::getSessionId).toList();
+        var sessionIds = sessions.stream().map(VaultiqSession::getSessionId).collect(Collectors.toSet());
         SessionIds ids = new SessionIds();
         ids.setSessionIds(sessionIds);
         userSessionMappingCache.put(keyForUserSessionMapping(userId), ids);
