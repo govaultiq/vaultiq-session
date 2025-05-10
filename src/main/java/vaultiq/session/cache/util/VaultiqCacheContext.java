@@ -18,7 +18,7 @@ import java.util.Objects;
  * Supports mandatory and optional cache resolution with fallback mechanisms.
  */
 @Component
-@ConditionalOnProperty(prefix = "vaultiq.session.persistence.cache", name = "enabled", havingValue = "true")
+@ConditionalOnProperty(prefix = "vaultiq.session.persistence.cache-config", name = "use-cache", havingValue = "true")
 public class VaultiqCacheContext {
 
     private static final Logger log = LoggerFactory.getLogger(VaultiqCacheContext.class);
