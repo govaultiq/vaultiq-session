@@ -3,16 +3,18 @@ package vaultiq.session.cache.service;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
-import vaultiq.session.config.ConditionalOnVaultiqPersistence;
-import vaultiq.session.config.VaultiqPersistenceMode;
-import vaultiq.session.core.VaultiqSession;
+import vaultiq.session.cache.model.ModelType;
+import vaultiq.session.cache.service.internal.VaultiqSessionCacheService;
+import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
+import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
+import vaultiq.session.core.model.VaultiqSession;
 import vaultiq.session.core.VaultiqSessionManager;
 
 import java.util.List;
 
 @Service
-@ConditionalOnVaultiqPersistence(VaultiqPersistenceMode.CACHE_ONLY)
 @ConditionalOnBean(VaultiqSessionCacheService.class)
+@ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.CACHE_ONLY, type = {ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
 public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
 
     private final VaultiqSessionCacheService vaultiqSessionCacheService;

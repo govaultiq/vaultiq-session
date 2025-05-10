@@ -5,17 +5,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
-import vaultiq.session.cache.service.VaultiqSessionCacheService;
-import vaultiq.session.config.ConditionalOnVaultiqPersistence;
-import vaultiq.session.config.VaultiqPersistenceMode;
-import vaultiq.session.core.VaultiqSession;
+import vaultiq.session.cache.model.ModelType;
+import vaultiq.session.cache.service.internal.VaultiqSessionCacheService;
+import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
+import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
+import vaultiq.session.core.model.VaultiqSession;
 import vaultiq.session.core.VaultiqSessionManager;
+import vaultiq.session.jpa.service.internal.VaultiqSessionService;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @ConditionalOnBean({VaultiqSessionService.class, VaultiqSessionCacheService.class})
-@ConditionalOnVaultiqPersistence(VaultiqPersistenceMode.JPA_AND_CACHE)
+@ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_AND_CACHE, type = {ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
 public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionManager {
 
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionManagerViaJpaCacheEnabled.class);
@@ -75,7 +78,7 @@ public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionMa
 
     @Override
     public int totalUserSessions(String userId) {
-        List<String> sessionIds = cacheService.getUserSessionIds(userId);
+        Set<String> sessionIds = cacheService.getUserSessionIds(userId);
         if (!sessionIds.isEmpty()) {
             return sessionIds.size();
         } else {

@@ -1,11 +1,14 @@
-package vaultiq.session.jpa.service;
+package vaultiq.session.jpa.service.internal;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
-import vaultiq.session.core.VaultiqSession;
+import vaultiq.session.cache.model.ModelType;
+import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
+import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
+import vaultiq.session.core.model.VaultiqSession;
 import vaultiq.session.fingerprint.DeviceFingerprintGenerator;
 import vaultiq.session.jpa.model.JpaVaultiqSession;
 import vaultiq.session.jpa.repository.VaultiqSessionRepository;
@@ -15,6 +18,7 @@ import java.util.List;
 
 @Service
 @ConditionalOnBean(VaultiqSessionRepository.class)
+@ConditionalOnVaultiqModelConfig(method = VaultiqPersistenceMethod.USE_JPA, type = {ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
 public class VaultiqSessionService {
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionService.class);
     private final VaultiqSessionRepository sessionRepository;
@@ -37,7 +41,6 @@ public class VaultiqSessionService {
         entity.setUserId(userId);
         entity.setDeviceFingerPrint(deviceFingerPrint);
         entity.setCreatedAt(now);
-        entity.setLastActiveAt(now);
 
         entity = sessionRepository.save(entity);
         log.info("Persisted new session '{}' for user '{}'.", entity.getSessionId(), userId);
@@ -55,20 +58,6 @@ public class VaultiqSessionService {
         else log.debug("Session '{}' loaded from database.", sessionId);
 
         return session;
-    }
-
-    public VaultiqSession touch(String sessionId) {
-        return sessionRepository.findById(sessionId)
-                .map(entity -> {
-
-                    entity.setLastActiveAt(Instant.now());
-                    JpaVaultiqSession updated = sessionRepository.save(entity);
-
-                    log.info("Updated 'lastActiveAt' for session '{}'.", sessionId);
-                    return mapToVaultiqSession(updated);
-
-                })
-                .orElse(null);
     }
 
     public void delete(String sessionId) {
@@ -96,7 +85,6 @@ public class VaultiqSessionService {
                 .userId(entity.getUserId())
                 .deviceFingerPrint(entity.getDeviceFingerPrint())
                 .createdAt(entity.getCreatedAt())
-                .lastActiveAt(entity.getLastActiveAt())
                 .build();
     }
 }

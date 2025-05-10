@@ -1,6 +1,6 @@
 package vaultiq.session.cache.model;
 
-import vaultiq.session.core.VaultiqSession;
+import vaultiq.session.core.model.VaultiqSession;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -11,7 +11,6 @@ public final class VaultiqSessionCacheEntry implements Serializable {
     private String userId;
     private String deviceFingerPrint;
     private Instant createdAt;
-    private Instant lastActiveAt;
 
     private VaultiqSessionCacheEntry() {
         // Avoiding Direct Instantiation
@@ -23,7 +22,6 @@ public final class VaultiqSessionCacheEntry implements Serializable {
         vaultiqSession.userId = userId;
         vaultiqSession.deviceFingerPrint = deviceFingerPrint;
         vaultiqSession.createdAt = Instant.now();
-        vaultiqSession.lastActiveAt = Instant.now();
         return vaultiqSession;
     }
 
@@ -33,12 +31,7 @@ public final class VaultiqSessionCacheEntry implements Serializable {
         cacheEntry.userId = source.getUserId();
         cacheEntry.deviceFingerPrint = source.getDeviceFingerPrint();
         cacheEntry.createdAt = source.getCreatedAt();
-        cacheEntry.lastActiveAt = source.getLastActiveAt();
         return cacheEntry;
-    }
-
-    public void currentlyActive() {
-        this.lastActiveAt = Instant.now();
     }
 
     public String getSessionId() {
@@ -55,10 +48,6 @@ public final class VaultiqSessionCacheEntry implements Serializable {
 
     public Instant getCreatedAt() {
         return createdAt;
-    }
-
-    public Instant getLastActiveAt() {
-        return lastActiveAt;
     }
 
     @Override
@@ -82,7 +71,6 @@ public final class VaultiqSessionCacheEntry implements Serializable {
                 "sessionId='" + sessionId + '\'' +
                 ", userId='" + userId + '\'' +
                 ", createdAt=" + createdAt +
-                ", lastActiveAt=" + lastActiveAt +
                 '}';
     }
 

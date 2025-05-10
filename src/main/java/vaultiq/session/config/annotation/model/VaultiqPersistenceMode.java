@@ -1,4 +1,4 @@
-package vaultiq.session.config;
+package vaultiq.session.config.annotation.model;
 
 public enum VaultiqPersistenceMode {
     JPA_ONLY,

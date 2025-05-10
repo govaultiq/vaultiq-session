@@ -5,16 +5,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
-import vaultiq.session.config.ConditionalOnVaultiqPersistence;
-import vaultiq.session.config.VaultiqPersistenceMode;
-import vaultiq.session.core.VaultiqSession;
+import vaultiq.session.cache.model.ModelType;
+import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
+import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
+import vaultiq.session.core.model.VaultiqSession;
 import vaultiq.session.core.VaultiqSessionManager;
+import vaultiq.session.jpa.service.internal.VaultiqSessionService;
 
 import java.util.List;
 
 @Service
 @ConditionalOnBean(VaultiqSessionService.class)
-@ConditionalOnVaultiqPersistence(VaultiqPersistenceMode.JPA_ONLY)
+@ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_ONLY, type = {ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
 public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionManagerViaJpa.class);
 
@@ -34,11 +36,6 @@ public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
     public VaultiqSession getSession(String sessionId) {
         log.debug("Retrieving session '{}' via JPA.", sessionId);
         return sessionService.get(sessionId);
-    }
-
-    public void updateToCurrentlyActive(String sessionId) {
-        log.debug("Updating lastActiveAt status for session '{}' via JPA.", sessionId);
-        sessionService.touch(sessionId);
     }
 
     @Override
