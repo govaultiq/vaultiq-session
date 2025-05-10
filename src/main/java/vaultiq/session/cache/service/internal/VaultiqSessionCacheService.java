@@ -3,12 +3,13 @@ package vaultiq.session.cache.service.internal;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.Cache;
 import org.springframework.stereotype.Service;
 import vaultiq.session.cache.model.ModelType;
 import vaultiq.session.cache.model.SessionIds;
 import vaultiq.session.cache.util.VaultiqCacheContext;
+import vaultiq.session.config.VaultiqPersistenceMethod;
+import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.core.model.VaultiqSession;
 import vaultiq.session.core.util.VaultiqSessionContext;
 import vaultiq.session.fingerprint.DeviceFingerprintGenerator;
@@ -21,7 +22,7 @@ import static vaultiq.session.cache.util.CacheKeyResolver.keyForSession;
 import static vaultiq.session.cache.util.CacheKeyResolver.keyForUserSessionMapping;
 
 @Service
-@ConditionalOnProperty(prefix = "vaultiq.session.persistence.cache", name = "enabled", havingValue = "true")
+@ConditionalOnVaultiqModelConfig(method = VaultiqPersistenceMethod.USE_CACHE, type = {ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
 public class VaultiqSessionCacheService {
 
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionCacheService.class);
@@ -35,13 +36,11 @@ public class VaultiqSessionCacheService {
             VaultiqCacheContext cacheContext,
             DeviceFingerprintGenerator fingerprintGenerator) {
 
-        var propertyPrefix = "vaultiq.session.persistence.cache.cache-names";
-
-        this.sessionPoolCache = cacheContext.getCacheMandatory(context.getModelConfig(ModelType.SESSION).cacheName(), propertyPrefix + ".sessions");
+        this.sessionPoolCache = cacheContext.getCacheMandatory(context.getModelConfig(ModelType.SESSION).cacheName(), ModelType.SESSION);
         this.userSessionMappingCache = cacheContext.getCacheOptional(
                         context.getModelConfig(ModelType.USER_SESSION_MAPPING).cacheName(),
-                        propertyPrefix + ".user-session-mapping")
-                .orFallbackTo(sessionPoolCache, propertyPrefix + ".sessions");
+                        ModelType.USER_SESSION_MAPPING)
+                .orFallbackTo(sessionPoolCache, ModelType.SESSION);
 
         this.fingerprintGenerator = fingerprintGenerator;
     }

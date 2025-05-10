@@ -1,3 +1,4 @@
+
 package vaultiq.session.cache.util;
 
 import org.slf4j.Logger;
@@ -6,9 +7,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
+import vaultiq.session.cache.model.ModelType;
 import vaultiq.session.config.VaultiqSessionProperties;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Context utility class to provide access to caches configured via Vaultiq session properties.
@@ -25,32 +28,29 @@ public class VaultiqCacheContext {
     /**
      * Constructs the cache context with a resolved CacheManager.
      *
-     * @param props          session properties containing cache manager configuration
-     * @param cacheManagers  available cache managers
+     * @param props session properties containing cache manager configuration
+     * @param cacheManagers available cache managers
      */
-    public VaultiqCacheContext(
-            VaultiqSessionProperties props,
-            Map<String, CacheManager> cacheManagers) {
+    public VaultiqCacheContext(VaultiqSessionProperties props, Map<String, CacheManager> cacheManagers) {
         String configuredCacheManagerName = props.getPersistence().getCacheConfig().getManager();
         if (configuredCacheManagerName == null || !cacheManagers.containsKey(configuredCacheManagerName)) {
-            log.error("CacheManager `{}` not found, isConfigured: {}", configuredCacheManagerName,
-                    configuredCacheManagerName != null && !configuredCacheManagerName.isBlank());
+            log.error("CacheManager '{}' not found. Provided: {}", configuredCacheManagerName,
+                    cacheManagers.keySet());
             throw new IllegalStateException("Required CacheManager '" + configuredCacheManagerName + "' not found.");
         }
-
         this.cacheManager = cacheManagers.get(configuredCacheManagerName);
     }
 
     /**
      * Resolves a mandatory cache by name.
      *
-     * @param name      the cache name
-     * @param property  the associated configuration property for error context
-     * @return the resolved cache
+     * @param name the cache name
+     * @param modelType the model type for which the cache is required
+     * @return the resolved cache (never null)
      */
-    public Cache getCacheMandatory(String name, String property) {
+    public Cache getCacheMandatory(String name, ModelType modelType) {
         if (name == null || name.isBlank()) {
-            throw new IllegalStateException("Missing cache name for the property: '" + property + "'.");
+            throw new IllegalStateException("Missing cache name for the type: '" + modelType.name() + "'.");
         }
         Cache cache = cacheManager.getCache(name);
         if (cache == null) {
@@ -60,14 +60,14 @@ public class VaultiqCacheContext {
     }
 
     /**
-     * Starts resolution of an optional cache with potential fallback.
+     * Begins optional cache resolution with potential fallback strategies.
      *
-     * @param name      the preferred cache name
-     * @param property  the associated property name (used in logging)
+     * @param name the preferred cache name (may be null/blank, triggers fallback)
+     * @param modelType the model type for which the cache is required
      * @return an OptionalCacheResolver to define fallback strategy
      */
-    public OptionalCacheResolver getCacheOptional(String name, String property) {
-        return new OptionalCacheResolver(name, property, cacheManager);
+    public OptionalCacheResolver getCacheOptional(String name, ModelType modelType) {
+        return new OptionalCacheResolver(name, modelType, cacheManager);
     }
 
     /**
@@ -75,72 +75,73 @@ public class VaultiqCacheContext {
      */
     public static class OptionalCacheResolver {
         private final String requiredCacheName;
-        private final String requiredProperty;
+        private final ModelType requiredModelType;
         private final CacheManager cacheManager;
 
-        public OptionalCacheResolver(String requiredCacheName, String requiredProperty, CacheManager cacheManager) {
+        public OptionalCacheResolver(String requiredCacheName, ModelType requiredModelType, CacheManager cacheManager) {
             this.requiredCacheName = requiredCacheName;
-            this.requiredProperty = requiredProperty;
+            this.requiredModelType = requiredModelType;
             this.cacheManager = cacheManager;
         }
 
         /**
-         * Attempts to resolve the configured cache or fallbacks to a provided cache.
+         * Attempts to resolve the configured cache or falls back to a provided cache instance.
          *
-         * @param fallbackCache     the fallback Cache object
-         * @param fallbackProperty  name of the fallback source property (used in logs)
+         * @param fallbackCache the fallback Cache object
+         * @param fallbackModelType provides log/clarity for which fallback is used
          * @return resolved Cache
          */
-        public Cache orFallbackTo(Cache fallbackCache, String fallbackProperty) {
-            var cache = tryGetCache();
+        public Cache orFallbackTo(Cache fallbackCache, ModelType fallbackModelType) {
+            Cache cache = tryGetCache();
             if (cache != null)
                 return cache;
 
-            logFallingBack(fallbackProperty);
-            if (fallbackCache != null && fallbackProperty != null)
+            logFallingBack(fallbackModelType);
+
+            if (fallbackCache != null)
                 return fallbackCache;
-            else
-                throw new IllegalStateException("Failed to fallback, due to fallbackCache = " + (fallbackCache == null) + " and fallbackProperty = " + (fallbackProperty == null));
+
+            throw new IllegalStateException("Fallback to provided Cache failed: fallbackCache was null.");
         }
 
         /**
-         * Attempts to resolve the configured cache or fallbacks to a cache by name.
+         * Attempts to resolve the configured cache or falls back to a cache by name.
          *
-         * @param fallbackCacheName     fallback cache name
-         * @param fallbackProperty      fallback property name (used for error/log context)
+         * @param fallbackCacheName fallback cache name (must be non-null/non-blank)
+         * @param fallbackModelType provides log/clarity for which fallback is used
          * @return resolved Cache
          */
-        public Cache orFallbackTo(String fallbackCacheName, String fallbackProperty) {
-            var cache = tryGetCache();
+        public Cache orFallbackTo(String fallbackCacheName, ModelType fallbackModelType) {
+            Cache cache = tryGetCache();
             if (cache != null)
                 return cache;
 
-            logFallingBack(fallbackProperty);
+            logFallingBack(fallbackModelType);
 
             if (fallbackCacheName == null || fallbackCacheName.isBlank()) {
-                throw new IllegalStateException("Missing cache name for the property: '" + fallbackProperty + "'.");
+                throw new IllegalStateException("Missing fallback cache name for the property: '" + fallbackModelType + "'.");
             }
             cache = cacheManager.getCache(fallbackCacheName);
             if (cache == null) {
-                throw new IllegalStateException("Cache named '" + fallbackCacheName + "' not found in configured CacheManager.");
+                throw new IllegalStateException("Fallback cache named '" + fallbackCacheName + "' not found in configured CacheManager.");
             }
             return cache;
         }
 
-        private void logFallingBack(String fallbackProperty) {
-            log.warn("Cache '{}' not found in CacheManager, falling back to '{}'.", requiredCacheName, fallbackProperty);
+        private void logFallingBack(ModelType fallbackModelType) {
+            log.warn("Cache '{}' not found in CacheManager, falling back to type: '{}'.",
+                    requiredCacheName, fallbackModelType.name());
         }
 
         private Cache tryGetCache() {
             if (requiredCacheName == null || requiredCacheName.isBlank()) {
-                log.warn("No cache name configured for property: '{}', falling back to session-pool.", requiredProperty);
+                log.warn("No cache name configured for property: '{}', will use fallback.", requiredModelType.name());
                 return null;
             }
-
             Cache cache = cacheManager.getCache(requiredCacheName);
-            if (cache != null)
-                log.debug("Cache '{}' found in CacheManager, returning it.", requiredCacheName);
-
+            if (cache != null) {
+                log.debug("Cache '{}' found in CacheManager, using it.", requiredCacheName);
+            }
             return cache;
         }
     }
