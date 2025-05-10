@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import vaultiq.session.cache.model.ModelType;
 import vaultiq.session.cache.model.SessionIds;
 import vaultiq.session.cache.util.VaultiqCacheContext;
-import vaultiq.session.config.VaultiqPersistenceMethod;
+import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.core.model.VaultiqSession;
 import vaultiq.session.core.util.VaultiqSessionContext;

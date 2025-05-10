@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 import vaultiq.session.cache.model.ModelType;
-import vaultiq.session.config.VaultiqPersistenceMethod;
+import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.core.util.VaultiqSessionContext;
 

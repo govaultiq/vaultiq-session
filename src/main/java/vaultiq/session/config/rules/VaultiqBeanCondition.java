@@ -1,10 +1,12 @@
 
-package vaultiq.session.config;
+package vaultiq.session.config.rules;
 
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 import vaultiq.session.cache.model.ModelType;
+import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
+import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
 import vaultiq.session.core.util.VaultiqSessionContext;
 
 import java.util.Map;
