@@ -39,7 +39,7 @@ public class SessionBlocklistJpaService {
      * @param userId the user identifier
      */
     @Transactional
-    void blocklistAllSessions(String userId) {
+    public void blocklistAllSessions(String userId) {
         List<JpaVaultiqSession> sessions = vaultiqSessionRepository.findAllByUserId(userId);
         var sessionBlocklist = sessions.stream()
                 .map(session -> SessionBlocklistEntity.create(session.getSessionId(), userId))
@@ -56,7 +56,7 @@ public class SessionBlocklistJpaService {
      * @param excludedSessionIds session IDs that should NOT be blocklisted
      */
     @Transactional
-    void blocklistAllSessionsExcept(String userId, String... excludedSessionIds) {
+    public void blocklistAllSessionsExcept(String userId, String... excludedSessionIds) {
         List<JpaVaultiqSession> sessions = vaultiqSessionRepository.findAllByUserId(userId);
 
         Set<String> excludedIds = excludedSessionIds == null
@@ -80,7 +80,7 @@ public class SessionBlocklistJpaService {
      * @param sessionId the session identifier
      */
     @Transactional
-    void blocklistSession(String sessionId) {
+    public void blocklistSession(String sessionId) {
         Optional<JpaVaultiqSession> optionalSession =
                 vaultiqSessionRepository.findById(sessionId);
         if (optionalSession.isPresent()) {
@@ -99,7 +99,7 @@ public class SessionBlocklistJpaService {
      * @param sessionId the session identifier
      * @return true if the session is blocklisted, false otherwise
      */
-    boolean isSessionBlocklisted(String sessionId) {
+    public boolean isSessionBlocklisted(String sessionId) {
         return sessionBlocklistRepository.existsById(sessionId);
     }
 
@@ -109,7 +109,7 @@ public class SessionBlocklistJpaService {
      * @param userId the user identifier
      * @return set of blocklisted session IDs for the user, or empty set if none
      */
-    Set<String> getBlocklistedSessions(String userId) {
+    public Set<String> getBlocklistedSessions(String userId) {
         return sessionBlocklistRepository.findAllByUserId(userId)
                 .stream().map(SessionBlocklistEntity::getSessionId)
                 .collect(Collectors.toSet());
