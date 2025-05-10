@@ -10,42 +10,32 @@ import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
 import vaultiq.session.core.util.VaultiqSessionContext;
 
 import java.util.Map;
-import java.util.Objects;
 
-public class VaultiqBeanCondition implements Condition {
+/**
+ * Condition for enabling beans based on Vaultiq persistence configuration and model type.
+ * Simplified to leverage enum array annotation semantics and perform direct casts.
+ */
+public class VaultiqPersistenceModeCondition implements Condition {
 
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-        String[] beanNames = Objects.requireNonNull(context.getBeanFactory())
-                .getBeanNamesForType(VaultiqSessionContext.class, false, false);
-        if (beanNames.length == 0) {
+        var beanFactory = context.getBeanFactory();
+        if (beanFactory == null || beanFactory.getBeanNamesForType(VaultiqSessionContext.class, false, false).length == 0) {
             return false;
         }
 
         Map<String, Object> attrs = metadata.getAnnotationAttributes(
                 ConditionalOnVaultiqPersistence.class.getName());
-        if (attrs == null) {
-            return false;
-        }
+        if (attrs == null) return false;
+
         VaultiqPersistenceMode mode = (VaultiqPersistenceMode) attrs.get("mode");
+        ModelType[] modelTypes = (ModelType[]) attrs.get("type");
 
-        Object typesObj = attrs.get("type");
-        ModelType[] modelTypes;
-        if (typesObj instanceof ModelType[]) {
-            modelTypes = (ModelType[]) typesObj;
-        } else if (typesObj instanceof ModelType) {
-            modelTypes = new ModelType[] {(ModelType) typesObj};
-        } else {
-            return false;
-        }
-
-        VaultiqSessionContext sessionContext =
-                context.getBeanFactory().getBean(VaultiqSessionContext.class);
+        VaultiqSessionContext sessionContext = beanFactory.getBean(VaultiqSessionContext.class);
 
         for (ModelType modelType : modelTypes) {
             var cfg = sessionContext.getModelConfig(modelType);
-            if (cfg == null)
-                continue;
+            if (cfg == null) continue;
 
             boolean useCache = cfg.useCache();
             boolean useJpa = cfg.useJpa();
@@ -59,8 +49,6 @@ public class VaultiqBeanCondition implements Condition {
                 return true;
             }
         }
-
-        // None matched
         return false;
     }
 }
