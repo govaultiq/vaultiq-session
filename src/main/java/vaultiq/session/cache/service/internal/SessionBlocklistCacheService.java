@@ -85,6 +85,10 @@ public class SessionBlocklistCacheService {
      */
     public void blocklistAllSessions(String userId) {
         var sessionIds = vaultiqSessionCacheService.getUserSessionIds(userId);
+        blocklistAllSessions(userId, sessionIds);
+    }
+
+    public void blocklistAllSessions(String userId, Set<String> sessionIds) {
         if (sessionIds.isEmpty()) {
             log.info("No sessions to blocklist for user '{}'.", userId);
         }
