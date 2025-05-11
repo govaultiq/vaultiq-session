@@ -22,6 +22,12 @@ public final class JpaVaultiqSession {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Column(name = "is_blocked", nullable = false)
+    private boolean isBlocked;
+
+    @Column(name = "blocked_at", nullable = true)
+    private Instant blockedAt;
+
     public static JpaVaultiqSession create(String userId, String deviceFingerPrint) {
         JpaVaultiqSession vaultiqSession = new JpaVaultiqSession();
         vaultiqSession.userId = userId;
@@ -60,5 +66,21 @@ public final class JpaVaultiqSession {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public boolean isBlocked() {
+        return isBlocked;
+    }
+
+    public void setBlocked(boolean blocked) {
+        isBlocked = blocked;
+    }
+
+    public Instant getBlockedAt() {
+        return blockedAt;
+    }
+
+    public void setBlockedAt(Instant blockedAt) {
+        this.blockedAt = blockedAt;
     }
 }

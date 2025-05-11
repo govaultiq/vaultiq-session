@@ -124,6 +124,8 @@ public class VaultiqSessionCacheService {
                 .userId(source.getUserId())
                 .deviceFingerPrint(source.getDeviceFingerPrint())
                 .createdAt(source.getCreatedAt())
+                .isBlocked(source.isBlocked())
+                .blockedAt(source.getBlockedAt())
                 .build();
     }
 

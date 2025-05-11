@@ -85,6 +85,8 @@ public class VaultiqSessionService {
                 .userId(entity.getUserId())
                 .deviceFingerPrint(entity.getDeviceFingerPrint())
                 .createdAt(entity.getCreatedAt())
+                .isBlocked(entity.isBlocked())
+                .blockedAt(entity.getBlockedAt())
                 .build();
     }
 }
