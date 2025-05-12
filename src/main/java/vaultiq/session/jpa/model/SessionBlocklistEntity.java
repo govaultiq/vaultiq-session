@@ -1,9 +1,7 @@
 package vaultiq.session.jpa.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import vaultiq.session.core.model.RevocationType;
 
 import java.time.Instant;
 
@@ -15,19 +13,21 @@ public class SessionBlocklistEntity {
     @Column(name = "session_id", nullable = false, updatable = false)
     private String sessionId;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
-
     @Column(name = "user_id", nullable = false, updatable = false)
     private String userId;
 
-    public static SessionBlocklistEntity create(String sessionId, String userId) {
-        SessionBlocklistEntity entity = new SessionBlocklistEntity();
-        entity.sessionId = sessionId;
-        entity.createdAt = Instant.now();
-        entity.userId = userId;
-        return entity;
-    }
+    @Enumerated(EnumType.STRING)
+    @Column(name = "revocation_type", nullable = false)
+    private RevocationType revocationType;
+
+    @Column(name = "note")
+    private String note;
+
+    @Column(name = "triggered_by", nullable = false)
+    private String triggeredBy;
+
+    @Column(name = "blocklisted_at", nullable = false, updatable = false)
+    private Instant blocklistedAt;
 
     public String getSessionId() {
         return sessionId;
@@ -37,19 +37,43 @@ public class SessionBlocklistEntity {
         this.sessionId = sessionId;
     }
 
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
     public String getUserId() {
         return userId;
     }
 
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+
+    public RevocationType getRevocationType() {
+        return revocationType;
+    }
+
+    public void setRevocationType(RevocationType revocationType) {
+        this.revocationType = revocationType;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+
+    public String getTriggeredBy() {
+        return triggeredBy;
+    }
+
+    public void setTriggeredBy(String triggeredBy) {
+        this.triggeredBy = triggeredBy;
+    }
+
+    public Instant getBlocklistedAt() {
+        return blocklistedAt;
+    }
+
+    public void setBlocklistedAt(Instant blocklistedAt) {
+        this.blocklistedAt = blocklistedAt;
     }
 }
