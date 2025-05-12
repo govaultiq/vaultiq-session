@@ -11,6 +11,8 @@ public final class VaultiqSessionCacheEntry implements Serializable {
     private String userId;
     private String deviceFingerPrint;
     private Instant createdAt;
+    private boolean isBlocked;
+    private Instant blockedAt;
 
     private VaultiqSessionCacheEntry() {
         // Avoiding Direct Instantiation
@@ -34,6 +36,11 @@ public final class VaultiqSessionCacheEntry implements Serializable {
         return cacheEntry;
     }
 
+    public void block() {
+        this.isBlocked = true;
+        this.blockedAt = Instant.now();
+    }
+
     public String getSessionId() {
         return sessionId;
     }
@@ -48,6 +55,14 @@ public final class VaultiqSessionCacheEntry implements Serializable {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public boolean isBlocked() {
+        return isBlocked;
+    }
+
+    public Instant getBlockedAt() {
+        return blockedAt;
     }
 
     @Override
@@ -71,6 +86,8 @@ public final class VaultiqSessionCacheEntry implements Serializable {
                 "sessionId='" + sessionId + '\'' +
                 ", userId='" + userId + '\'' +
                 ", createdAt=" + createdAt +
+                ", isBlocked=" + isBlocked +
+                ", blockedAt=" + blockedAt +
                 '}';
     }
 

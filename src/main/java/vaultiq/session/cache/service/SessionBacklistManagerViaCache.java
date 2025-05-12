@@ -1,11 +1,12 @@
 
-package vaultiq.session.cache.service.internal;
+package vaultiq.session.cache.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 import vaultiq.session.cache.model.ModelType;
+import vaultiq.session.cache.service.internal.SessionBlocklistCacheService;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
 import vaultiq.session.core.SessionBacklistManager;
