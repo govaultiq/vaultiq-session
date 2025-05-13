@@ -3,8 +3,8 @@ package vaultiq.session.jpa.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import vaultiq.session.jpa.model.SessionBlocklistEntity;
 
-import java.util.Set;
+import java.util.List;
 
 public interface SessionBlocklistRepository extends JpaRepository<SessionBlocklistEntity, String> {
-    Set<SessionBlocklistEntity> findAllByUserId(String userId);
+    List<SessionBlocklistEntity> findAllByUserId(String userId);
 }

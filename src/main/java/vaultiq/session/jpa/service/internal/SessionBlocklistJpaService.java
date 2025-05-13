@@ -3,33 +3,39 @@ package vaultiq.session.jpa.service.internal;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vaultiq.session.cache.model.ModelType;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
+import vaultiq.session.core.contracts.UserIdentityAware;
+import vaultiq.session.core.model.RevocationType;
 import vaultiq.session.jpa.model.JpaVaultiqSession;
 import vaultiq.session.jpa.model.SessionBlocklistEntity;
 import vaultiq.session.jpa.repository.SessionBlocklistRepository;
 import vaultiq.session.jpa.repository.VaultiqSessionRepository;
 
+import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
+@ConditionalOnBean(UserIdentityAware.class)
 @ConditionalOnVaultiqModelConfig(method = VaultiqPersistenceMethod.USE_JPA, type = ModelType.BLOCKLIST)
 public class SessionBlocklistJpaService {
     private static final Logger log = LoggerFactory.getLogger(SessionBlocklistJpaService.class);
     private final SessionBlocklistRepository sessionBlocklistRepository;
     private final VaultiqSessionRepository vaultiqSessionRepository;
+    private final UserIdentityAware userIdentityAware;
 
     public SessionBlocklistJpaService(
             SessionBlocklistRepository sessionBlocklistRepository,
-            VaultiqSessionRepository vaultiqSessionRepository
+            VaultiqSessionRepository vaultiqSessionRepository,
+            UserIdentityAware userIdentityAware
     ) {
         this.sessionBlocklistRepository = sessionBlocklistRepository;
         this.vaultiqSessionRepository = vaultiqSessionRepository;
+        this.userIdentityAware = userIdentityAware;
     }
 
     /**
@@ -39,13 +45,32 @@ public class SessionBlocklistJpaService {
      * @param userId the user identifier
      */
     @Transactional
-    public void blocklistAllSessions(String userId) {
+    public void blocklistAllSessions(String userId, String note) {
         List<JpaVaultiqSession> sessions = vaultiqSessionRepository.findAllByUserId(userId);
         var sessionBlocklist = sessions.stream()
-                .map(session -> SessionBlocklistEntity.create(session.getSessionId(), userId))
+                .map(session -> createBlocklist(note, session, RevocationType.LOGOUT_ALL))
                 .toList();
         sessionBlocklistRepository.saveAll(sessionBlocklist);
         log.info("Blocklisted all sessions for user '{}'.", userId);
+    }
+
+    /**
+     * Helper method to create a blocklist entity.
+     * <p>
+     * @param note the reason for the blocklist
+     * @param session the session entity
+     * @param type the type of blocklist (e.g., LOGOUT, LOGOUT_WITH_EXCLUSION, LOGOUT_ALL)
+     * @return the created blocklist entity
+     */
+    private SessionBlocklistEntity createBlocklist(String note, JpaVaultiqSession session, RevocationType type) {
+        var blocklist = new SessionBlocklistEntity();
+        blocklist.setSessionId(session.getSessionId());
+        blocklist.setUserId(session.getUserId());
+        blocklist.setRevocationType(type);
+        blocklist.setNote(note);
+        blocklist.setTriggeredBy(userIdentityAware.getCurrentUserID());
+        blocklist.setBlocklistedAt(Instant.now());
+        return blocklist;
     }
 
     /**
@@ -56,7 +81,7 @@ public class SessionBlocklistJpaService {
      * @param excludedSessionIds session IDs that should NOT be blocklisted
      */
     @Transactional
-    public void blocklistAllSessionsExcept(String userId, String... excludedSessionIds) {
+    public void blocklistAllSessionsExcept(String userId, String note, String... excludedSessionIds) {
         List<JpaVaultiqSession> sessions = vaultiqSessionRepository.findAllByUserId(userId);
 
         Set<String> excludedIds = excludedSessionIds == null
@@ -64,9 +89,8 @@ public class SessionBlocklistJpaService {
                 : new HashSet<>(Arrays.asList(excludedSessionIds));
 
         var sessionBlocklist = sessions.stream()
-                .map(JpaVaultiqSession::getSessionId)
-                .filter(sessionId -> !excludedIds.contains(sessionId))
-                .map(sessionId -> SessionBlocklistEntity.create(sessionId, userId))
+                .filter(session -> !excludedIds.contains(session.getSessionId()))
+                .map(session -> createBlocklist(note, session, RevocationType.LOGOUT_WITH_EXCLUSION))
                 .toList();
 
         sessionBlocklistRepository.saveAll(sessionBlocklist);
@@ -80,12 +104,12 @@ public class SessionBlocklistJpaService {
      * @param sessionId the session identifier
      */
     @Transactional
-    public void blocklistSession(String sessionId) {
+    public void blocklistSession(String sessionId, String note) {
         Optional<JpaVaultiqSession> optionalSession =
                 vaultiqSessionRepository.findById(sessionId);
         if (optionalSession.isPresent()) {
             JpaVaultiqSession session = optionalSession.get();
-            SessionBlocklistEntity entity = SessionBlocklistEntity.create(sessionId, session.getUserId());
+            SessionBlocklistEntity entity = createBlocklist(note, session, RevocationType.LOGOUT);
             sessionBlocklistRepository.save(entity);
             log.info("Blocklisted session '{}'.", sessionId);
         } else {
@@ -107,11 +131,9 @@ public class SessionBlocklistJpaService {
      * Get all blocklisted session IDs for a user.
      *
      * @param userId the user identifier
-     * @return set of blocklisted session IDs for the user, or empty set if none
+     * @return list of blocklisted session IDs for the user, or empty set if none
      */
-    public Set<String> getBlocklistedSessions(String userId) {
-        return sessionBlocklistRepository.findAllByUserId(userId)
-                .stream().map(SessionBlocklistEntity::getSessionId)
-                .collect(Collectors.toSet());
+    public List<SessionBlocklistEntity> getBlocklistedSessions(String userId) {
+        return sessionBlocklistRepository.findAllByUserId(userId);
     }
 }
