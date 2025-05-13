@@ -6,13 +6,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 import vaultiq.session.cache.model.ModelType;
+import vaultiq.session.cache.model.SessionBlocklistCacheEntry;
 import vaultiq.session.cache.service.internal.SessionBlocklistCacheService;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
 import vaultiq.session.core.SessionBacklistManager;
+import vaultiq.session.core.model.SessionBlocklist;
+import vaultiq.session.core.util.BlocklistContext;
 import vaultiq.session.core.util.VaultiqSessionContext;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -41,39 +45,14 @@ public class SessionBacklistManagerViaCache implements SessionBacklistManager {
     }
 
     /**
-     * Blocklist (invalidate) all sessions for a user. Delegates to the cache service.
+     * Blocklist sessions based on the provided context.
      *
-     * @param userId the user identifier
+     * @param context the context describing the blocklist operation
      */
     @Override
-    public void blocklistAllSessions(String userId) {
-        log.debug("Blocking all sessions for user: {}", userId);
-        cacheService.blocklistAllSessions(userId);
-    }
-
-    /**
-     * Blocklist all sessions except those explicitly excluded (by session id).
-     * Delegates to the cache service.
-     *
-     * @param userId the user identifier
-     * @param excludedSessionIds session ids to leave unblocked
-     */
-    @Override
-    public void blocklistAllSessionsExcept(String userId, String... excludedSessionIds) {
-        log.debug("Blocking all sessions except for user: {} and excluded sessions: {}", userId, Arrays.toString(excludedSessionIds));
-        cacheService.blocklistWithExclusions(userId, excludedSessionIds);
-    }
-
-    /**
-     * Blocklist (invalidate) a single session.
-     * Delegates to the cache service.
-     *
-     * @param sessionId session id to blocklist
-     */
-    @Override
-    public void blocklistSession(String sessionId) {
-        log.debug("Blocking session: {}", sessionId);
-        cacheService.blocklistSession(sessionId);
+    public void blocklist(BlocklistContext context) {
+        log.debug("Blocking sessions with Revocation type/mode: {}", context.getRevocationType().name());
+        cacheService.blocklist(context);
     }
 
     /**
@@ -94,11 +73,31 @@ public class SessionBacklistManagerViaCache implements SessionBacklistManager {
      * Delegates to the cache service.
      *
      * @param userId the user identifier
-     * @return a set of blocklisted session ids (never null)
+     * @return list of blocklisted sessions (never null)
      */
     @Override
-    public Set<String> getBlocklistedSessions(String userId) {
+    public List<SessionBlocklist> getBlocklistedSessions(String userId) {
         log.debug("Getting blocklisted sessions for user: {}", userId);
-        return cacheService.getBlocklistedSessions(userId);
+
+        return cacheService.getAllBlockListByUser(userId)
+                .stream()
+                .map(this::toSessionBlocklist)
+                .toList();
+    }
+
+    /**
+     * Helper method to convert a cache entry to a SessionBlocklist object.
+     * @param entry the cache entry to convert
+     * @return the converted SessionBlocklist object
+     */
+    private SessionBlocklist toSessionBlocklist(SessionBlocklistCacheEntry entry) {
+        return SessionBlocklist.builder()
+                .sessionId(entry.getSessionId())
+                .userId(entry.getUserId())
+                .revocationType(entry.getRevocationType())
+                .note(entry.getNote())
+                .triggeredBy(entry.getTriggeredBy())
+                .blocklistedAt(entry.getBlocklistedAt())
+                .build();
     }
 }

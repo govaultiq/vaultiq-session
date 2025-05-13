@@ -150,6 +150,28 @@ public class SessionBlocklistCacheService {
     }
 
     /**
+     * Retrieve blocklisted session IDs for a user.
+     */
+    public SessionIds getBlocklistByUser(String userId) {
+        return blocklistCache.get(keyForBlacklistByUser(userId), SessionIds.class);
+    }
+
+    /**
+     * Retrieve all blocklisted session entries for a user.
+     */
+    public List<SessionBlocklistCacheEntry> getAllBlockListByUser(String userId) {
+        var sessionIds = getBlocklistByUser(userId);
+        if (sessionIds == null || sessionIds.getSessionIds() == null) {
+            return List.of();
+        }
+
+        return sessionIds.getSessionIds().stream()
+                .map(id -> blocklistCache.get(keyForBlacklist(id), SessionBlocklistCacheEntry.class))
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    /**
      * Unblock a session from the blocklist.
      */
     public void unblockSession(String sessionId) {
@@ -181,28 +203,6 @@ public class SessionBlocklistCacheService {
             );
             blockSession(entry);
         });
-    }
-
-    /**
-     * Retrieve blocklisted session IDs for a user.
-     */
-    private SessionIds getBlocklistByUser(String userId) {
-        return blocklistCache.get(keyForBlacklistByUser(userId), SessionIds.class);
-    }
-
-    /**
-     * Retrieve all blocklisted session entries for a user.
-     */
-    private List<SessionBlocklistCacheEntry> getAllBlockListByUser(String userId) {
-        var sessionIds = getBlocklistByUser(userId);
-        if (sessionIds == null || sessionIds.getSessionIds() == null) {
-            return List.of();
-        }
-
-        return sessionIds.getSessionIds().stream()
-                .map(id -> blocklistCache.get(keyForBlacklist(id), SessionBlocklistCacheEntry.class))
-                .filter(Objects::nonNull)
-                .toList();
     }
 
     /**
