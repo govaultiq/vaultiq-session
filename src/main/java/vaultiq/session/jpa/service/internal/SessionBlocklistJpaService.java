@@ -20,15 +20,32 @@ import vaultiq.session.core.util.BlocklistContext;
 import java.time.Instant;
 import java.util.*;
 
+/**
+ * Service for blocklisting (invalidating) user sessions using the JPA (database) persistence strategy.
+ * <p>
+ * Provides methods to blocklist individual sessions, all sessions for a user, or all except some for a user.
+ * Methods prefer transactional semantics for batch operations. The database is the source of truth in this persistence mode.
+ * </p>
+ *
+ * Typical usage includes logging-out sessions, forced logout for security, and checking blocklist status for token validation.
+ */
 @Service
 @ConditionalOnBean(UserIdentityAware.class)
 @ConditionalOnVaultiqModelConfig(method = VaultiqPersistenceMethod.USE_JPA, type = ModelType.BLOCKLIST)
 public class SessionBlocklistJpaService {
     private static final Logger log = LoggerFactory.getLogger(SessionBlocklistJpaService.class);
+
     private final SessionBlocklistRepository sessionBlocklistRepository;
     private final VaultiqSessionRepository vaultiqSessionRepository;
     private final UserIdentityAware userIdentityAware;
 
+    /**
+     * Constructs a JPA-backed blocklist service for sessions.
+     *
+     * @param sessionBlocklistRepository repository for blocklist entities
+     * @param vaultiqSessionRepository   repository for session entities
+     * @param userIdentityAware          provides the current user for audit logging
+     */
     public SessionBlocklistJpaService(
             SessionBlocklistRepository sessionBlocklistRepository,
             VaultiqSessionRepository vaultiqSessionRepository,
@@ -40,10 +57,12 @@ public class SessionBlocklistJpaService {
     }
 
     /**
-     * Blocklist (invalidate) sessions based on the provided context.
+     * Blocklist (invalidate) sessions based on the provided revocation context.
      * <p>
+     * The action may include blocking a single session, all sessions, or all-but-some sessions for a user.
+     * </p>
      *
-     * @param context the context describing the blocklist operation
+     * @param context the context describing the blocklist operation and strategy
      */
     @Transactional
     public void blocklist(BlocklistContext context) {
@@ -58,11 +77,13 @@ public class SessionBlocklistJpaService {
     }
 
     /**
-     * Blocklist (invalidate) all sessions for a given user.
-     * Can be used to log out from all devices.
+     * Blocklists (invalidates) all sessions for the specified user.
+     * Typically used to force logout from all devices.
      *
      * @param userId the user identifier
+     * @param note   optional reason or audit note for the operation
      */
+    @Transactional
     public void blocklistAllSessions(String userId, String note) {
         List<JpaVaultiqSession> sessions = vaultiqSessionRepository.findAllByUserId(userId);
         var sessionBlocklist = sessions.stream()
@@ -73,13 +94,12 @@ public class SessionBlocklistJpaService {
     }
 
     /**
-     * Helper method to create a blocklist entity.
-     * <p>
+     * Helper method to construct a blocklist entity from a raw session, blocklist type, and note.
      *
-     * @param note    the reason for the blocklist
-     * @param session the session entity
-     * @param type    the type of blocklist (e.g., LOGOUT, LOGOUT_WITH_EXCLUSION, LOGOUT_ALL)
-     * @return the created blocklist entity
+     * @param note    the reason for the blocklist (may be null)
+     * @param session the session entity to blocklist
+     * @param type    the type of blocklist operation
+     * @return the newly created blocklist entity object (not persisted)
      */
     private SessionBlocklistEntity createBlocklist(String note, JpaVaultiqSession session, RevocationType type) {
         var blocklist = new SessionBlocklistEntity();
@@ -93,11 +113,12 @@ public class SessionBlocklistJpaService {
     }
 
     /**
-     * Blocklist (invalidate) all sessions except the specified session IDs.
-     * Can be used to log out from all devices except, e.g., current device.
+     * Blocklists (invalidates) all sessions for a user except the specified session IDs.
+     * Useful for "logout everywhere else" features.
      *
-     * @param userId             the user identifier
-     * @param excludedSessionIds session IDs that should NOT be blocklisted
+     * @param userId             the user whose sessions are to be mostly blocklisted
+     * @param note               optional reason or audit note
+     * @param excludedSessionIds session IDs to be excluded from blocklisting (may be null/empty)
      */
     @Transactional
     public void blocklistAllSessionsExcept(String userId, String note, String... excludedSessionIds) {
@@ -117,10 +138,12 @@ public class SessionBlocklistJpaService {
     }
 
     /**
-     * Blocklist (invalidate) a specific session by session ID.
-     * Can be used to log out from one device.
+     * Blocklists (invalidates) a single session by session ID.
+     * Fails gracefully if the session does not exist.
      *
-     * @param sessionId the session identifier
+     * @param sessionId the session identifier to blocklist
+     * @param note      optional note for auditing purposes
+     * @return the blocklist entity if blocklisting was successful, null if session was missing
      */
     @Transactional
     public SessionBlocklistEntity blocklistSession(String sessionId, String note) {
@@ -138,9 +161,9 @@ public class SessionBlocklistJpaService {
     }
 
     /**
-     * Check if a session is currently blocklisted.
+     * Checks if a session is currently blocklisted.
      *
-     * @param sessionId the session identifier
+     * @param sessionId the session identifier to check
      * @return true if the session is blocklisted, false otherwise
      */
     public boolean isSessionBlocklisted(String sessionId) {
@@ -148,20 +171,34 @@ public class SessionBlocklistJpaService {
     }
 
     /**
-     * Get all blocklisted session IDs for a user.
+     * Retrieves all blocklisted session entities for a given user.
      *
      * @param userId the user identifier
-     * @return list of blocklisted session IDs for the user, or empty set if none
+     * @return list of blocklisted session entities for the user, or empty list if none
      */
     public List<SessionBlocklistEntity> getBlocklistedSessions(String userId) {
         return sessionBlocklistRepository.findAllByUserId(userId);
     }
 
+    /**
+     * Retrieves a single blocklisted session entity by session ID.
+     *
+     * @param sessionId the session ID to fetch
+     * @return the blocklist entity if found, otherwise null
+     */
     public SessionBlocklistEntity getBlocklistedSession(String sessionId) {
         return sessionBlocklistRepository.findById(sessionId).orElse(null);
     }
 
-    public long countOfSessionByUser(String userId) {
-        return sessionBlocklistRepository.countByUserId(userId);
+    /**
+     * Determines if any blocklist entries for the user have been updated after a specified timestamp.
+     * Typically used for cache staleness checks.
+     *
+     * @param userId        the user whose sessions to check
+     * @param lastUpdatedAt the cutoff timestamp (epoch millis)
+     * @return true if a more recent blocklist entry exists, otherwise false
+     */
+    public boolean isLastUpdatedGreaterThan(String userId, Long lastUpdatedAt) {
+        return sessionBlocklistRepository.existsByUserIdAndBlocklistedAtGreaterThan(userId, Instant.ofEpochMilli(lastUpdatedAt));
     }
 }

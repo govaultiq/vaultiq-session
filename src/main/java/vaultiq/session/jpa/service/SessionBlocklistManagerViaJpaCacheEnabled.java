@@ -1,3 +1,4 @@
+
 package vaultiq.session.jpa.service;
 
 import org.slf4j.Logger;
@@ -19,7 +20,18 @@ import vaultiq.session.jpa.service.internal.SessionBlocklistJpaService;
 
 import java.util.*;
 
-
+/**
+ * An implementation of the SessionBacklistManager that utilizes both cache and JPA persistence for session blocklisting.
+ * <p>
+ * Primary preference is given to the cache for retrieving or updating blocklist status to achieve maximum performance;
+ * database is used as a fallback and authoritative source to keep the cache updated in case of cache misses or stale data.
+ * </p>
+ *
+ * <p>
+ * Typical blocklist/write operations update the database and then populate the cache. Read/check operations first attempt from
+ * the cache, falling back to JPA when necessary, and update the cache if needed.
+ * </p>
+ */
 @Service
 @ConditionalOnBean({SessionBlocklistJpaService.class, SessionBlocklistCacheService.class})
 @ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_ONLY, type = {ModelType.BLOCKLIST, ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
@@ -30,6 +42,13 @@ public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBacklis
     private final SessionBlocklistCacheService sessionBlocklistCacheService;
     private final UserIdentityAware userIdentityAware;
 
+    /**
+     * Constructs a new SessionBlocklistManagerViaJpaCacheEnabled.
+     *
+     * @param sessionBlocklistJpaService   the service for JPA-based blocklist persistence
+     * @param sessionBlocklistCacheService the service for cache-based blocklist management
+     * @param userIdentityAware            used to acquire the current user for audit purposes
+     */
     public SessionBlocklistManagerViaJpaCacheEnabled(
             SessionBlocklistJpaService sessionBlocklistJpaService,
             SessionBlocklistCacheService sessionBlocklistCacheService,
@@ -40,6 +59,12 @@ public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBacklis
         this.userIdentityAware = userIdentityAware;
     }
 
+    /**
+     * Marks sessions as blocklisted according to the provided context.
+     * Updates the database and, on successful update, the cache is also refreshed.
+     *
+     * @param context the blocklist operation context
+     */
     @Override
     public void blocklist(BlocklistContext context) {
         log.debug("Blocking sessions with Revocation type/mode: {}", context.getRevocationType().name());
@@ -47,6 +72,13 @@ public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBacklis
         if(entity != null) cacheEntity(entity);
     }
 
+    /**
+     * Checks if a given session is blocklisted, preferring a cache lookup then falling back to JPA if needed.
+     * If blocklisted in DB but missing in cache, the cache will be updated.
+     *
+     * @param sessionId the session identifier to check
+     * @return true if the session is blocklisted, false otherwise
+     */
     @Override
     public boolean isSessionBlocklisted(String sessionId) {
         log.debug("Checking if session '{}' is blocklisted.", sessionId);
@@ -66,6 +98,12 @@ public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBacklis
         return false;
     }
 
+    /**
+     * Helper method to cache a SessionBlocklistEntity as a SessionBlocklistCacheEntry.
+     *
+     * @param entity the JPA entity to cache
+     * @return always true (for integration as a predicate)
+     */
     private boolean cacheEntity(SessionBlocklistEntity entity) {
         var newEntry = new SessionBlocklistCacheEntry();
         newEntry.setSessionId(entity.getSessionId());
@@ -80,6 +118,12 @@ public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBacklis
         return true;
     }
 
+    /**
+     * Retrieves all blocklisted sessions for a given user, checking cache first then merging with the database if the cache is stale.
+     *
+     * @param userId the user identifier whose blocklisted sessions are to be obtained
+     * @return list of blocklisted sessions
+     */
     @Override
     public List<SessionBlocklist> getBlocklistedSessions(String userId) {
         log.debug("Fetching blocklisted sessions for user '{}'.", userId);
@@ -90,16 +134,18 @@ public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBacklis
                 .map(this::toSessionBlocklist)
                 .toList();
 
-        // Step 2: Compare count from DB only if needed
-        long dbCount = sessionBlocklistJpaService.countOfSessionByUser(userId);
+        // Step 2: Check if the cache is stale
+        var isStale = sessionBlocklistCacheService.getLastUpdatedAt(userId)
+                .map(lastUpdatedAt -> sessionBlocklistJpaService.isLastUpdatedGreaterThan(userId, lastUpdatedAt))
+                .orElse(false);
 
-        if (cacheBlocklisted.size() >= dbCount) {
-            log.debug("Cache is sufficient ({} >= {}). Returning cached data.", cacheBlocklisted.size(), dbCount);
+        if (!isStale) {
+            log.debug("Blocklist found from cache. Not stale.");
             return cacheBlocklisted;
         }
 
         // Step 3: Cache might be stale/incomplete → fallback to a merged result
-        log.warn("Cache size ({}) less than DB count ({}). Merging with DB.", cacheBlocklisted.size(), dbCount);
+        log.debug("Blocklist is stale in cache, fetching from DB.");
         List<SessionBlocklist> dbBlocklisted = sessionBlocklistJpaService.getBlocklistedSessions(userId)
                 .stream()
                 .map(this::toSessionBlocklist)
@@ -113,10 +159,8 @@ public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBacklis
         return new ArrayList<>(merged.values());
     }
 
-
     /**
      * Helper method to convert a JPA entity to a SessionBlocklist object.
-     * <p>
      *
      * @param entity the JPA entity {@link SessionBlocklistEntity} to convert
      * @return the converted {@link SessionBlocklist} object
@@ -133,10 +177,9 @@ public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBacklis
     }
 
     /**
-     * Helper method to convert a JPA entity to a SessionBlocklist object.
-     * <p>
+     * Helper method to convert a cache entry to a SessionBlocklist object.
      *
-     * @param entry the JPA entity {@link SessionBlocklistEntity} to convert
+     * @param entry the cache entity {@link SessionBlocklistCacheEntry} to convert
      * @return the converted {@link SessionBlocklist} object
      */
     private SessionBlocklist toSessionBlocklist(SessionBlocklistCacheEntry entry) {
