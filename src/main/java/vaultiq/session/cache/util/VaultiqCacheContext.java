@@ -21,7 +21,7 @@ import java.util.Map;
  * </p>
  * <ul>
  *   <li>Ensures caches are present and fail-fast if missing/misconfigured.</li>
- *   <li>Supports fallback strategies for optional caches in multi-model environments.</li>
+ *   <li>Supports fallback strategies for optional caches in multimodel environments.</li>
  *   <li>Backed by the cache manager specified in application properties.</li>
  * </ul>
  */
