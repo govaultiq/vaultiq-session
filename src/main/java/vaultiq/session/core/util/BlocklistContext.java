@@ -1,4 +1,4 @@
-package vaultiq.session.jpa.util;
+package vaultiq.session.core.util;
 
 import vaultiq.session.core.model.RevocationType;
 

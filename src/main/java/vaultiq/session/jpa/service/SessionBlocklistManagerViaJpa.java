@@ -12,10 +12,9 @@ import vaultiq.session.core.SessionBacklistManager;
 import vaultiq.session.core.model.SessionBlocklist;
 import vaultiq.session.jpa.model.SessionBlocklistEntity;
 import vaultiq.session.jpa.service.internal.SessionBlocklistJpaService;
-import vaultiq.session.jpa.util.BlocklistContext;
+import vaultiq.session.core.util.BlocklistContext;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * JPA-backed implementation of the {@link SessionBacklistManager} interface.
