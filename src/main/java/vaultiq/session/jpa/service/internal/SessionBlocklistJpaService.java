@@ -45,6 +45,7 @@ public class SessionBlocklistJpaService {
      *
      * @param context the context describing the blocklist operation
      */
+    @Transactional
     public void blocklist(BlocklistContext context) {
         if (context != null) {
             switch (context.getRevocationType()) {
@@ -62,7 +63,6 @@ public class SessionBlocklistJpaService {
      *
      * @param userId the user identifier
      */
-    @Transactional
     public void blocklistAllSessions(String userId, String note) {
         List<JpaVaultiqSession> sessions = vaultiqSessionRepository.findAllByUserId(userId);
         var sessionBlocklist = sessions.stream()
@@ -123,16 +123,17 @@ public class SessionBlocklistJpaService {
      * @param sessionId the session identifier
      */
     @Transactional
-    public void blocklistSession(String sessionId, String note) {
+    public SessionBlocklistEntity blocklistSession(String sessionId, String note) {
         Optional<JpaVaultiqSession> optionalSession =
                 vaultiqSessionRepository.findById(sessionId);
         if (optionalSession.isPresent()) {
             JpaVaultiqSession session = optionalSession.get();
             SessionBlocklistEntity entity = createBlocklist(note, session, RevocationType.LOGOUT);
-            sessionBlocklistRepository.save(entity);
             log.info("Blocklisted session '{}'.", sessionId);
+            return sessionBlocklistRepository.save(entity);
         } else {
             log.warn("Attempted to blocklist non-existent session '{}'.", sessionId);
+            return null;
         }
     }
 
@@ -154,5 +155,13 @@ public class SessionBlocklistJpaService {
      */
     public List<SessionBlocklistEntity> getBlocklistedSessions(String userId) {
         return sessionBlocklistRepository.findAllByUserId(userId);
+    }
+
+    public SessionBlocklistEntity getBlocklistedSession(String sessionId) {
+        return sessionBlocklistRepository.findById(sessionId).orElse(null);
+    }
+
+    public long countOfSessionByUser(String userId) {
+        return sessionBlocklistRepository.countByUserId(userId);
     }
 }
