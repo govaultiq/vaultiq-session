@@ -47,7 +47,7 @@ public class SessionBlocklist {
         return blocklistedAt;
     }
 
-    public SessionBlocklistBuilder builder() {
+    public static SessionBlocklistBuilder builder() {
         return new SessionBlocklistBuilder();
     }
 

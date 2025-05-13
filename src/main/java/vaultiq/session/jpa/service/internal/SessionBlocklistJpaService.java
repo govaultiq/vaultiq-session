@@ -15,6 +15,7 @@ import vaultiq.session.jpa.model.JpaVaultiqSession;
 import vaultiq.session.jpa.model.SessionBlocklistEntity;
 import vaultiq.session.jpa.repository.SessionBlocklistRepository;
 import vaultiq.session.jpa.repository.VaultiqSessionRepository;
+import vaultiq.session.jpa.util.BlocklistContext;
 
 import java.time.Instant;
 import java.util.*;
@@ -39,6 +40,23 @@ public class SessionBlocklistJpaService {
     }
 
     /**
+     * Blocklist (invalidate) sessions based on the provided context.
+     * <p>
+     *
+     * @param context the context describing the blocklist operation
+     */
+    public void blocklist(BlocklistContext context) {
+        if (context != null) {
+            switch (context.getRevocationType()) {
+                case LOGOUT -> blocklistSession(context.getIdentifier(), context.getNote());
+                case LOGOUT_WITH_EXCLUSION ->
+                        blocklistAllSessionsExcept(context.getIdentifier(), context.getNote(), context.getExcludedSessionIds());
+                case LOGOUT_ALL -> blocklistAllSessions(context.getIdentifier(), context.getNote());
+            }
+        }
+    }
+
+    /**
      * Blocklist (invalidate) all sessions for a given user.
      * Can be used to log out from all devices.
      *
@@ -57,9 +75,10 @@ public class SessionBlocklistJpaService {
     /**
      * Helper method to create a blocklist entity.
      * <p>
-     * @param note the reason for the blocklist
+     *
+     * @param note    the reason for the blocklist
      * @param session the session entity
-     * @param type the type of blocklist (e.g., LOGOUT, LOGOUT_WITH_EXCLUSION, LOGOUT_ALL)
+     * @param type    the type of blocklist (e.g., LOGOUT, LOGOUT_WITH_EXCLUSION, LOGOUT_ALL)
      * @return the created blocklist entity
      */
     private SessionBlocklistEntity createBlocklist(String note, JpaVaultiqSession session, RevocationType type) {
