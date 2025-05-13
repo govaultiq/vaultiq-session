@@ -37,7 +37,7 @@ public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBacklis
         log.debug("Blocklisting all sessions for user '{}'.", userId);
         sessionBlocklistJpaService.blocklistAllSessions(userId);
         var sessionIds = sessionBlocklistJpaService.getBlocklistedSessions(userId);
-        sessionBlocklistCacheService.blocklistAllSessions(userId, sessionIds);
+        sessionBlocklistCacheService.blocklistSessions(userId, sessionIds);
     }
 
     @Override
@@ -45,7 +45,7 @@ public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBacklis
         log.debug("Blocklisting all sessions for user '{}' except {}.", userId, excludedSessionIds);
         sessionBlocklistJpaService.blocklistAllSessionsExcept(userId, excludedSessionIds);
         var sessionIds = sessionBlocklistJpaService.getBlocklistedSessions(userId);
-        sessionBlocklistCacheService.blocklistAllSessions(userId, sessionIds);
+        sessionBlocklistCacheService.blocklistSessions(userId, sessionIds);
     }
 
     @Override

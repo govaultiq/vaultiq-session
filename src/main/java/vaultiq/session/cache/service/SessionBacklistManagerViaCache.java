@@ -61,7 +61,7 @@ public class SessionBacklistManagerViaCache implements SessionBacklistManager {
     @Override
     public void blocklistAllSessionsExcept(String userId, String... excludedSessionIds) {
         log.debug("Blocking all sessions except for user: {} and excluded sessions: {}", userId, Arrays.toString(excludedSessionIds));
-        cacheService.blocklistAllSessionsExcept(userId, excludedSessionIds);
+        cacheService.blocklistWithExclusions(userId, excludedSessionIds);
     }
 
     /**
