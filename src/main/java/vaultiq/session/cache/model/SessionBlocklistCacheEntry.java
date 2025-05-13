@@ -26,14 +26,19 @@ import java.time.Instant;
 public class SessionBlocklistCacheEntry {
     /** The ID of the blocklisted session. */
     private String sessionId;
+
     /** The user ID associated with the blocklisted session. */
     private String userId;
+
     /** The revocation type (single, all, with exclusion, etc.). */
     private RevocationType revocationType;
+
     /** Optional note or reason for blocklisting. */
     private String note;
+
     /** The actor that triggered this blocklist entry (user or system). */
     private String triggeredBy;
+
     /** Timestamp (UTC) when the session was added to the blocklist. */
     private Instant blocklistedAt;
 
@@ -109,7 +114,7 @@ public class SessionBlocklistCacheEntry {
      * Factory method: creates a copy of the given SessionBlocklist, including the original blocklistedAt timestamp.
      *
      * @param sessionBlocklist the input model
-     * @return new cache entry with same properties as the model (preserves time)
+     * @return new cache entry with the same properties as the model (preserves time)
      */
     public static SessionBlocklistCacheEntry copy(SessionBlocklist sessionBlocklist) {
         return new SessionBlocklistCacheEntry(
