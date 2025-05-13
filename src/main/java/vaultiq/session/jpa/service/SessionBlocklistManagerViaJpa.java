@@ -9,9 +9,12 @@ import vaultiq.session.cache.model.ModelType;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
 import vaultiq.session.core.SessionBacklistManager;
+import vaultiq.session.core.model.SessionBlocklist;
+import vaultiq.session.jpa.model.SessionBlocklistEntity;
 import vaultiq.session.jpa.service.internal.SessionBlocklistJpaService;
+import vaultiq.session.core.util.BlocklistContext;
 
-import java.util.Set;
+import java.util.List;
 
 /**
  * JPA-backed implementation of the {@link SessionBacklistManager} interface.
@@ -48,40 +51,12 @@ public class SessionBlocklistManagerViaJpa implements SessionBacklistManager {
     }
 
     /**
-     * Blocklists (invalidates) all sessions for the specified user.
-     * Typically used to log out a user from all devices.
-     *
-     * @param userId the user identifier for whom all sessions will be blocklisted
+     * Blocklist (invalidate) sessions based on the provided context.
+     * @param context the context describing the blocklist operation
      */
     @Override
-    public void blocklistAllSessions(String userId) {
-        log.debug("Blocklisting all sessions for user '{}'.", userId);
-        sessionBlocklistJpaService.blocklistAllSessions(userId);
-    }
-
-    /**
-     * Blocklists (invalidates) all sessions for the specified user except those with the provided session IDs.
-     * This can be used, for example, to log out a user from all devices except the current one.
-     *
-     * @param userId the user identifier whose sessions to manage
-     * @param excludedSessionIds session IDs that will NOT be blocklisted
-     */
-    @Override
-    public void blocklistAllSessionsExcept(String userId, String... excludedSessionIds) {
-        log.debug("Blocklisting all sessions for user '{}' except {}.", userId, (Object) excludedSessionIds);
-        sessionBlocklistJpaService.blocklistAllSessionsExcept(userId, excludedSessionIds);
-    }
-
-    /**
-     * Blocklists (invalidates) a single session given its session ID.
-     * Used for logging out a particular device.
-     *
-     * @param sessionId the session ID to be blocklisted
-     */
-    @Override
-    public void blocklistSession(String sessionId) {
-        log.debug("Blocklisting session '{}'.", sessionId);
-        sessionBlocklistJpaService.blocklistSession(sessionId);
+    public void blocklist(BlocklistContext context) {
+        sessionBlocklistJpaService.blocklist(context);
     }
 
     /**
@@ -100,11 +75,31 @@ public class SessionBlocklistManagerViaJpa implements SessionBacklistManager {
      * Retrieves all blocklisted session IDs for the specified user, or an empty set if none.
      *
      * @param userId the user identifier for which to retrieve blocklisted sessions
-     * @return a set of blocklisted session IDs, never {@code null}
+     * @return a list of blocklisted sessions, never {@code null}
      */
     @Override
-    public Set<String> getBlocklistedSessions(String userId) {
+    public List<SessionBlocklist> getBlocklistedSessions(String userId) {
         log.debug("Fetching blocklisted sessions for user '{}'.", userId);
-        return sessionBlocklistJpaService.getBlocklistedSessions(userId);
+        return sessionBlocklistJpaService.getBlocklistedSessions(userId)
+                .stream()
+                .map(this::toSessionBlocklist)
+                .toList();
+    }
+
+    /**
+     * Helper method to convert a JPA entity to a SessionBlocklist object.
+     *
+     * @param sessionBlocklistEntity the JPA entity to convert
+     * @return the converted SessionBlocklist object
+     */
+    private SessionBlocklist toSessionBlocklist(SessionBlocklistEntity sessionBlocklistEntity) {
+        return SessionBlocklist.builder()
+                .sessionId(sessionBlocklistEntity.getSessionId())
+                .userId(sessionBlocklistEntity.getUserId())
+                .revocationType(sessionBlocklistEntity.getRevocationType())
+                .note(sessionBlocklistEntity.getNote())
+                .triggeredBy(sessionBlocklistEntity.getTriggeredBy())
+                .blocklistedAt(sessionBlocklistEntity.getBlocklistedAt())
+                .build();
     }
 }

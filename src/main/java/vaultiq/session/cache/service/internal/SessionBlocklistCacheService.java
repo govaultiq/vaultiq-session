@@ -7,138 +7,273 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cache.Cache;
 import org.springframework.stereotype.Service;
 import vaultiq.session.cache.model.ModelType;
+import vaultiq.session.cache.model.SessionBlocklistCacheEntry;
 import vaultiq.session.cache.model.SessionIds;
 import vaultiq.session.cache.util.VaultiqCacheContext;
-import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
+import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
+import vaultiq.session.core.contracts.UserIdentityAware;
+import vaultiq.session.core.model.RevocationType;
+import vaultiq.session.core.util.BlocklistContext;
 import vaultiq.session.core.util.VaultiqSessionContext;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static vaultiq.session.cache.util.CacheKeyResolver.*;
 
 /**
- * Service for managing blocklisted (blocklisted) sessions using cache.
+ * Service for managing blocklisted (invalidated) sessions in the in-memory cache layer.
+ * <p>
+ * Provides fast lookups and blocklist operations for sessions, with support for blocklisting single or multiple sessions,
+ * blocklisting all sessions except some, and querying for a user's blocklisted sessions.
+ * </p>
  */
 @Service
 @ConditionalOnBean(VaultiqCacheContext.class)
 @ConditionalOnVaultiqModelConfig(method = VaultiqPersistenceMethod.USE_CACHE, type = ModelType.BLOCKLIST)
 public class SessionBlocklistCacheService {
+
     private static final Logger log = LoggerFactory.getLogger(SessionBlocklistCacheService.class);
 
     private final VaultiqSessionCacheService vaultiqSessionCacheService;
     private final Cache blocklistCache;
+    private final UserIdentityAware userIdentityAware;
 
+    // -------------------------------------------------------------------------
+    // Constructor
+    // -------------------------------------------------------------------------
+
+    /**
+     * Constructs a cache-backed blocklist service for sessions.
+     *
+     * @param context                      session context/model config accessor
+     * @param cacheContext                 context holding/initializing cache instances
+     * @param vaultiqSessionCacheService   backing service for session cache access
+     * @param userIdentityAware            used for audit context (marking who triggers blocklists)
+     */
     public SessionBlocklistCacheService(
             VaultiqSessionContext context,
             VaultiqCacheContext cacheContext,
-            VaultiqSessionCacheService vaultiqSessionCacheService) {
+            VaultiqSessionCacheService vaultiqSessionCacheService,
+            UserIdentityAware userIdentityAware
+    ) {
+        this.userIdentityAware = userIdentityAware;
         var blocklistModelConfig = context.getModelConfig(ModelType.BLOCKLIST);
         if (blocklistModelConfig == null) {
             throw new IllegalArgumentException("Blocklist model config not found! Check your configuration for ModelType.BLOCKLIST.");
         }
+
         this.vaultiqSessionCacheService = Objects.requireNonNull(vaultiqSessionCacheService, "VaultiqSessionCacheService may not be null");
         this.blocklistCache = cacheContext.getCacheMandatory(
                 blocklistModelConfig.cacheName(),
-                ModelType.BLOCKLIST);
+                ModelType.BLOCKLIST
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // Public API
+    // -------------------------------------------------------------------------
+
+    /**
+     * Dispatches a blocklist operation according to the revocation strategy in the provided context.
+     *
+     * @param context describes what to blocklist and how
+     */
+    public void blocklist(BlocklistContext context) {
+        if (context != null) {
+            switch (context.getRevocationType()) {
+                case LOGOUT -> blocklistSession(context.getIdentifier(), context.getNote());
+                case LOGOUT_ALL -> blocklistAllSessions(context.getIdentifier(), context.getNote());
+                case LOGOUT_WITH_EXCLUSION -> blocklistWithExclusions(
+                        context.getIdentifier(),
+                        context.getNote(),
+                        context.getExcludedSessionIds()
+                );
+            }
+        }
     }
 
     /**
-     * Blocklists (invalidates) a session by its ID.
+     * Blocklists a single session by storing an entry in cache.
      *
-     * @param sessionId the session to blocklist
+     * @param entry the session entry to blocklist
      */
-    public void blocklistSession(String sessionId) {
+    public void blocklist(SessionBlocklistCacheEntry entry) {
+        blockSession(entry);
+    }
+
+    /**
+     * Blocklists a single session by sessionId and note.
+     *
+     * @param sessionId the session's identifier
+     * @param note      the note/reason for blocklisting
+     */
+    public void blocklistSession(String sessionId, String note) {
         var session = vaultiqSessionCacheService.getSession(sessionId);
+
         if (session == null) {
             log.info("Attempt to blocklist non-existent session: {}", sessionId);
             return;
         }
+
         if (isSessionBlocklisted(sessionId)) {
             log.debug("Session with sessionId={} is already blocklisted.", sessionId);
             return;
         }
-        blockSession(session.getUserId(), sessionId);
-    }
 
-    // Internal helper: blocks a session
-    private void blockSession(String userId, String sessionId) {
-        blocklistCache.put(keyForBlacklist(sessionId), userId);
-        vaultiqSessionCacheService.deleteSession(sessionId);
+        var entry = SessionBlocklistCacheEntry.create(
+                sessionId,
+                session.getUserId(),
+                RevocationType.LOGOUT,
+                note,
+                userIdentityAware.getCurrentUserID()
+        );
 
-        SessionIds sessionIds = Optional.ofNullable(getBlocklistByUser(userId)).orElseGet(SessionIds::new);
-        sessionIds.addSessionId(sessionId);
-        blocklistCache.put(keyForBlacklistByUser(userId), sessionIds);
-
-        log.info("User '{}' had session '{}' blocked.", userId, sessionId);
-    }
-
-    // Retrieves all blocklisted session IDs for a user. For extension/testing.
-    protected SessionIds getBlocklistByUser(String userId) {
-        return blocklistCache.get(keyForBlacklistByUser(userId), SessionIds.class);
+        blockSession(entry);
     }
 
     /**
-     * Blocklists all sessions for a user.
+     * Blocklists all sessions for a given user.
      *
      * @param userId the user whose sessions should be blocklisted
+     * @param note   note/reason for blocklisting
      */
-    public void blocklistAllSessions(String userId) {
+    public void blocklistAllSessions(String userId, String note) {
         var sessionIds = vaultiqSessionCacheService.getUserSessionIds(userId);
-        blocklistAllSessions(userId, sessionIds);
-    }
-
-    public void blocklistAllSessions(String userId, Set<String> sessionIds) {
-        if (sessionIds.isEmpty()) {
-            log.info("No sessions to blocklist for user '{}'.", userId);
-        }
-        sessionIds.forEach(id -> blockSession(userId, id));
+        blocklistSessions(userId, sessionIds, note);
     }
 
     /**
-     * Blocklists all sessions except the specified session IDs (e.g. keep current device logged in).
+     * Blocklists all sessions for a user except those specified as excluded.
      *
-     * @param userId the user whose sessions should be blocklisted
-     * @param excludedSessionIds session IDs that should NOT be blocklisted
+     * @param userId             the user whose sessions to blocklist
+     * @param note               note/reason for blocklisting
+     * @param excludedSessionIds session IDs to be excluded from blocklisting
      */
-    public void blocklistAllSessionsExcept(String userId, String... excludedSessionIds) {
-        Set<String> excludedSet = (excludedSessionIds == null) ? Collections.emptySet() : Set.of(excludedSessionIds);
-        var sessionIds = vaultiqSessionCacheService.getUserSessionIds(userId)
-                .stream().filter(id -> !excludedSet.contains(id)).toList();
+    public void blocklistWithExclusions(String userId, String note, String... excludedSessionIds) {
+        Set<String> excludedSet = (excludedSessionIds == null)
+                ? Collections.emptySet()
+                : Set.of(excludedSessionIds);
+
+        var sessionIds = vaultiqSessionCacheService.getUserSessionIds(userId).stream()
+                .filter(id -> !excludedSet.contains(id))
+                .collect(Collectors.toSet());
+
         if (sessionIds.isEmpty()) {
-            log.info("No sessions to blocklist for user '{}', all are excluded.", userId);
+            log.info("No sessions to blocklist for user '{}'; all are excluded.", userId);
         }
-        sessionIds.forEach(id -> blockSession(userId, id));
+
+        blocklistSessions(userId, sessionIds, note);
     }
 
     /**
-     * Checks if a session ID is blocklisted.
+     * Checks if a session is currently blocklisted in the cache.
      *
-     * @param sessionId the session to check
-     * @return true if blocklisted
+     * @param sessionId the session identifier
+     * @return true if blocklisted, false otherwise
      */
     public boolean isSessionBlocklisted(String sessionId) {
         return blocklistCache.get(keyForBlacklist(sessionId)) != null;
     }
 
     /**
-     * Gets all blocklisted session IDs for a given user.
+     * Retrieves the blocklisted session IDs for a user.
      *
-     * @param userId for which blocklisted session IDs are returned
-     * @return set of blocklisted session IDs
+     * @param userId the user whose blocklisted session IDs to fetch
+     * @return a SessionIds object containing IDs and cache update timestamp
      */
-    public Set<String> getBlocklistedSessions(String userId) {
-        return Optional.ofNullable(getBlocklistByUser(userId))
-                .orElseGet(SessionIds::new)
-                .getSessionIds();
+    public SessionIds getBlocklistByUser(String userId) {
+        return blocklistCache.get(keyForBlacklistByUser(userId), SessionIds.class);
     }
 
     /**
-     * Unblock (remove from blocklist) a session by its session id, if required in the future.
+     * Retrieves all blocklisted session entries for a user from the cache.
+     *
+     * @param userId the user's identifier
+     * @return a list of SessionBlocklistCacheEntry for the user
      */
-     public void unblockSession(String sessionId) {
-         blocklistCache.evict(keyForBlacklist(sessionId));
-         // Consider also removing from user's SessionIds collection.
-         log.info("Session with sessionId={} unblocked.", sessionId);
-     }
+    public List<SessionBlocklistCacheEntry> getAllBlockListByUser(String userId) {
+        var sessionIds = getBlocklistByUser(userId);
+        if (sessionIds == null || sessionIds.getSessionIds() == null) {
+            return List.of();
+        }
+
+        return sessionIds.getSessionIds().stream()
+                .map(id -> blocklistCache.get(keyForBlacklist(id), SessionBlocklistCacheEntry.class))
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    /**
+     * Gets the last updated timestamp for the blocklist of a given user.
+     *
+     * @param userId the user for whom to fetch the last updated time
+     * @return an Optional containing the last updated timestamp if present
+     */
+    public Optional<Long> getLastUpdatedAt(String userId) {
+        var sessionIds = getBlocklistByUser(userId);
+        return Optional.ofNullable(sessionIds).map(SessionIds::getLastUpdated);
+    }
+
+    /**
+     * Removes (unblocks) the blocklist entry for a session from the cache.
+     *
+     * @param sessionId the session identifier to unblock
+     */
+    public void unblockSession(String sessionId) {
+        blocklistCache.evict(keyForBlacklist(sessionId));
+        log.info("Session with sessionId={} unblocked.", sessionId);
+    }
+
+    // -------------------------------------------------------------------------
+    // Internal
+    // -------------------------------------------------------------------------
+
+    /**
+     * Blocklists a specific set of session IDs for a user.
+     *
+     * @param userId     the user's identifier
+     * @param sessionIds the set of session IDs to blocklist
+     * @param note       note/reason for blocklisting
+     */
+    private void blocklistSessions(String userId, Set<String> sessionIds, String note) {
+        if (sessionIds.isEmpty()) {
+            log.info("No sessions to blocklist for user '{}'.", userId);
+        }
+
+        var sessions = getAllBlockListByUser(userId);
+
+        sessions.forEach(session -> {
+            var entry = SessionBlocklistCacheEntry.create(
+                    session.getSessionId(),
+                    session.getUserId(),
+                    RevocationType.LOGOUT,
+                    note,
+                    userIdentityAware.getCurrentUserID()
+            );
+            blockSession(entry);
+        });
+    }
+
+    /**
+     * Helper to add a blocklisted session entry to the cache and remove the session from the session cache.
+     * Also updates the mapping of blocklisted sessions for the user.
+     *
+     * @param entry the blocklist entry to persist
+     */
+    private void blockSession(SessionBlocklistCacheEntry entry) {
+        var userId = entry.getUserId();
+        var sessionId = entry.getSessionId();
+
+        blocklistCache.put(keyForBlacklist(sessionId), entry);
+        vaultiqSessionCacheService.deleteSession(sessionId);
+
+        SessionIds sessionIds = Optional.ofNullable(getBlocklistByUser(userId))
+                .orElseGet(SessionIds::new);
+        sessionIds.addSessionId(sessionId);
+        blocklistCache.put(keyForBlacklistByUser(userId), sessionIds);
+
+        log.info("User '{}' had session '{}' blocked.", userId, sessionId);
+    }
 }
