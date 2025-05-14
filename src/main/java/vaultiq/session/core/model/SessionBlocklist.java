@@ -170,6 +170,7 @@ public class SessionBlocklist {
 
         /**
          * Sets the session ID for the blocklist entry.
+         *
          * @param sessionId the blocklisted session ID.
          * @return the builder instance.
          */
@@ -180,6 +181,7 @@ public class SessionBlocklist {
 
         /**
          * Sets the user ID for the blocklist entry.
+         *
          * @param userId the user the session belongs to.
          * @return the builder instance.
          */
@@ -190,6 +192,7 @@ public class SessionBlocklist {
 
         /**
          * Sets the revocation type for the blocklist entry.
+         *
          * @param revocationType the {@link RevocationType}.
          * @return the builder instance.
          */
@@ -200,6 +203,7 @@ public class SessionBlocklist {
 
         /**
          * Sets an optional note for the blocklist entry.
+         *
          * @param note a human-readable note.
          * @return the builder instance.
          */
@@ -210,6 +214,7 @@ public class SessionBlocklist {
 
         /**
          * Sets the identifier of the actor who triggered the blocklisting.
+         *
          * @param triggeredBy the triggered by identifier.
          * @return the builder instance.
          */
@@ -220,6 +225,7 @@ public class SessionBlocklist {
 
         /**
          * Sets the timestamp (UTC) when the session was blocklisted.
+         *
          * @param blocklistedAt the blocklisted timestamp.
          * @return the builder instance.
          */
