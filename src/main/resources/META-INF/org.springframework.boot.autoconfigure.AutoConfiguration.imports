@@ -1,0 +1,2 @@
+vaultiq.session.jpa.config.VaultiqSessionAutoConfigurationJpa
+vaultiq.session.jpa.config.SessionBlocklistAutoConfigurationJpa

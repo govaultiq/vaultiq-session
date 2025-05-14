@@ -1,14 +1,14 @@
 package vaultiq.session.jpa.session.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import vaultiq.session.jpa.config.VaultiqJpaAutoConfiguration;
+import vaultiq.session.jpa.config.VaultiqSessionAutoConfigurationJpa;
 import vaultiq.session.jpa.session.model.JpaVaultiqSession;
 
 import java.util.List;
 
 /**
  * Instantiated only when the property vaultiq.session.persistence.jpa.enabled is set to true.
- * AutoConfigured via {@link VaultiqJpaAutoConfiguration}
+ * AutoConfigured via {@link VaultiqSessionAutoConfigurationJpa}
  */
 public interface VaultiqSessionRepository extends JpaRepository<JpaVaultiqSession, String> {
 
