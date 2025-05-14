@@ -4,37 +4,87 @@ import jakarta.persistence.*;
 
 import java.time.Instant;
 
+/**
+ * JPA entity representing a Vaultiq session in the database.
+ * <p>
+ * This entity is used internally by the {@code vaultiq-session} library's
+ * JPA persistence layer to map session data to the {@code vaultiq_session_pool}
+ * database table. It holds the persistent state of a user session, including
+ * identifiers, timestamps, and blocklist status.
+ * </p>
+ * <p>
+ * This class is not intended for direct use by consuming applications;
+ * the client-facing model is {@link vaultiq.session.core.model.VaultiqSession}.
+ * </p>
+ *
+ * @see vaultiq.session.core.model.VaultiqSession
+ * @see vaultiq.session.jpa.session.repository.VaultiqSessionRepository
+ */
 @Entity
 @Table(name = "vaultiq_session_pool")
 public final class JpaVaultiqSession {
 
+    /**
+     * The unique identifier for the session, serving as the primary key.
+     * Generated automatically as a UUID.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "session_id")
     private String sessionId;
 
+    /**
+     * The unique identifier of the user associated with this session.
+     * This field is mandatory and cannot be updated after creation.
+     */
     @Column(name = "user_id", nullable = false, updatable = false)
     private String userId;
 
+    /**
+     * A fingerprint or identifier representing the device from which the session originated.
+     * This field is mandatory and cannot be updated after creation.
+     */
     @Column(name = "device_finger_print", nullable = false, updatable = false)
     private String deviceFingerPrint;
 
+    /**
+     * The timestamp (UTC) when this session was created.
+     * This field is mandatory and cannot be updated after creation.
+     */
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    /**
+     * Flag indicating whether this session is currently blocklisted.
+     */
     @Column(name = "is_blocked", nullable = false)
     private boolean isBlocked;
 
+    /**
+     * The timestamp (UTC) when this session was blocklisted.
+     * This field is nullable, as it's only set when the session is blocked.
+     */
     @Column(name = "blocked_at", nullable = true)
     private Instant blockedAt;
 
+    /**
+     * Static factory method to create a new {@link JpaVaultiqSession} instance
+     * with initial mandatory fields set and {@code createdAt} defaulted to {@code Instant.now()}.
+     *
+     * @param userId            The unique identifier of the user.
+     * @param deviceFingerPrint The device fingerprint.
+     * @return A new {@link JpaVaultiqSession} instance.
+     */
     public static JpaVaultiqSession create(String userId, String deviceFingerPrint) {
         JpaVaultiqSession vaultiqSession = new JpaVaultiqSession();
         vaultiqSession.userId = userId;
         vaultiqSession.deviceFingerPrint = deviceFingerPrint;
         vaultiqSession.createdAt = Instant.now();
+        // isBlocked defaults to false, blockedAt defaults to null by JPA
         return vaultiqSession;
     }
+
+    // Getters and Setters for JPA access
 
     public String getSessionId() {
         return sessionId;
