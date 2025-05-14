@@ -11,7 +11,7 @@ import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
 import vaultiq.session.core.SessionBacklistManager;
 import vaultiq.session.core.model.SessionBlocklist;
 import vaultiq.session.jpa.blocklist.model.SessionBlocklistEntity;
-import vaultiq.session.jpa.blocklist.service.internal.SessionBlocklistJpaService;
+import vaultiq.session.jpa.blocklist.service.internal.SessionBlocklistEntityService;
 import vaultiq.session.core.util.BlocklistContext;
 
 import java.util.List;
@@ -20,34 +20,34 @@ import java.util.List;
  * JPA-backed implementation of the {@link SessionBacklistManager} interface.
  * <p>
  * This service delegates all session blocklisting operations for the BLOCKLIST model type
- * to {@link SessionBlocklistJpaService}. Blocklisting functionality includes invalidating
+ * to {@link SessionBlocklistEntityService}. Blocklisting functionality includes invalidating
  * all sessions, all-except-some, specific sessions, and querying blocklisted state by session ID
  * or collecting all blocklisted session IDs for a user.
  * </p>
  * <p>
- * This bean is activated only if a {@code SessionBlocklistJpaService} bean is present in the context,
+ * This bean is activated only if a {@code SessionBlocklistEntityService} bean is present in the context,
  * and the persistence configuration matches JPA mode with a BLOCKLIST model type.
  * </p>
  *
  * @see SessionBacklistManager
- * @see SessionBlocklistJpaService
+ * @see SessionBlocklistEntityService
  */
 @Service
-@ConditionalOnBean(SessionBlocklistJpaService.class)
+@ConditionalOnBean(SessionBlocklistEntityService.class)
 @ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_ONLY, type = ModelType.BLOCKLIST)
 public class SessionBlocklistManagerViaJpa implements SessionBacklistManager {
 
     private static final Logger log = LoggerFactory.getLogger(SessionBlocklistManagerViaJpa.class);
 
-    private final SessionBlocklistJpaService sessionBlocklistJpaService;
+    private final SessionBlocklistEntityService sessionBlocklistEntityService;
 
     /**
      * Constructs a new {@code SessionBlocklistManagerViaJpa} with the required JPA service dependency.
      *
-     * @param sessionBlocklistJpaService the underlying service that actually performs JPA-based operations
+     * @param sessionBlocklistEntityService the underlying service that actually performs JPA-based operations
      */
-    public SessionBlocklistManagerViaJpa(SessionBlocklistJpaService sessionBlocklistJpaService) {
-        this.sessionBlocklistJpaService = sessionBlocklistJpaService;
+    public SessionBlocklistManagerViaJpa(SessionBlocklistEntityService sessionBlocklistEntityService) {
+        this.sessionBlocklistEntityService = sessionBlocklistEntityService;
     }
 
     /**
@@ -56,7 +56,7 @@ public class SessionBlocklistManagerViaJpa implements SessionBacklistManager {
      */
     @Override
     public void blocklist(BlocklistContext context) {
-        sessionBlocklistJpaService.blocklist(context);
+        sessionBlocklistEntityService.blocklist(context);
     }
 
     /**
@@ -68,7 +68,7 @@ public class SessionBlocklistManagerViaJpa implements SessionBacklistManager {
     @Override
     public boolean isSessionBlocklisted(String sessionId) {
         log.debug("Checking if session '{}' is blocklisted.", sessionId);
-        return sessionBlocklistJpaService.isSessionBlocklisted(sessionId);
+        return sessionBlocklistEntityService.isSessionBlocklisted(sessionId);
     }
 
     /**
@@ -80,7 +80,7 @@ public class SessionBlocklistManagerViaJpa implements SessionBacklistManager {
     @Override
     public List<SessionBlocklist> getBlocklistedSessions(String userId) {
         log.debug("Fetching blocklisted sessions for user '{}'.", userId);
-        return sessionBlocklistJpaService.getBlocklistedSessions(userId)
+        return sessionBlocklistEntityService.getBlocklistedSessions(userId)
                 .stream()
                 .map(this::toSessionBlocklist)
                 .toList();

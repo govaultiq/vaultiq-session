@@ -10,8 +10,8 @@ import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.core.model.VaultiqSession;
 import vaultiq.session.fingerprint.DeviceFingerprintGenerator;
-import vaultiq.session.jpa.session.model.JpaVaultiqSession;
-import vaultiq.session.jpa.session.repository.VaultiqSessionRepository;
+import vaultiq.session.jpa.session.model.VaultiqSessionEntity;
+import vaultiq.session.jpa.session.repository.VaultiqSessionEntityRepository;
 
 import java.time.Instant;
 import java.util.List;
@@ -26,38 +26,38 @@ import java.util.List;
  * configured JPA data store.
  * </p>
  * <p>
- * This bean is automatically configured by Spring when a {@link VaultiqSessionRepository}
+ * This bean is automatically configured by Spring when a {@link VaultiqSessionEntityRepository}
  * is available and the persistence configuration matches {@link VaultiqPersistenceMethod#USE_JPA}
  * for {@link ModelType#SESSION} and {@link ModelType#USER_SESSION_MAPPING}, as defined
  * by {@link ConditionalOnVaultiqModelConfig}.
  * </p>
  *
- * @see VaultiqSessionRepository
+ * @see VaultiqSessionEntityRepository
  * @see DeviceFingerprintGenerator
  * @see VaultiqSession
- * @see JpaVaultiqSession
+ * @see VaultiqSessionEntity
  * @see ConditionalOnVaultiqModelConfig
  * @see VaultiqPersistenceMethod#USE_JPA
  * @see ModelType#SESSION
  * @see ModelType#USER_SESSION_MAPPING
  */
 @Service
-@ConditionalOnBean(VaultiqSessionRepository.class) // Ensure the JPA repository is available
+@ConditionalOnBean(VaultiqSessionEntityRepository.class) // Ensure the JPA repository is available
 @ConditionalOnVaultiqModelConfig(method = VaultiqPersistenceMethod.USE_JPA, type = {ModelType.SESSION, ModelType.USER_SESSION_MAPPING}) // Activate only when JPA is configured for sessions
-public class VaultiqSessionService {
-    private static final Logger log = LoggerFactory.getLogger(VaultiqSessionService.class);
+public class VaultiqSessionEntityService {
+    private static final Logger log = LoggerFactory.getLogger(VaultiqSessionEntityService.class);
 
-    private final VaultiqSessionRepository sessionRepository;
+    private final VaultiqSessionEntityRepository sessionRepository;
     private final DeviceFingerprintGenerator fingerprintGenerator;
 
     /**
-     * Constructs a new {@code VaultiqSessionService} with the required dependencies.
+     * Constructs a new {@code VaultiqSessionEntityService} with the required dependencies.
      *
      * @param sessionRepository    The JPA repository for Vaultiq sessions.
      * @param fingerprintGenerator The generator for creating device fingerprints from requests.
      */
-    public VaultiqSessionService(
-            VaultiqSessionRepository sessionRepository,
+    public VaultiqSessionEntityService(
+            VaultiqSessionEntityRepository sessionRepository,
             DeviceFingerprintGenerator fingerprintGenerator) {
         this.sessionRepository = sessionRepository;
         this.fingerprintGenerator = fingerprintGenerator;
@@ -82,7 +82,7 @@ public class VaultiqSessionService {
         Instant now = Instant.now();
 
         // Create a new JPA entity.
-        JpaVaultiqSession entity = new JpaVaultiqSession();
+        VaultiqSessionEntity entity = new VaultiqSessionEntity();
         entity.setUserId(userId);
         entity.setDeviceFingerPrint(deviceFingerPrint);
         entity.setCreatedAt(now);
@@ -161,12 +161,12 @@ public class VaultiqSessionService {
     }
 
     /**
-     * Maps a JPA {@link JpaVaultiqSession} entity to a client-facing {@link VaultiqSession} DTO.
+     * Maps a JPA {@link VaultiqSessionEntity} entity to a client-facing {@link VaultiqSession} DTO.
      *
      * @param entity The JPA entity to map.
      * @return The corresponding {@link VaultiqSession} DTO.
      */
-    private VaultiqSession mapToVaultiqSession(JpaVaultiqSession entity) {
+    private VaultiqSession mapToVaultiqSession(VaultiqSessionEntity entity) {
         return VaultiqSession.builder()
                 .sessionId(entity.getSessionId())
                 .userId(entity.getUserId())

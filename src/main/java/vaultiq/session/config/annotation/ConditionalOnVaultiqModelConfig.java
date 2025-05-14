@@ -44,7 +44,7 @@ import java.lang.annotation.Target;
  *     method = VaultiqPersistenceMethod.USE_JPA,
  *     type = ModelType.BLOCKLIST
  * )
- * public class SessionBlocklistJpaService {
+ * public class SessionBlocklistEntityService {
  *     // Implementation
  * }
  * </pre>

@@ -1,6 +1,7 @@
 package vaultiq.session.jpa.session.model;
 
 import jakarta.persistence.*;
+import vaultiq.session.jpa.session.repository.VaultiqSessionEntityRepository;
 
 import java.time.Instant;
 
@@ -18,11 +19,11 @@ import java.time.Instant;
  * </p>
  *
  * @see vaultiq.session.core.model.VaultiqSession
- * @see vaultiq.session.jpa.session.repository.VaultiqSessionRepository
+ * @see VaultiqSessionEntityRepository
  */
 @Entity
 @Table(name = "vaultiq_session_pool")
-public final class JpaVaultiqSession {
+public final class VaultiqSessionEntity {
 
     /**
      * The unique identifier for the session, serving as the primary key.
@@ -68,15 +69,15 @@ public final class JpaVaultiqSession {
     private Instant blockedAt;
 
     /**
-     * Static factory method to create a new {@link JpaVaultiqSession} instance
+     * Static factory method to create a new {@link VaultiqSessionEntity} instance
      * with initial mandatory fields set and {@code createdAt} defaulted to {@code Instant.now()}.
      *
      * @param userId            The unique identifier of the user.
      * @param deviceFingerPrint The device fingerprint.
-     * @return A new {@link JpaVaultiqSession} instance.
+     * @return A new {@link VaultiqSessionEntity} instance.
      */
-    public static JpaVaultiqSession create(String userId, String deviceFingerPrint) {
-        JpaVaultiqSession vaultiqSession = new JpaVaultiqSession();
+    public static VaultiqSessionEntity create(String userId, String deviceFingerPrint) {
+        VaultiqSessionEntity vaultiqSession = new VaultiqSessionEntity();
         vaultiqSession.userId = userId;
         vaultiqSession.deviceFingerPrint = deviceFingerPrint;
         vaultiqSession.createdAt = Instant.now();

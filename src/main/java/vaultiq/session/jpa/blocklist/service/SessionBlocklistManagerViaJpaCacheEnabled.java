@@ -15,7 +15,7 @@ import vaultiq.session.core.contracts.UserIdentityAware;
 import vaultiq.session.core.model.SessionBlocklist;
 import vaultiq.session.core.util.BlocklistContext;
 import vaultiq.session.jpa.blocklist.model.SessionBlocklistEntity;
-import vaultiq.session.jpa.blocklist.service.internal.SessionBlocklistJpaService;
+import vaultiq.session.jpa.blocklist.service.internal.SessionBlocklistEntityService;
 
 import java.util.*;
 
@@ -32,28 +32,28 @@ import java.util.*;
  * </p>
  */
 @Service
-@ConditionalOnBean({SessionBlocklistJpaService.class, SessionBlocklistCacheService.class})
+@ConditionalOnBean({SessionBlocklistEntityService.class, SessionBlocklistCacheService.class})
 @ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_ONLY, type = {ModelType.BLOCKLIST, ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
 public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBacklistManager {
     private static final Logger log = LoggerFactory.getLogger(SessionBlocklistManagerViaJpaCacheEnabled.class);
 
-    private final SessionBlocklistJpaService sessionBlocklistJpaService;
+    private final SessionBlocklistEntityService sessionBlocklistEntityService;
     private final SessionBlocklistCacheService sessionBlocklistCacheService;
     private final UserIdentityAware userIdentityAware;
 
     /**
      * Constructs a new SessionBlocklistManagerViaJpaCacheEnabled.
      *
-     * @param sessionBlocklistJpaService   the service for JPA-based blocklist persistence
+     * @param sessionBlocklistEntityService   the service for JPA-based blocklist persistence
      * @param sessionBlocklistCacheService the service for cache-based blocklist management
      * @param userIdentityAware            used to acquire the current user for audit purposes
      */
     public SessionBlocklistManagerViaJpaCacheEnabled(
-            SessionBlocklistJpaService sessionBlocklistJpaService,
+            SessionBlocklistEntityService sessionBlocklistEntityService,
             SessionBlocklistCacheService sessionBlocklistCacheService,
             UserIdentityAware userIdentityAware
     ) {
-        this.sessionBlocklistJpaService = sessionBlocklistJpaService;
+        this.sessionBlocklistEntityService = sessionBlocklistEntityService;
         this.sessionBlocklistCacheService = sessionBlocklistCacheService;
         this.userIdentityAware = userIdentityAware;
     }
@@ -67,7 +67,7 @@ public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBacklis
     @Override
     public void blocklist(BlocklistContext context) {
         log.debug("Blocking sessions with Revocation type/mode: {}", context.getRevocationType().name());
-        var entity = sessionBlocklistJpaService.blocklistSession(context.getIdentifier(), context.getNote());
+        var entity = sessionBlocklistEntityService.blocklistSession(context.getIdentifier(), context.getNote());
         if(entity != null) cacheEntity(entity);
     }
 
@@ -88,8 +88,8 @@ public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBacklis
         }
 
         // 2. If not found in the cache, check the database (JPA)
-        if (sessionBlocklistJpaService.isSessionBlocklisted(sessionId)) {
-            var entity = sessionBlocklistJpaService.getBlocklistedSession(sessionId);
+        if (sessionBlocklistEntityService.isSessionBlocklisted(sessionId)) {
+            var entity = sessionBlocklistEntityService.getBlocklistedSession(sessionId);
             return cacheEntity(entity);
         }
 
@@ -135,7 +135,7 @@ public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBacklis
 
         // Step 2: Check if the cache is stale
         var isStale = sessionBlocklistCacheService.getLastUpdatedAt(userId)
-                .map(lastUpdatedAt -> sessionBlocklistJpaService.isLastUpdatedGreaterThan(userId, lastUpdatedAt))
+                .map(lastUpdatedAt -> sessionBlocklistEntityService.isLastUpdatedGreaterThan(userId, lastUpdatedAt))
                 .orElse(false);
 
         if (!isStale) {
@@ -145,7 +145,7 @@ public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBacklis
 
         // Step 3: Cache might be stale/incomplete → fallback to a merged result
         log.debug("Blocklist is stale in cache, fetching from DB.");
-        List<SessionBlocklist> dbBlocklisted = sessionBlocklistJpaService.getBlocklistedSessions(userId)
+        List<SessionBlocklist> dbBlocklisted = sessionBlocklistEntityService.getBlocklistedSessions(userId)
                 .stream()
                 .map(this::toSessionBlocklist)
                 .toList();

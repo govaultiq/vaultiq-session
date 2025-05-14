@@ -11,7 +11,7 @@ import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
 import vaultiq.session.core.model.VaultiqSession;
 import vaultiq.session.core.VaultiqSessionManager;
-import vaultiq.session.jpa.session.service.internal.VaultiqSessionService;
+import vaultiq.session.jpa.session.service.internal.VaultiqSessionEntityService;
 
 import java.util.List;
 import java.util.Set;
@@ -28,7 +28,7 @@ import java.util.Set;
  * update both the JPA store and the cache to maintain consistency.
  * </p>
  * <p>
- * This bean is automatically configured by Spring when both a {@link VaultiqSessionService}
+ * This bean is automatically configured by Spring when both a {@link VaultiqSessionEntityService}
  * (for JPA operations) and a {@link VaultiqSessionCacheService} (for cache operations)
  * are available, and the persistence configuration matches {@link VaultiqPersistenceMode#JPA_AND_CACHE}
  * for the relevant model types ({@link ModelType#SESSION}, {@link ModelType#USER_SESSION_MAPPING}),
@@ -36,7 +36,7 @@ import java.util.Set;
  * </p>
  *
  * @see VaultiqSessionManager
- * @see VaultiqSessionService
+ * @see VaultiqSessionEntityService
  * @see VaultiqSessionCacheService
  * @see ConditionalOnVaultiqPersistence
  * @see VaultiqPersistenceMode#JPA_AND_CACHE
@@ -44,13 +44,13 @@ import java.util.Set;
  * @see ModelType#USER_SESSION_MAPPING
  */
 @Service
-@ConditionalOnBean({VaultiqSessionService.class, VaultiqSessionCacheService.class})
+@ConditionalOnBean({VaultiqSessionEntityService.class, VaultiqSessionCacheService.class})
 @ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_AND_CACHE, type = {ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
 public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionManager {
 
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionManagerViaJpaCacheEnabled.class);
 
-    private final VaultiqSessionService sessionService;
+    private final VaultiqSessionEntityService sessionService;
     private final VaultiqSessionCacheService cacheService;
 
     /**
@@ -60,7 +60,7 @@ public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionMa
      * @param sessionService The underlying service for JPA-based session operations.
      * @param cacheService   The underlying service for cache-based session operations.
      */
-    public VaultiqSessionManagerViaJpaCacheEnabled(VaultiqSessionService sessionService,
+    public VaultiqSessionManagerViaJpaCacheEnabled(VaultiqSessionEntityService sessionService,
                                                    VaultiqSessionCacheService cacheService) {
         this.sessionService = sessionService;
         this.cacheService = cacheService;

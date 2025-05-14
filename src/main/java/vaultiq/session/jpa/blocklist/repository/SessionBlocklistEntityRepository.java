@@ -12,7 +12,7 @@ import java.util.List;
  * <p>
  * Provides methods to access session blocklist information via derived queries.
  */
-public interface SessionBlocklistRepository extends JpaRepository<SessionBlocklistEntity, String> {
+public interface SessionBlocklistEntityRepository extends JpaRepository<SessionBlocklistEntity, String> {
 
     /**
      * Finds all blocklisted session entities for the specified user.
