@@ -2,22 +2,22 @@ package vaultiq.session.jpa.session.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import vaultiq.session.jpa.config.VaultiqSessionAutoConfigurationJpa;
-import vaultiq.session.jpa.session.model.JpaVaultiqSession;
+import vaultiq.session.jpa.session.model.VaultiqSessionEntity;
 
 import java.util.List;
 
 /**
- * Spring Data JPA repository for managing {@link JpaVaultiqSession} entities.
+ * Spring Data JPA repository for managing {@link VaultiqSessionEntity} entities.
  * <p>
  * Provides standard data access operations for Vaultiq session data when JPA
  * persistence is enabled.
  * </p>
  *
  * @see JpaRepository
- * @see JpaVaultiqSession
+ * @see VaultiqSessionEntity
  * @see VaultiqSessionAutoConfigurationJpa
  */
-public interface VaultiqSessionRepository extends JpaRepository<JpaVaultiqSession, String> {
+public interface VaultiqSessionEntityRepository extends JpaRepository<VaultiqSessionEntity, String> {
 
     /**
      * Finds all session entities belonging to a specific user.
@@ -25,7 +25,7 @@ public interface VaultiqSessionRepository extends JpaRepository<JpaVaultiqSessio
      * @param userId The unique identifier of the user.
      * @return A list of session entities for the user.
      */
-    List<JpaVaultiqSession> findAllByUserId(String userId);
+    List<VaultiqSessionEntity> findAllByUserId(String userId);
 
     /**
      * Counts the number of session entities belonging to a specific user.
