@@ -1,4 +1,4 @@
-package vaultiq.session.jpa.service.internal;
+package vaultiq.session.jpa.session.service.internal;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -10,8 +10,8 @@ import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.core.model.VaultiqSession;
 import vaultiq.session.fingerprint.DeviceFingerprintGenerator;
-import vaultiq.session.jpa.model.JpaVaultiqSession;
-import vaultiq.session.jpa.repository.VaultiqSessionRepository;
+import vaultiq.session.jpa.session.model.JpaVaultiqSession;
+import vaultiq.session.jpa.session.repository.VaultiqSessionRepository;
 
 import java.time.Instant;
 import java.util.List;

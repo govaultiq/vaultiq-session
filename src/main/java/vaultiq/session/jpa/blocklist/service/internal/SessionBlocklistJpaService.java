@@ -1,5 +1,5 @@
 
-package vaultiq.session.jpa.service.internal;
+package vaultiq.session.jpa.blocklist.service.internal;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,10 +11,10 @@ import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.core.contracts.UserIdentityAware;
 import vaultiq.session.core.model.RevocationType;
-import vaultiq.session.jpa.model.JpaVaultiqSession;
-import vaultiq.session.jpa.model.SessionBlocklistEntity;
-import vaultiq.session.jpa.repository.SessionBlocklistRepository;
-import vaultiq.session.jpa.repository.VaultiqSessionRepository;
+import vaultiq.session.jpa.session.model.JpaVaultiqSession;
+import vaultiq.session.jpa.blocklist.model.SessionBlocklistEntity;
+import vaultiq.session.jpa.blocklist.repository.SessionBlocklistRepository;
+import vaultiq.session.jpa.session.repository.VaultiqSessionRepository;
 import vaultiq.session.core.util.BlocklistContext;
 
 import java.time.Instant;

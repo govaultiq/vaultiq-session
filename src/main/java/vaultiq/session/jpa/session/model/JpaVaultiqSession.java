@@ -1,4 +1,4 @@
-package vaultiq.session.jpa.model;
+package vaultiq.session.jpa.session.model;
 
 import jakarta.persistence.*;
 

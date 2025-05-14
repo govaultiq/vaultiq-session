@@ -1,4 +1,4 @@
-package vaultiq.session.jpa.service;
+package vaultiq.session.jpa.session.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -11,7 +11,7 @@ import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
 import vaultiq.session.core.model.VaultiqSession;
 import vaultiq.session.core.VaultiqSessionManager;
-import vaultiq.session.jpa.service.internal.VaultiqSessionService;
+import vaultiq.session.jpa.session.service.internal.VaultiqSessionService;
 
 import java.util.List;
 import java.util.Set;
