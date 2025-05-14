@@ -1,4 +1,3 @@
-
 package vaultiq.session.core.util;
 
 import org.springframework.stereotype.Component;
@@ -7,14 +6,17 @@ import vaultiq.session.config.VaultiqSessionProperties;
 import vaultiq.session.core.model.VaultiqModelConfig;
 
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Exposes resolved Vaultiq session/model configuration in a type-safe, accessible form for the application.
+ * Provides access to the resolved and normalized Vaultiq session and model configuration.
  * <p>
- * Populates at startup using {@link VaultiqModelConfigEnhancer}.
- * Provides model-type config lookup,
- * effective cache manager name, and whether caching or JPA is enabled for any configured model type.
+ * This component is populated at application startup by processing the
+ * {@link VaultiqSessionProperties} through the {@link VaultiqModelConfigEnhancer}.
+ * It offers a type-safe and accessible way for other library components to query
+ * the effective persistence settings for each {@link ModelType}, the configured
+ * cache manager name, and whether caching or JPA persistence is enabled for
+ * any configured model type.
+ * </p>
  */
 @Component
 public class VaultiqSessionContext {
@@ -25,10 +27,14 @@ public class VaultiqSessionContext {
     private final boolean isUsingJpa;
 
     /**
-     * Constructs the session context using provided Vaultiq properties.
-     * Builds a config map and determines aggregate cache/JPA settings for the application.
+     * Constructs the session context by processing the provided Vaultiq properties.
+     * <p>
+     * This constructor uses {@link VaultiqModelConfigEnhancer} to build the
+     * comprehensive configuration map for all model types and determines the
+     * aggregate cache and JPA usage status across all configured models.
+     * </p>
      *
-     * @param props the Vaultiq session/application properties (should be Spring-injected)
+     * @param props the Vaultiq session/application properties, typically injected by Spring.
      */
     public VaultiqSessionContext(VaultiqSessionProperties props) {
         this.cacheManagerName = props.getPersistence().getCacheConfig().getManager();
@@ -38,44 +44,69 @@ public class VaultiqSessionContext {
     }
 
     /**
-     * Returns true iff any configured model type is using cache-based persistence.
+     * Checks if cache-based persistence is enabled for *any* configured model type.
+     *
+     * @return {@code true} if at least one model type is configured to use cache, {@code false} otherwise.
      */
     private boolean checkIfUsingCache() {
         return modelConfigs.values().stream().anyMatch(VaultiqModelConfig::useCache);
     }
 
     /**
-     * Returns true iff any configured model type is using JPA-based persistence.
+     * Checks if JPA-based persistence is enabled for *any* configured model type.
+     *
+     * @return {@code true} if at least one model type is configured to use JPA, {@code false} otherwise.
      */
     private boolean checkIfUsingJpa() {
         return modelConfigs.values().stream().anyMatch(VaultiqModelConfig::useJpa);
     }
 
     /**
-     * @return the cache manager name configured for all models in this context.
+     * Returns the name of the Spring {@link org.springframework.cache.CacheManager}
+     * configured for use by the Vaultiq session library.
+     * <p>
+     * This name is derived from the {@code vaultiq.session.persistence.cache-config.manager}
+     * property.
+     * </p>
+     *
+     * @return the configured cache manager name.
      */
     public String getCacheManagerName() {
         return cacheManagerName;
     }
 
     /**
-     * Lookup the configuration for a single model type.
-     * @param type type of session/data model
-     * @return the resolved config (never null for a known type)
+     * Retrieves the resolved and enhanced configuration for a specific session data model type.
+     * <p>
+     * This configuration includes the effective persistence methods (cache/JPA),
+     * cache name, and sync interval for the given model type, after applying
+     * overrides from {@link VaultiqSessionProperties}.
+     * </p>
+     *
+     * @param type the {@link ModelType} of the session/data model.
+     * @return the resolved {@link VaultiqModelConfig} for the specified type. This is
+     * never {@code null} for a valid {@link ModelType} as {@link VaultiqModelConfigEnhancer}
+     * ensures all types have a configuration entry.
      */
     public VaultiqModelConfig getModelConfig(ModelType type) {
         return modelConfigs.get(type);
     }
 
     /**
-     * @return true if any model type uses cache-based persistence
+     * Indicates whether cache-based persistence is active for any model type
+     * based on the resolved configuration.
+     *
+     * @return {@code true} if caching is used for at least one model type, {@code false} otherwise.
      */
     public boolean isUsingCache() {
         return isUsingCache;
     }
 
     /**
-     * @return true if any model type uses JPA-based persistence
+     * Indicates whether JPA-based persistence is active for any model type
+     * based on the resolved configuration.
+     *
+     * @return {@code true} if JPA is used for at least one model type, {@code false} otherwise.
      */
     public boolean isUsingJpa() {
         return isUsingJpa;

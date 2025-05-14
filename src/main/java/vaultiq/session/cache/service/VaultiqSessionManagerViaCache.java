@@ -1,3 +1,4 @@
+
 package vaultiq.session.cache.service;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,6 +13,17 @@ import vaultiq.session.core.VaultiqSessionManager;
 
 import java.util.List;
 
+/**
+ * Cache-only implementation of {@link VaultiqSessionManager} for Vaultiq sessions.
+ * <p>
+ * Delegates all session pool operations (creation, retrieval, deletion, listing, and counting) to the internal
+ * {@link VaultiqSessionCacheService}. Used as the runtime manager when the system is configured for cache-only mode.
+ * </p>
+ * <ul>
+ *   <li>Enabled by {@link VaultiqPersistenceMode#CACHE_ONLY} for session and user-session-mapping model types.</li>
+ *   <li>Injects the cache-backed service and wraps its functionality with the standard interface.</li>
+ * </ul>
+ */
 @Service
 @ConditionalOnBean(VaultiqSessionCacheService.class)
 @ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.CACHE_ONLY, type = {ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
@@ -19,30 +31,60 @@ public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
 
     private final VaultiqSessionCacheService vaultiqSessionCacheService;
 
+    /**
+     * Instantiates the manager with its required cache-backed service dependency.
+     * @param vaultiqSessionCacheService the service providing cache-based CRUD for sessions
+     */
     public VaultiqSessionManagerViaCache(VaultiqSessionCacheService vaultiqSessionCacheService) {
         this.vaultiqSessionCacheService = vaultiqSessionCacheService;
     }
 
+    /**
+     * Creates and caches a new session for a user.
+     *
+     * @param userId  the user identifier
+     * @param request HTTP request for device fingerprint extraction
+     * @return the created session
+     */
     @Override
     public VaultiqSession createSession(String userId, HttpServletRequest request) {
         return vaultiqSessionCacheService.createSession(userId, request);
     }
 
+    /**
+     * Retrieves a session by sessionId from the cache.
+     * @param sessionId the session identifier
+     * @return the session if found; otherwise null
+     */
     @Override
     public VaultiqSession getSession(String sessionId) {
         return vaultiqSessionCacheService.getSession(sessionId);
     }
 
+    /**
+     * Deletes a session by sessionId from the cache and mapping.
+     * @param sessionId the session identifier to delete
+     */
     @Override
     public void deleteSession(String sessionId) {
         vaultiqSessionCacheService.deleteSession(sessionId);
     }
 
+    /**
+     * Lists all current sessions for the specified user from the cache.
+     * @param userId the user identifier
+     * @return the list of sessions may be empty if none
+     */
     @Override
     public List<VaultiqSession> getSessionsByUser(String userId) {
         return vaultiqSessionCacheService.getSessionsByUser(userId);
     }
 
+    /**
+     * Returns a count of all current sessions for the specified user from the cache.
+     * @param userId the user identifier
+     * @return number of sessions for user
+     */
     @Override
     public int totalUserSessions(String userId) {
         return vaultiqSessionCacheService.totalUserSessions(userId);

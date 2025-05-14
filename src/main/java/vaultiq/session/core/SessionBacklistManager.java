@@ -1,4 +1,3 @@
-
 package vaultiq.session.core;
 
 import vaultiq.session.core.model.SessionBlocklist;
@@ -6,28 +5,62 @@ import vaultiq.session.core.util.BlocklistContext;
 
 import java.util.List;
 
+/**
+ * Manages the blocklisting (invalidation) of Vaultiq sessions.
+ * <p>
+ * This interface defines the contract for services responsible for marking sessions
+ * as invalid or revoked, preventing their further use. Implementations handle the
+ * underlying storage and retrieval of blocklisted session information, which can
+ * vary based on the library's configured persistence strategy (e.g., cache-ONLY,
+ * JPA-ONLY, or a combination JPA_AND_CACHE mode).
+ * </p>
+ * <p>
+ * Consumers of this interface should rely on its defined methods to manage the
+ * session blocklist without needing to know the specific persistence mechanism
+ * being used by the active implementation.
+ * </p>
+ */
 public interface SessionBacklistManager {
 
     /**
-     * Blocklist (invalidate) sessions based on the provided context.
+     * Adds one or more sessions to the blocklist based on the criteria specified
+     * in the provided context.
+     * <p>
+     * The exact sessions affected and the reason for blocklisting are determined
+     * by the {@link BlocklistContext}. Implementations will persist this blocklist
+     * information according to their configured strategy (cache, JPA, or both).
+     * </p>
      *
-     * @param context the context describing the blocklist operation
+     * @param context the context describing the blocklist operation, including
+     * the sessions to blocklist and the reason. Must not be {@code null}.
      */
     void blocklist(BlocklistContext context);
 
     /**
-     * Check if a session is currently blocklisted.
+     * Checks if a specific session is currently present in the blocklist.
+     * <p>
+     * Implementations will query their underlying persistence store(s) to determine
+     * the blocklisted status of the session.
+     * </p>
      *
-     * @param sessionId the session identifier
-     * @return true if the session is blocklisted, false otherwise
+     * @param sessionId the unique identifier of the session to check. Must not be blank.
+     * @return {@code true} if the session is blocklisted, {@code false} otherwise.
      */
     boolean isSessionBlocklisted(String sessionId);
 
     /**
-     * Get all blocklisted session IDs for a user.
+     * Retrieves a list of all sessions that have been blocklisted for a given user.
+     * <p>
+     * The list includes details about each blocklisted session, such as the session ID,
+     * the type of revocation, and when it occurred. Implementations will fetch this
+     * information from their configured persistence store(s).
+     * </p>
      *
-     * @param userId the user identifier
-     * @return list of blocklisted sessions for the user, or empty set if none
+     * @param userId the unique identifier of the user whose blocklisted sessions are
+     * to be retrieved. Must not be blank.
+     * @return A {@link List} of {@link SessionBlocklist} objects representing the
+     * sessions blocklisted for the user. Returns an empty list if the user
+     * has no blocklisted sessions. Never returns {@code null}.
      */
     List<SessionBlocklist> getBlocklistedSessions(String userId);
 }
