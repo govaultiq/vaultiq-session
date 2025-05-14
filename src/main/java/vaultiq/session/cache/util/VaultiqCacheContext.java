@@ -9,6 +9,8 @@ import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
 import vaultiq.session.cache.model.ModelType;
 import vaultiq.session.config.VaultiqSessionProperties;
+import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistenceRequirement;
+import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 
 import java.util.Map;
 
@@ -26,7 +28,7 @@ import java.util.Map;
  * </ul>
  */
 @Component
-@ConditionalOnProperty(prefix = "vaultiq.session.persistence.cache-config", name = "use-cache", havingValue = "true")
+@ConditionalOnVaultiqPersistenceRequirement(VaultiqPersistenceMethod.USE_CACHE)
 public class VaultiqCacheContext {
 
     private static final Logger log = LoggerFactory.getLogger(VaultiqCacheContext.class);
