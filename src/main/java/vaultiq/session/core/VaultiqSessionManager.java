@@ -5,16 +5,77 @@ import vaultiq.session.core.model.VaultiqSession;
 
 import java.util.List;
 
+/**
+ * Core interface for managing Vaultiq sessions.
+ * <p>
+ * This interface defines the standard operations for creating, retrieving,
+ * deleting, and querying {@link VaultiqSession} objects within the Vaultiq
+ * session tracking library. Implementations of this interface provide the
+ * underlying persistence logic (e.g., cache-based, JPA-based, or a combination).
+ * </p>
+ * <p>
+ * Different implementations may be active depending on the library's configuration
+ * and the application's environment, often managed via Spring's conditional
+ * mechanisms (e.g., {@link vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence}).
+ * </p>
+ */
 public interface VaultiqSessionManager {
 
+    /**
+     * Creates a new Vaultiq session for the specified user.
+     * <p>
+     * The session details are typically derived from the user ID and the incoming
+     * HTTP request. The newly created session is persisted according to the
+     * configured persistence strategy.
+     * </p>
+     *
+     * @param userId  The unique identifier of the user for whom the session is created.
+     * @param request The incoming {@link HttpServletRequest} containing client details.
+     * @return The newly created {@link VaultiqSession} object.
+     */
     VaultiqSession createSession(String userId, HttpServletRequest request);
 
+    /**
+     * Retrieves an existing Vaultiq session by its unique session ID.
+     * <p>
+     * The session is looked up using the configured persistence strategy.
+     * </p>
+     *
+     * @param sessionId The unique identifier of the session to retrieve.
+     * @return The {@link VaultiqSession} object if found, or {@code null} if no session exists with the given ID.
+     */
     VaultiqSession getSession(String sessionId);
 
+    /**
+     * Deletes a Vaultiq session based on its unique session ID.
+     * <p>
+     * The session is removed from the configured persistence store(s).
+     * </p>
+     *
+     * @param sessionId The unique identifier of the session to delete.
+     */
     void deleteSession(String sessionId);
 
+    /**
+     * Retrieves all active Vaultiq sessions associated with a specific user ID.
+     * <p>
+     * The sessions are retrieved from the configured persistence store(s).
+     * </p>
+     *
+     * @param userId The unique identifier of the user whose sessions are to be retrieved.
+     * @return A {@link List} of {@link VaultiqSession} objects for the user. Returns an empty list if no sessions are found.
+     */
     List<VaultiqSession> getSessionsByUser(String userId);
 
+    /**
+     * Counts the total number of active Vaultiq sessions associated with a specific user ID.
+     * <p>
+     * The count is determined based on the sessions available in the configured persistence store(s).
+     * </p>
+     *
+     * @param userId The unique identifier of the user whose sessions are to be counted.
+     * @return The total number of active sessions for the user.
+     */
     int totalUserSessions(String userId);
 
 }
