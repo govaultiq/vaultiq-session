@@ -7,16 +7,32 @@ import vaultiq.session.jpa.session.model.JpaVaultiqSession;
 import java.util.List;
 
 /**
- * Instantiated only when the property vaultiq.session.persistence.jpa.enabled is set to true.
- * AutoConfigured via {@link VaultiqSessionAutoConfigurationJpa}
+ * Spring Data JPA repository for managing {@link JpaVaultiqSession} entities.
+ * <p>
+ * Provides standard data access operations for Vaultiq session data when JPA
+ * persistence is enabled.
+ * </p>
+ *
+ * @see JpaRepository
+ * @see JpaVaultiqSession
+ * @see VaultiqSessionAutoConfigurationJpa
  */
 public interface VaultiqSessionRepository extends JpaRepository<JpaVaultiqSession, String> {
 
     /**
-     * Useful when deleting the sessions related to user is required
+     * Finds all session entities belonging to a specific user.
+     *
+     * @param userId The unique identifier of the user.
+     * @return A list of session entities for the user.
      */
     List<JpaVaultiqSession> findAllByUserId(String userId);
 
+    /**
+     * Counts the number of session entities belonging to a specific user.
+     *
+     * @param userId The unique identifier of the user.
+     * @return The total count of sessions for the user.
+     */
     int countByUserId(String userId);
 
 }
