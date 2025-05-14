@@ -1,4 +1,4 @@
-package vaultiq.session.jpa.model;
+package vaultiq.session.jpa.blocklist.model;
 
 import jakarta.persistence.*;
 import vaultiq.session.core.model.RevocationType;

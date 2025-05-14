@@ -1,4 +1,4 @@
-package vaultiq.session.jpa.model;
+package vaultiq.session.jpa.activity.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

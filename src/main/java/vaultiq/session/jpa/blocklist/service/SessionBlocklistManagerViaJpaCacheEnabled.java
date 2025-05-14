@@ -1,11 +1,10 @@
 
-package vaultiq.session.jpa.service;
+package vaultiq.session.jpa.blocklist.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import vaultiq.session.cache.model.ModelType;
 import vaultiq.session.cache.model.SessionBlocklistCacheEntry;
 import vaultiq.session.cache.service.internal.SessionBlocklistCacheService;
@@ -15,8 +14,8 @@ import vaultiq.session.core.SessionBacklistManager;
 import vaultiq.session.core.contracts.UserIdentityAware;
 import vaultiq.session.core.model.SessionBlocklist;
 import vaultiq.session.core.util.BlocklistContext;
-import vaultiq.session.jpa.model.SessionBlocklistEntity;
-import vaultiq.session.jpa.service.internal.SessionBlocklistJpaService;
+import vaultiq.session.jpa.blocklist.model.SessionBlocklistEntity;
+import vaultiq.session.jpa.blocklist.service.internal.SessionBlocklistJpaService;
 
 import java.util.*;
 

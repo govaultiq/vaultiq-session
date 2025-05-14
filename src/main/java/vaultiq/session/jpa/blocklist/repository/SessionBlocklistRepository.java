@@ -1,8 +1,8 @@
 
-package vaultiq.session.jpa.repository;
+package vaultiq.session.jpa.blocklist.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import vaultiq.session.jpa.model.SessionBlocklistEntity;
+import vaultiq.session.jpa.blocklist.model.SessionBlocklistEntity;
 
 import java.time.Instant;
 import java.util.List;
