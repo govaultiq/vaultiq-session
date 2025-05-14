@@ -30,9 +30,9 @@ import java.lang.annotation.Target;
  * @see VaultiqPersistenceMode Defines the possible persistence modes.
  * @see ModelType Defines the different types of session data models.
  */
-@Target({ElementType.TYPE, ElementType.METHOD}) // Specifies that this annotation can be applied to classes and methods.
-@Retention(RetentionPolicy.RUNTIME) // Specifies that this annotation should be retained at runtime.
-@Conditional(VaultiqPersistenceModeCondition.class) // Links this annotation to the custom condition class.
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Conditional(VaultiqPersistenceModeCondition.class)
 public @interface ConditionalOnVaultiqPersistence {
 
     /**
