@@ -9,16 +9,19 @@ import vaultiq.session.cache.util.SessionIdRequestMapper;
 import vaultiq.session.fingerprint.DeviceFingerprintValidator;
 
 /**
- * Central component responsible for validating whether a session request
- * is allowed to proceed based on session blocklist status and device fingerprint validation.
- *
- * <p>This validator checks the session ID (extracted from the request)
- * against the blocklist manager and also verifies the request's device
- * fingerprint through {@link DeviceFingerprintValidator}.
- *
- * <p>Bean is conditionally loaded only when core session management components
- * are available: {@link VaultiqSessionManager}, {@link SessionBacklistManager},
- * and {@link DeviceFingerprintValidator}.
+ * Validates whether an incoming session request is legitimate.
+ * <p>
+ * This component performs two critical checks to determine the legitimacy
+ * of a session associated with an incoming HTTP request:
+ * <ul>
+ *   <li><b>Blocklist Validation:</b> Ensures the session ID is not blocklisted.</li>
+ *   <li><b>Device Fingerprint Validation:</b> Confirms the request's device characteristics
+ *   match the original session's device fingerprint using {@link DeviceFingerprintValidator}.</li>
+ * </ul>
+ * <p>
+ * This bean is only created when the application context includes all the following:
+ * {@link VaultiqSessionManager}, {@link SessionBacklistManager}, and {@link DeviceFingerprintValidator}.
+ * This ensures that session validation is only enabled when all required infrastructures are available.
  */
 @Component
 @ConditionalOnBean({VaultiqSessionManager.class, SessionBacklistManager.class, DeviceFingerprintValidator.class})
@@ -38,11 +41,20 @@ public class VaultiqSessionValidator {
     }
 
     /**
-     * Validates the incoming HTTP request for session legitimacy.
+     * Validates the session associated with the incoming HTTP request.
+     * <p>
+     * The method performs the following validations in sequence:
+     * <ol>
+     *   <li>Extracts the session ID from the request. If absent, validation fails.</li>
+     *   <li>Checks whether the session ID is in the blocklist. If blocklisted, validation fails.</li>
+     *   <li>Validates the device fingerprint to ensure the request originates from the
+     *   same device as the one that initiated the session.</li>
+     * </ol>
+     * <p>
+     * If all checks pass, the session is considered valid.
      *
-     * @param request the incoming HTTP servlet request
-     * @return {@code true} if session is valid and passes fingerprint check;
-     *         {@code false} otherwise.
+     * @param request the HTTP servlet request to validate
+     * @return {@code true} if the session is legitimate and passes all checks; {@code false} otherwise
      */
     public boolean validateForSession(HttpServletRequest request) {
         String sessionId = SessionIdRequestMapper.getSessionId(request);
