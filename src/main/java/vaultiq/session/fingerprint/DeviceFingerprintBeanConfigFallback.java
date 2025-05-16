@@ -35,7 +35,7 @@ import vaultiq.session.core.model.VaultiqSession;
  * </p>
  */
 @Component
-@ConditionalOnBean(VaultiqSessionManager.class) // Ensure VaultiqSessionManager is available as it's a dependency for the validator
+@ConditionalOnBean(VaultiqSessionManager.class)
 public class DeviceFingerprintBeanConfigFallback {
 
     private static final Logger log = LoggerFactory.getLogger(DeviceFingerprintBeanConfigFallback.class);
@@ -100,7 +100,7 @@ public class DeviceFingerprintBeanConfigFallback {
      * @return A default implementation of {@link DeviceFingerprintValidator}.
      */
     @Bean
-    @ConditionalOnMissingBean // Only register this bean if no other DeviceFingerprintValidator bean exists
+    @ConditionalOnMissingBean
     DeviceFingerprintValidator deviceFingerprintValidator(DeviceFingerprintGenerator fingerprintGenerator, VaultiqSessionManager sessionManager) {
         return (request) -> {
             var sessionId = SessionIdRequestMapper.getSessionId(request);
