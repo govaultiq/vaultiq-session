@@ -2,7 +2,7 @@
 
 **`vaultiq-session`** is a lightweight, plug-and-play session management library for Spring Boot applications that supports device-aware tracking with flexible persistence options like **JPA**, **caching**, or both.
 
-### [What's the difference between `sid` and `jti`? Which is better?](https://github.com/govaultiq/vaultiq-session/sid_vs_jti.md)
+### [What's the difference between `sid` and `jti`? Which is better?](https://github.com/govaultiq/vaultiq-session/blob/main/sid_vs_jti.md)
 
 <br>
 
