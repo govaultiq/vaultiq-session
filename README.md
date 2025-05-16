@@ -1,25 +1,27 @@
 # Vaultiq-Session
 
-**`vaultiq-session`** is a flexible, pluggable session management library for Spring Boot applications that simplifies per-device session tracking with support for **JPA**, **in-memory caching**, or a hybrid approach.
+**`vaultiq-session`** is a lightweight, plug-and-play session management library for Spring Boot applications that supports device-aware tracking with flexible persistence options like **JPA**, **caching**, or both.
 
-<br>
+---
 
-## 🔧 Features
+## 🚀 Features
 
-- ✅ **Device-Based Session Management** - Track and manage sessions per device
-- 📔 **JPA Support** - Durable, persistent storage for session data
-- ⚡ **Cache Support** - High-speed lookups with Redis or other cache providers
-- 🔁 **Hybrid JPA + Cache Mode** - Get the best of both worlds for performance and durability
-- 🖥️ **Smart Device Fingerprinting** - Built-in logic with customization options
-- 🔒 **Session Security** - Efficient blocklisting mechanisms for terminated sessions
-- 🔗 **Seamless Integration** - Works with Vaultiq's ecosystem and any Spring Boot application
-- ✨ **Fully Configurable** - Managed internally but easily customizable
+* ✅ **Device-Aware Session Tracking** — Isolate sessions by browser/device
+* 📱 **Extended Device Metadata** — Captures device model and operating system
+* 🗄️ **JPA Support** — Persistent session storage for audit/compliance needs
+* ⚡ **Cache Support (Redis, etc.)** — Fast in-memory session lookups
+* 🔀 **Hybrid Mode** — Durability + Speed
+* 🧠 **Smart Fingerprinting** — Defaults built-in, easily overrideable
+* 🛡️ **Secure** — Built-in support for session blocklists with per-model overrides
+* 🪄 **Zen Mode** — One-line configuration with override capabilities
+* 🧩 **Fully Extensible** — Plug in your logic where needed
+* 🧰 **Device Metadata Available in Sessions** — Access OS & device model from `VaultiqSession`
 
-<br>
+---
 
 ## 📦 Installation
 
-Coming soon on Maven Central.
+Soon to be available on Maven Central:
 
 ```xml
 <dependency>
@@ -29,44 +31,65 @@ Coming soon on Maven Central.
 </dependency>
 ```
 
-<br>
+---
 
 ## ⚙️ Configuration
 
-Use the following structure in your `application.yml` to enable your preferred session management mode:
+### ▶ Zen Mode (Minimal Config + Powerful Defaults)
 
-### Option 1: JPA-Only Mode
+```yaml
+vaultiq:
+  session:
+    zen-mode: true
+```
+
+> Defaults:
+>
+> * `use-jpa` and `use-cache` = true
+> * `cache-manager` = "cacheManager"
+> * Default cache names per model
+
+### ▶ Model-Level Override (for blocklist, mapping, etc.)
+
+```yaml
+vaultiq:
+  session:
+    zen-mode: true
+    persistence:
+      models:
+        - type: BLOCKLIST
+          use-jpa: false
+```
+
+### ▶ Full Manual Mode (Complete Control)
 
 ```yaml
 vaultiq:
   session:
     persistence:
-      jpa:
-        enabled: true
-      cache:
-        enabled: false
+      cache-config:
+        manager: "vaultiqCacheManager"
+        use-jpa: true
+        use-cache: true
+      models:
+        - type: SESSION
+          cache-name: "session-pool"
+          use-cache: false
+          use-jpa: true
+
+        - type: USER_SESSION_MAPPING
+          cache-name: "user-session-mapping"
+          use-jpa: false
+
+        - type: BLOCKLIST
+          use-jpa: false
 ```
 
-### Option 2: Cache-Only Mode (e.g., Redis)
+---
 
-```yaml
-vaultiq:
-  session:
-    persistence:
-      jpa:
-        enabled: false
-      cache:
-        enabled: true
-        manager: vaultiqCacheManager
-        # Setting up cache-names can be ignored unless you choose to use different cache-names overriding the default.
-        cache-names:
-          sessions: "my-session-pool"
-          user-session-mapping: "my-user-sessions"
-          last-active-timestamps: "my-user-activity"
-          blocklist: "my-blocklist"
-```
+## 🔐 User Identity
 
-> ⚠️ When using cache-only mode, you **must implement** `UserIdentityAware` to provide current user context.
+> Required: Implement `UserIdentityAware` to enable session tracking per user context.
 
 ```java
 @Component
@@ -78,120 +101,69 @@ public class SecurityContextUserIdentity implements UserIdentityAware {
 }
 ```
 
-### Option 3: Hybrid Mode (JPA + Cache)
+---
 
-```yaml
-vaultiq:
-  session:
-    persistence:
-      jpa:
-        enabled: true
-      cache:
-        enabled: true
-        manager: vaultiqCacheManager
-        # Setting up cache-names can be ignored unless you choose to use different cache-names overriding the default.
-        cache-names:
-          sessions: "my-session-pool"
-          user-session-mapping: "my-user-sessions"
-          last-active-timestamps: "my-user-activity"
-          blocklist: "my-blocklist"
-```
+## 🧠 Custom Fingerprinting
 
-<br>
-
-## 🧠 Custom Device Fingerprinting
-
-The default fingerprinting works out of the box, but you can implement your own strategy:
+Override device fingerprinting logic:
+**Note:** Both the Generator and Validator must be implemented for successful custom fingerprint validation.
 
 ```java
 @Component
 public class MyDeviceFingerprintGenerator implements DeviceFingerprintGenerator {
     @Override
     public String generateFingerprint(HttpServletRequest request) {
-        // Your custom implementation here
-        // E.g., combine IP, user-agent, and other device identifiers
-        return customFingerprint;
+        return request.getRemoteAddr() + "::" + request.getHeader("User-Agent");
     }
 }
 ```
 
-<br>
+---
 
-## 🚀 Usage Examples
-
-### Basic Operations
-
-Inject the session manager in your components:
+## 📍 Usage
 
 ```java
 @Autowired
 private VaultiqSessionManager sessionManager;
-```
 
-Create and manage sessions:
-
-```java
-// Create a new session for a user
 VaultiqSession session = sessionManager.createSession("user123", request);
-
-// Retrieve an existing session
 VaultiqSession fetched = sessionManager.getSession(session.getSessionId());
-
-// Mark a session as currently active
-sessionManager.updateToCurrentlyActive(fetched.getSessionId());
-
-// End a session
-sessionManager.deleteSession(fetched.getSessionId());
-
-// List all sessions for a user
-List<VaultiqSession> userSessions = sessionManager.getSessionsByUser("user123");
-
-// Count active sessions
-int sessionCount = sessionManager.totalUserSessions("user123");
+sessionManager.deleteSession(session.getSessionId());
+List<VaultiqSession> sessions = sessionManager.getSessionsByUser("user123");
+int count = sessionManager.totalUserSessions("user123");
 ```
 
-### Integration with Authentication
+### 📎 Login Integration Example
 
 ```java
-@RestController
-public class AuthController {
-    @Autowired
-    private VaultiqSessionManager sessionManager;
-    
-    @PostMapping("/login")
-    public LoginResponse login(@RequestBody LoginRequest request, HttpServletRequest httpRequest) {
-        // Authenticate user...
-        
-        // Create a new session
-        VaultiqSession session = sessionManager.createSession(user.getId(), httpRequest);
-        
-        return LoginResponse.builder()
-            .token(generateJwt(user, session.getSessionId()))
-            .build();
-    }
+@PostMapping("/login")
+public LoginResponse login(@RequestBody LoginRequest request, HttpServletRequest httpRequest) {
+    VaultiqSession session = sessionManager.createSession(user.getId(), httpRequest);
+    return new LoginResponse(generateJwt(user, session.getSessionId()));
 }
 ```
 
-<br>
+---
 
-## 📊 Performance Considerations
+## 📈 Performance Tips
 
-- **JPA-Only Mode**: Best for applications where durability is critical
-- **Cache-Only Mode**: Optimal for high-traffic applications requiring speed
-- **Hybrid Mode**: Recommended for most production deployments to balance performance and reliability
+| Mode      | Use Case                                 |
+| --------- | ---------------------------------------- |
+| JPA       | Durability-first, low traffic            |
+| Cache     | High throughput, short session lifespans |
+| Hybrid 🔥 | Best of both for most production apps    |
 
-<br>
+---
 
 ## 🤝 Contributing
 
-1. Fork and clone the repo
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a pull request
+1. Fork the repo
+2. Create a feature branch: `git checkout -b feature/amazing`
+3. Commit and push
+4. Open a pull request 🚀
 
-<br>
+---
 
 ## 📝 License
 
-Licensed under the [MIT License](LICENSE).
+Licensed under the [MIT License](LICENSE)
