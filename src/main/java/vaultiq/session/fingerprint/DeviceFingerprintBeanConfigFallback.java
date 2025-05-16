@@ -35,7 +35,7 @@ import vaultiq.session.core.model.VaultiqSession;
  * </p>
  */
 @Component
-@ConditionalOnBean(VaultiqSessionManager.class) // Ensure VaultiqSessionManager is available as it's a dependency for the validator
+@ConditionalOnBean(VaultiqSessionManager.class)
 public class DeviceFingerprintBeanConfigFallback {
 
     private static final Logger log = LoggerFactory.getLogger(DeviceFingerprintBeanConfigFallback.class);
@@ -100,21 +100,33 @@ public class DeviceFingerprintBeanConfigFallback {
      * @return A default implementation of {@link DeviceFingerprintValidator}.
      */
     @Bean
-    @ConditionalOnMissingBean // Only register this bean if no other DeviceFingerprintValidator bean exists
+    @ConditionalOnMissingBean
     DeviceFingerprintValidator deviceFingerprintValidator(DeviceFingerprintGenerator fingerprintGenerator, VaultiqSessionManager sessionManager) {
         return (request) -> {
             var sessionId = SessionIdRequestMapper.getSessionId(request);
 
             if (sessionId == null) {
-                log.error("sessionId with key 'vaultiq.sid' is missing in the request.");
+                log.error("sessionId with key '"+SessionIdRequestMapper.VAULTIQ_SID_KEY+"' is missing in the request.");
                 return false;
             }
 
             var session = sessionManager.getSession(sessionId);
 
             if (session != null) {
+
+                if(session.isBlocked()) {
+                    log.error("Session ID [{}] is blocked. Fingerprint validation aborted.", sessionId);
+                    return false;
+                }
+
                 var currentFingerprint = fingerprintGenerator.generateFingerprint(request);
-                return session.getDeviceFingerPrint().equals(currentFingerprint);
+                var isValid = session.getDeviceFingerPrint().equals(currentFingerprint);
+
+                if(!isValid)
+                    log.error("Device fingerprint mismatch for session ID [{}].", sessionId);
+
+                return isValid;
+
             } else {
                 log.error("Could not find session for sessionId: {}", sessionId);
                 return false;
