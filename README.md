@@ -2,7 +2,9 @@
 
 **`vaultiq-session`** is a lightweight, plug-and-play session management library for Spring Boot applications that supports device-aware tracking with flexible persistence options like **JPA**, **caching**, or both.
 
----
+### [What's the difference between `sid` and `jti`? Which is better?](https://github.com/govaultiq/vaultiq-session/sid_vs_jti.md)
+
+<br>
 
 ## 🚀 Features
 
@@ -17,7 +19,7 @@
 * 🧩 **Fully Extensible** — Plug in your logic where needed
 * 🧰 **Device Metadata Available in Sessions** — Access OS & device model from `VaultiqSession`
 
----
+<br>
 
 ## 📦 Installation
 
@@ -31,7 +33,7 @@ Soon to be available on Maven Central:
 </dependency>
 ```
 
----
+<br>
 
 ## ⚙️ Configuration
 
@@ -85,7 +87,7 @@ vaultiq:
           use-jpa: false
 ```
 
----
+<br>
 
 ## 🔐 User Identity
 
@@ -101,7 +103,7 @@ public class SecurityContextUserIdentity implements UserIdentityAware {
 }
 ```
 
----
+<br>
 
 ## 🧠 Custom Fingerprinting
 
@@ -118,7 +120,7 @@ public class MyDeviceFingerprintGenerator implements DeviceFingerprintGenerator 
 }
 ```
 
----
+<br>
 
 ## 📍 Usage
 
@@ -143,7 +145,7 @@ public LoginResponse login(@RequestBody LoginRequest request, HttpServletRequest
 }
 ```
 
----
+<br>
 
 ## 📈 Performance Tips
 
@@ -153,7 +155,7 @@ public LoginResponse login(@RequestBody LoginRequest request, HttpServletRequest
 | Cache     | High throughput, short session lifespans |
 | Hybrid 🔥 | Best of both for most production apps    |
 
----
+<br>
 
 ## 🤝 Contributing
 
@@ -162,7 +164,7 @@ public LoginResponse login(@RequestBody LoginRequest request, HttpServletRequest
 3. Commit and push
 4. Open a pull request 🚀
 
----
+<br>
 
 ## 📝 License
 
