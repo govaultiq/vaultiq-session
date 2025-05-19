@@ -1,5 +1,7 @@
 package vaultiq.session.core.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import vaultiq.session.cache.model.ModelType;
 import vaultiq.session.config.VaultiqSessionProperties;
 import vaultiq.session.core.model.VaultiqModelConfig;
@@ -25,7 +27,8 @@ import java.util.stream.Collectors;
  */
 public final class VaultiqModelConfigEnhancer {
 
-    // Private constructor to prevent instantiation of this utility class.
+    private static final Logger log = LoggerFactory.getLogger(VaultiqModelConfigEnhancer.class);
+
     private VaultiqModelConfigEnhancer() {
         throw new IllegalStateException("Utility class");
     }
@@ -46,39 +49,40 @@ public final class VaultiqModelConfigEnhancer {
      * contains an entry for every value in the {@link ModelType} enum.
      */
     public static Map<ModelType, VaultiqModelConfig> enhance(VaultiqSessionProperties props) {
+        log.debug("Enhancing Vaultiq session model configurations with properties: {}", props);
         var zenMode = props.isZenMode();
         var global = props.getPersistence().getCacheConfig();
 
-        // Ensure ALL ModelType values have a config entry, auto-generating defaults if needed
         var models = enrichWithMissingConfigs(props);
+        log.debug("Total models after enrichment: {}", models.size());
 
         return models.stream()
                 .map(model -> {
                     ModelType type = model.getType();
+                    log.debug("Processing model type: {}", type);
 
-                    // Resolve boolean persistence flags (useJpa, useCache) using the fallback hierarchy:
-                    // 1. Specific model config (if present)
-                    // 2. Global cache config (if present)
-                    // 3. Zen mode (final fallback)
                     boolean useJpa = resolve(model.getUseJpa(), global != null ? global.isUseJpa() : null, zenMode);
                     boolean useCache = resolve(model.getUseCache(), global != null ? global.isUseCache() : null, zenMode);
+                    log.debug("Resolved useJpa: {}, useCache: {} for model type: {}", useJpa, useCache, type);
 
-                    // Resolve sync interval: per-model override > global setting.
                     Duration syncInterval = Optional.ofNullable(model.getSyncInterval())
                             .orElseGet(() -> props.getPersistence().getCacheConfig().getSyncInterval());
+                    log.debug("Resolved sync interval for model type {}: {}", type, syncInterval);
 
-                    // Resolve cache name: per-model override > ModelType alias.
                     String cacheName = model.getCacheName();
-                    if (cacheName == null || cacheName.isBlank())
-                        cacheName = type.getAlias(); // fallback to canonical alias
+                    if (cacheName == null || cacheName.isBlank()) {
+                        cacheName = type.getAlias();
+                        log.debug("Cache name for model type {} was blank. Using alias: {}", type, cacheName);
+                    }
 
-                    // Create the final, resolved VaultiqModelConfig for this model type.
-                    return new VaultiqModelConfig(type, cacheName, useJpa, useCache, syncInterval);
+                    var resolvedConfig = new VaultiqModelConfig(type, cacheName, useJpa, useCache, syncInterval);
+                    log.debug("Final resolved config for model type {}: {}", type, resolvedConfig);
+                    return resolvedConfig;
                 })
                 .collect(Collectors.toMap(
-                        VaultiqModelConfig::modelType, // Key mapper: ModelType
-                        model -> model, // Value mapper: VaultiqModelConfig
-                        (key1, key2) -> key2 // Merge function: if duplicate ModelTypes, the last one processed wins (should not happen with enrichWithMissingConfigs)
+                        VaultiqModelConfig::modelType,
+                        model -> model,
+                        (key1, key2) -> key2
                 ));
     }
 
@@ -97,29 +101,26 @@ public final class VaultiqModelConfigEnhancer {
      * containing exactly one entry for each {@link ModelType} value.
      */
     private static List<VaultiqSessionProperties.ModelPersistenceConfig> enrichWithMissingConfigs(VaultiqSessionProperties props) {
-        // Defensive: fallback to an empty list if models list is missing from config.
         List<VaultiqSessionProperties.ModelPersistenceConfig> models =
                 Optional.ofNullable(props.getPersistence().getModels()).orElseGet(ArrayList::new);
 
-        // Collect all ModelTypes that already have a configuration entry.
         Set<ModelType> existingTypes = models.stream()
                 .map(VaultiqSessionProperties.ModelPersistenceConfig::getType)
-                .filter(Objects::nonNull) // Filter out entries with null type, though ideally config validation prevents this.
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        // Create a new list starting with the existing configurations.
         List<VaultiqSessionProperties.ModelPersistenceConfig> enriched = new ArrayList<>(models);
 
-        // Iterate through all possible ModelType values.
         for (ModelType type : ModelType.values()) {
-            // If a ModelType does not have an existing configuration, add a default one.
             if (!existingTypes.contains(type)) {
                 var defaultConfig = new VaultiqSessionProperties.ModelPersistenceConfig();
-                defaultConfig.setType(type); // Set the type for the missing configuration.
+                defaultConfig.setType(type);
                 enriched.add(defaultConfig);
+                log.debug("Added default config for missing model type: {}", type);
             }
         }
 
+        log.debug("Enriched model configs size: {}", enriched.size());
         return enriched;
     }
 
@@ -127,17 +128,14 @@ public final class VaultiqModelConfigEnhancer {
      * Resolves a boolean configuration value (e.g., {@code useCache}, {@code useJpa})
      * by applying a specific fallback hierarchy: specific model config > global config > zen mode.
      *
-     * @param specific The boolean value from the specific {@link ModelPersistenceConfig} (may be {@code null}).
-     * @param global   The boolean value from the global {@link CacheConfig} (may be {@code null}).
+     * @param specific The boolean value from the specific {@link vaultiq.session.config.VaultiqSessionProperties.ModelPersistenceConfig} (maybe {@code null}).
+     * @param global   The boolean value from the global {@link vaultiq.session.config.VaultiqSessionProperties.CacheConfig} (maybe {@code null}).
      * @param zenMode  The value of the {@code zenMode} property (the final fallback).
      * @return The resolved boolean value, which is guaranteed to be non-null.
      */
     private static boolean resolve(Boolean specific, Boolean global, boolean zenMode) {
-        // If a specific value is provided, use it.
         if (specific != null) return specific;
-        // If no specific value, but a global value is provided, use it.
         if (global != null) return global;
-        // If neither specific nor global is provided, use the zen mode value as the final fallback.
         return zenMode;
     }
 }

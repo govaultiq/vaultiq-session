@@ -1,5 +1,7 @@
 package vaultiq.session.core.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import vaultiq.session.cache.model.ModelType;
 import vaultiq.session.config.VaultiqSessionProperties;
@@ -21,6 +23,7 @@ import java.util.Map;
 @Component
 public class VaultiqSessionContext {
 
+    private static final Logger log = LoggerFactory.getLogger(VaultiqSessionContext.class);
     private final String cacheManagerName;
     private final Map<ModelType, VaultiqModelConfig> modelConfigs;
     private final boolean isUsingCache;
@@ -37,6 +40,7 @@ public class VaultiqSessionContext {
      * @param props the Vaultiq session/application properties, typically injected by Spring.
      */
     public VaultiqSessionContext(VaultiqSessionProperties props) {
+        log.debug("Initializing VaultiqSessionContext with properties.");
         this.cacheManagerName = props.getPersistence().getCacheConfig().getManager();
         this.modelConfigs = VaultiqModelConfigEnhancer.enhance(props);
         this.isUsingCache = checkIfUsingCache();
