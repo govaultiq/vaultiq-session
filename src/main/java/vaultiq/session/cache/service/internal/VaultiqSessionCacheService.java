@@ -227,4 +227,20 @@ public class VaultiqSessionCacheService {
         sessionIds.forEach(this::deleteSession);
         log.debug("Deleted {} sessions via cache. Sessions: {}", sessionIds.size(), sessionIds);
     }
+
+    /**
+     * Retrieves all active sessions for a given user, filtering out blocked sessions.
+     * @param userId the user identifier
+     * @return list of VaultiqSession objects (maybe empty if none)
+     */
+    public List<VaultiqSession> getActiveSessionsByUser(String userId) {
+        return getSessionsByUser(userId)
+                .stream()
+                .peek(session -> {
+                    if (session.isBlocked())
+                        deleteSession(session.getSessionId());
+                })
+                .filter(VaultiqSession::isBlocked)
+                .collect(Collectors.toList());
+    }
 }

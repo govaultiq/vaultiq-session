@@ -15,6 +15,7 @@ import vaultiq.session.core.VaultiqSessionManager;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Cache-only implementation of {@link VaultiqSessionManager} for Vaultiq sessions.
@@ -37,6 +38,7 @@ public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
 
     /**
      * Instantiates the manager with its required cache-backed service dependency.
+     *
      * @param vaultiqSessionCacheService the service providing cache-based CRUD for sessions
      */
     public VaultiqSessionManagerViaCache(VaultiqSessionCacheService vaultiqSessionCacheService) {
@@ -57,6 +59,7 @@ public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
 
     /**
      * Retrieves a session by sessionId from the cache.
+     *
      * @param sessionId the session identifier
      * @return the session if found; otherwise null
      */
@@ -67,6 +70,7 @@ public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
 
     /**
      * Deletes a session by sessionId from the cache and mapping.
+     *
      * @param sessionId the session identifier to delete
      */
     @Override
@@ -76,6 +80,7 @@ public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
 
     /**
      * Deletes all sessions by sessionId from the cache and mapping.
+     *
      * @param sessionIds A set of unique session IDs to delete.
      */
     @Override
@@ -86,6 +91,7 @@ public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
 
     /**
      * Lists all current sessions for the specified user from the cache.
+     *
      * @param userId the user identifier
      * @return the list of sessions may be empty if none
      */
@@ -95,7 +101,19 @@ public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
     }
 
     /**
+     * Retrieves all active sessions for the specified user from the cache.
+     *
+     * @param userId The unique identifier of the user whose sessions are to be retrieved.
+     * @return the list of sessions may be empty if none
+     */
+    @Override
+    public List<VaultiqSession> getActiveSessionsByUser(String userId) {
+        return vaultiqSessionCacheService.getActiveSessionsByUser(userId);
+    }
+
+    /**
      * Returns a count of all current sessions for the specified user from the cache.
+     *
      * @param userId the user identifier
      * @return number of sessions for user
      */

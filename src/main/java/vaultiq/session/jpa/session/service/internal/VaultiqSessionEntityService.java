@@ -167,6 +167,19 @@ public class VaultiqSessionEntityService {
     }
 
     /**
+     * Retrieves all active Vaultiq sessions for a specific user from the database.
+     *
+     * @param userId The unique identifier of the user whose sessions are to be retrieved.
+     * @return A {@link List} of {@link VaultiqSession} DTOs for the user. Returns an empty list if no sessions are found.
+     */
+    public List<VaultiqSession> getActiveSessionsByUser(String userId) {
+        log.debug("Fetching active sessions for user '{}'.", userId);
+
+        return sessionRepository.findAllByUserIdAndIsBlocked(userId, false).stream()
+                .map(this::mapToVaultiqSession).toList();
+    }
+
+    /**
      * Counts the total number of Vaultiq sessions for a specific user in the database.
      *
      * @param userId The unique identifier of the user whose sessions are to be counted.

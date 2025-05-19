@@ -104,6 +104,17 @@ public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
     }
 
     /**
+     * @inheritDoc <p>Delegates counting active sessions by user ID to the underlying JPA service.</p>
+     * @param userId The unique identifier of the user whose sessions are to be retrieved.
+     * @return the active sessions for user.
+     */
+    @Override
+    public List<VaultiqSession> getActiveSessionsByUser(String userId) {
+        log.debug("Getting all active sessions for user '{}' via JPA.", userId);
+        return sessionService.getActiveSessionsByUser(userId);
+    }
+
+    /**
      * @inheritDoc <p>Delegates counting sessions by user ID to the underlying JPA service.</p>
      */
     @Override

@@ -77,6 +77,15 @@ public interface VaultiqSessionManager {
     List<VaultiqSession> getSessionsByUser(String userId);
 
     /**
+     * Retrieves all active Vaultiq sessions for a user.
+     * <p>
+     *
+     * @param userId The unique identifier of the user whose sessions are to be retrieved.
+     * @return A count of active sessions for the user. Returns 0 if no sessions are found.
+     */
+    List<VaultiqSession> getActiveSessionsByUser(String userId);
+
+    /**
      * Counts the total number of active Vaultiq sessions associated with a specific user ID.
      * <p>
      * The count is determined based on the sessions available in the configured persistence store(s).
