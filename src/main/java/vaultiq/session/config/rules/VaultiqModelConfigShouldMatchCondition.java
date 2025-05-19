@@ -1,6 +1,8 @@
 
 package vaultiq.session.config.rules;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
@@ -49,6 +51,7 @@ import java.util.Objects;
  */
 public class VaultiqModelConfigShouldMatchCondition implements Condition {
 
+    private final static Logger log = LoggerFactory.getLogger(VaultiqModelConfigShouldMatchCondition.class);
     /**
      * Evaluates whether the condition is satisfied for the given context.
      * <p>
@@ -74,6 +77,7 @@ public class VaultiqModelConfigShouldMatchCondition implements Condition {
         // Get the bean factory and ensure VaultiqSessionContext exists
         var beanFactory = context.getBeanFactory();
         if (beanFactory == null || beanFactory.getBeanNamesForType(VaultiqSessionContext.class, false, false).length == 0) {
+            log.error("VaultiqSessionContext not found in the bean factory.");
             return false;
         }
 

@@ -1,5 +1,7 @@
 package vaultiq.session.config.rules;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
@@ -31,6 +33,7 @@ import java.util.Map;
  * @see VaultiqSessionContext Provides access to the configured model persistence settings.
  */
 public class VaultiqPersistenceModeCondition implements Condition {
+    private final static Logger log = LoggerFactory.getLogger(VaultiqPersistenceModeCondition.class);
 
     /**
      * Determines if the condition matches and the bean should be enabled.
@@ -52,6 +55,7 @@ public class VaultiqPersistenceModeCondition implements Condition {
         var beanFactory = context.getBeanFactory();
         // Check if bean factory is available and VaultiqSessionContext bean exists.
         if (beanFactory == null || beanFactory.getBeanNamesForType(VaultiqSessionContext.class, false, false).length == 0) {
+            log.error("VaultiqSessionContext not found in the bean factory.");
             return false;
         }
 

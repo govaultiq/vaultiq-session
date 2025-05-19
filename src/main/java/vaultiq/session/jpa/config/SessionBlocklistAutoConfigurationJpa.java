@@ -34,7 +34,7 @@ import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
  * @see EnableJpaRepositories
  * @see ComponentScan
  */
-@Configuration(proxyBeanMethods = false)
+@Configuration
 @ConditionalOnVaultiqModelConfig(
         method = VaultiqPersistenceMethod.USE_JPA,
         type = ModelType.BLOCKLIST
