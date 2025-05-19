@@ -2,6 +2,8 @@
 package vaultiq.session.cache.service;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 import vaultiq.session.cache.model.ModelType;
@@ -12,6 +14,7 @@ import vaultiq.session.core.model.VaultiqSession;
 import vaultiq.session.core.VaultiqSessionManager;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Cache-only implementation of {@link VaultiqSessionManager} for Vaultiq sessions.
@@ -29,6 +32,7 @@ import java.util.List;
 @ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.CACHE_ONLY, type = {ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
 public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
 
+    private final static Logger log = LoggerFactory.getLogger(VaultiqSessionManagerViaCache.class);
     private final VaultiqSessionCacheService vaultiqSessionCacheService;
 
     /**
@@ -68,6 +72,16 @@ public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
     @Override
     public void deleteSession(String sessionId) {
         vaultiqSessionCacheService.deleteSession(sessionId);
+    }
+
+    /**
+     * Deletes all sessions by sessionId from the cache and mapping.
+     * @param sessionIds A set of unique session IDs to delete.
+     */
+    @Override
+    public void deleteAllSessions(Set<String> sessionIds) {
+        log.debug("Attempting to delete list of sessions via cache.");
+        vaultiqSessionCacheService.deleteAllSessions(sessionIds);
     }
 
     /**

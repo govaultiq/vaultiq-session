@@ -47,8 +47,8 @@ public class VaultiqSessionCacheService {
     /**
      * Initializes the cache service using designated caches and a fingerprint generator.
      *
-     * @param context           application session context for model-specific configuration
-     * @param cacheContext      cache context providing named caches
+     * @param context              application session context for model-specific configuration
+     * @param cacheContext         cache context providing named caches
      * @param fingerprintGenerator device-specific session ID utility
      */
     public VaultiqSessionCacheService(
@@ -163,7 +163,7 @@ public class VaultiqSessionCacheService {
     /**
      * Updates or creates the user-to-session mapping after a session is added.
      *
-     * @param userId      the user identifier
+     * @param userId       the user identifier
      * @param sessionEntry the session to associate
      */
     private void mapNewSessionIdToUser(String userId, VaultiqSessionCacheEntry sessionEntry) {
@@ -216,5 +216,15 @@ public class VaultiqSessionCacheService {
         SessionIds ids = new SessionIds();
         ids.setSessionIds(sessionIds);
         userSessionMappingCache.put(keyForUserSessionMapping(userId), ids);
+    }
+
+    /**
+     * Deletes all sessions for a given user from the cache and user-session mapping cache.
+     *
+     * @param sessionIds the session identifiers to delete
+     */
+    public void deleteAllSessions(Set<String> sessionIds) {
+        sessionIds.forEach(this::deleteSession);
+        log.debug("Deleted {} sessions via cache. Sessions: {}", sessionIds.size(), sessionIds);
     }
 }

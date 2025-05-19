@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import vaultiq.session.core.model.VaultiqSession;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Core interface for managing Vaultiq sessions.
@@ -55,6 +56,14 @@ public interface VaultiqSessionManager {
      * @param sessionId The unique identifier of the session to delete.
      */
     void deleteSession(String sessionId);
+
+    /**
+     * Deletes multiple Vaultiq sessions by their unique session IDs.
+     * <p>
+     *
+     * @param sessionIds A set of unique session IDs to delete.
+     */
+    void deleteAllSessions(Set<String> sessionIds);
 
     /**
      * Retrieves all active Vaultiq sessions associated with a specific user ID.

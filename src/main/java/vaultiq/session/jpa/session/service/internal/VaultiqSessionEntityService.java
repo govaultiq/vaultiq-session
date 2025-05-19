@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import vaultiq.session.cache.model.ModelType;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
@@ -15,6 +16,7 @@ import vaultiq.session.jpa.session.repository.VaultiqSessionEntityRepository;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Internal service for managing Vaultiq sessions using JPA persistence.
@@ -43,7 +45,8 @@ import java.util.List;
  */
 @Service
 @ConditionalOnBean(VaultiqSessionEntityRepository.class) // Ensure the JPA repository is available
-@ConditionalOnVaultiqModelConfig(method = VaultiqPersistenceMethod.USE_JPA, type = {ModelType.SESSION, ModelType.USER_SESSION_MAPPING}) // Activate only when JPA is configured for sessions
+@ConditionalOnVaultiqModelConfig(method = VaultiqPersistenceMethod.USE_JPA, type = {ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
+// Activate only when JPA is configured for sessions
 public class VaultiqSessionEntityService {
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionEntityService.class);
 
@@ -132,6 +135,20 @@ public class VaultiqSessionEntityService {
             sessionRepository.delete(entity);
             log.info("Deleted session '{}' for user '{}'.", sessionId, entity.getUserId());
         });
+    }
+
+    /**
+     * Deletes all Vaultiq sessions from the database by their session IDs.
+     * <p>
+     * Find all entities by user ID and delete them if present.
+     * </p>
+     *
+     * @param sessionIds The set of session IDs to delete.
+     */
+    @Transactional
+    public void deleteAllSessions(Set<String> sessionIds) {
+        sessionRepository.deleteAllById(sessionIds);
+        log.info("Deleted {} sessions via JPA. Sessions: {}", sessionIds.size(), sessionIds);
     }
 
     /**
