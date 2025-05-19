@@ -35,4 +35,12 @@ public record VaultiqModelConfig(
         boolean useCache,
         Duration syncInterval
 ) {
+    @Override
+    public String toString() {
+        return String.format(
+                "{ \"modelType\": \"%s\", \"cacheName\": \"%s\", \"useJpa\": %b, \"useCache\": %b, \"syncInterval\": \"%s\" }",
+                modelType, cacheName, useJpa, useCache, syncInterval
+        );
+    }
+
 }
