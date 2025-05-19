@@ -26,7 +26,7 @@ import java.util.*;
  * Provides methods to blocklist individual sessions, all sessions for a user, or all except some for a user.
  * Methods prefer transactional semantics for batch operations. The database is the source of truth in this persistence mode.
  * </p>
- *
+ * <p>
  * Typical usage includes logging-out sessions, forced logout for security, and checking blocklist status for token validation.
  */
 @Service
@@ -44,7 +44,7 @@ public class SessionBlocklistEntityService {
      *
      * @param sessionBlocklistEntityRepository repository for blocklist entities
      * @param vaultiqSessionEntityRepository   repository for session entities
-     * @param userIdentityAware          provides the current user for audit logging
+     * @param userIdentityAware                provides the current user for audit logging
      */
     public SessionBlocklistEntityService(
             SessionBlocklistEntityRepository sessionBlocklistEntityRepository,
@@ -200,5 +200,21 @@ public class SessionBlocklistEntityService {
      */
     public boolean isLastUpdatedGreaterThan(String userId, Long lastUpdatedAt) {
         return sessionBlocklistEntityRepository.existsByUserIdAndBlocklistedAtGreaterThan(userId, Instant.ofEpochMilli(lastUpdatedAt));
+    }
+
+    /**
+     * Clears all blocklist entries for the specified session IDs.
+     *
+     * @param sessionIds the session IDs to clear from the blocklist
+     */
+    public void clearBlocklist(String... sessionIds) {
+        Set<String> ids = sessionIds == null || sessionIds.length == 0
+                ? Collections.emptySet()
+                : new HashSet<>(Arrays.asList(sessionIds));
+
+        if (!ids.isEmpty())
+            sessionBlocklistEntityRepository.deleteAllById(ids);
+
+        log.info("Cleared blocklist for sessions: {}", ids);
     }
 }

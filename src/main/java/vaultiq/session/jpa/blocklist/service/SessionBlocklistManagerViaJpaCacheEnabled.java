@@ -10,7 +10,7 @@ import vaultiq.session.cache.model.SessionBlocklistCacheEntry;
 import vaultiq.session.cache.service.internal.SessionBlocklistCacheService;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
-import vaultiq.session.core.SessionBacklistManager;
+import vaultiq.session.core.SessionBlocklistManager;
 import vaultiq.session.core.contracts.UserIdentityAware;
 import vaultiq.session.core.model.SessionBlocklist;
 import vaultiq.session.core.util.BlocklistContext;
@@ -20,7 +20,7 @@ import vaultiq.session.jpa.blocklist.service.internal.SessionBlocklistEntityServ
 import java.util.*;
 
 /**
- * An implementation of the SessionBacklistManager that utilizes both cache and JPA persistence for session blocklisting.
+ * An implementation of the SessionBlocklistManager that utilizes both cache and JPA persistence for session blocklisting.
  * <p>
  * Primary preference is given to the cache for retrieving or updating blocklist status to achieve maximum performance;
  * database is used as a fallback and authoritative source to keep the cache updated in case of cache misses or stale data.
@@ -34,7 +34,7 @@ import java.util.*;
 @Service
 @ConditionalOnBean({SessionBlocklistEntityService.class, SessionBlocklistCacheService.class})
 @ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_ONLY, type = {ModelType.BLOCKLIST, ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
-public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBacklistManager {
+public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBlocklistManager {
     private static final Logger log = LoggerFactory.getLogger(SessionBlocklistManagerViaJpaCacheEnabled.class);
 
     private final SessionBlocklistEntityService sessionBlocklistEntityService;
@@ -44,9 +44,9 @@ public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBacklis
     /**
      * Constructs a new SessionBlocklistManagerViaJpaCacheEnabled.
      *
-     * @param sessionBlocklistEntityService   the service for JPA-based blocklist persistence
-     * @param sessionBlocklistCacheService the service for cache-based blocklist management
-     * @param userIdentityAware            used to acquire the current user for audit purposes
+     * @param sessionBlocklistEntityService the service for JPA-based blocklist persistence
+     * @param sessionBlocklistCacheService  the service for cache-based blocklist management
+     * @param userIdentityAware             used to acquire the current user for audit purposes
      */
     public SessionBlocklistManagerViaJpaCacheEnabled(
             SessionBlocklistEntityService sessionBlocklistEntityService,
@@ -68,7 +68,7 @@ public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBacklis
     public void blocklist(BlocklistContext context) {
         log.debug("Blocking sessions with Revocation type/mode: {}", context.getRevocationType().name());
         var entity = sessionBlocklistEntityService.blocklistSession(context.getIdentifier(), context.getNote());
-        if(entity != null) cacheEntity(entity);
+        if (entity != null) cacheEntity(entity);
     }
 
     /**
@@ -156,6 +156,19 @@ public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBacklis
         for (SessionBlocklist bl : cacheBlocklisted) merged.put(bl.getSessionId(), bl); // override with cache
 
         return new ArrayList<>(merged.values());
+    }
+
+    /**
+     * Clears the blocklist for a specific session or multiple sessions.
+     * <p>
+     *
+     * @param sessionIds an array of unique sessions identifiers to clear. Can be empty. It Can be blank.
+     */
+    @Override
+    public void clearBlocklist(String... sessionIds) {
+        log.debug("Attempting to clear blocklist for {} sessions.", sessionIds.length);
+        sessionBlocklistEntityService.clearBlocklist(sessionIds);
+        sessionBlocklistCacheService.clearBlocklist(sessionIds);
     }
 
     /**

@@ -47,10 +47,10 @@ public class SessionBlocklistCacheService {
     /**
      * Constructs a cache-backed blocklist service for sessions.
      *
-     * @param context                      session context/model config accessor
-     * @param cacheContext                 context holding/initializing cache instances
-     * @param vaultiqSessionCacheService   backing service for session cache access
-     * @param userIdentityAware            used for audit context (marking who triggers blocklists)
+     * @param context                    session context/model config accessor
+     * @param cacheContext               context holding/initializing cache instances
+     * @param vaultiqSessionCacheService backing service for session cache access
+     * @param userIdentityAware          used for audit context (marking who triggers blocklists)
      */
     public SessionBlocklistCacheService(
             VaultiqSessionContext context,
@@ -101,6 +101,8 @@ public class SessionBlocklistCacheService {
      */
     public void blocklist(SessionBlocklistCacheEntry entry) {
         blockSession(entry);
+        vaultiqSessionCacheService.deleteSession(entry.getSessionId());
+        log.info("Session with sessionId={} blocked.", entry.getSessionId());
     }
 
     /**
@@ -275,5 +277,21 @@ public class SessionBlocklistCacheService {
         blocklistCache.put(keyForBlacklistByUser(userId), sessionIds);
 
         log.info("User '{}' had session '{}' blocked.", userId, sessionId);
+    }
+
+    /**
+     * Clears the blocklist for a list of session IDs.
+     *
+     * @param sessionIds the session IDs to clear from the blocklist
+     */
+    public void clearBlocklist(String... sessionIds) {
+        if (sessionIds == null || sessionIds.length == 0) {
+            log.info("No sessions to clear from blocklist.");
+            return;
+        }
+        for (String sessionId : sessionIds) {
+            blocklistCache.evict(keyForBlacklist(sessionId));
+        }
+        log.info("Blocklist cleared for {} sessions: {}", sessionIds.length, Arrays.toString(sessionIds));
     }
 }

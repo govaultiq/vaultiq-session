@@ -1,5 +1,7 @@
 package vaultiq.session.core.model;
 
+import vaultiq.session.core.SessionBlocklistManager;
+
 import java.time.Instant;
 
 /**
@@ -12,7 +14,7 @@ import java.time.Instant;
  * </p>
  * <p>
  * {@code SessionBlocklist} objects are typically returned by methods in
- * {@link vaultiq.session.core.SessionBacklistManager} and are intended for use
+ * {@link SessionBlocklistManager} and are intended for use
  * in application logic, APIs, and UI layers that need to display or process
  * blocklisted session information.
  * </p>
@@ -22,7 +24,7 @@ import java.time.Instant;
  * when it occurred.
  * </p>
  *
- * @see vaultiq.session.core.SessionBacklistManager
+ * @see SessionBlocklistManager
  * @see RevocationType
  */
 public class SessionBlocklist {

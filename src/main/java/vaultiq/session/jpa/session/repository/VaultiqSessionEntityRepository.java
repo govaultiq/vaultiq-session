@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import vaultiq.session.jpa.config.VaultiqSessionAutoConfigurationJpa;
 import vaultiq.session.jpa.session.model.VaultiqSessionEntity;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -35,4 +36,12 @@ public interface VaultiqSessionEntityRepository extends JpaRepository<VaultiqSes
      */
     int countByUserId(String userId);
 
+    /**
+     * Finds all session entities belonging to a specific user and are blocked.
+     *
+     * @param userId    The unique identifier of the user.
+     * @param isBlocked The blocked status of the sessions.
+     * @return A list of session entities for the user that are blocked.
+     */
+    List<VaultiqSessionEntity> findAllByUserIdAndIsBlocked(String userId, boolean isBlocked);
 }

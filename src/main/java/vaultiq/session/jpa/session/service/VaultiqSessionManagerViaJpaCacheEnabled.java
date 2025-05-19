@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import vaultiq.session.cache.model.ModelType;
 import vaultiq.session.cache.service.internal.VaultiqSessionCacheService;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
@@ -67,8 +68,7 @@ public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionMa
     }
 
     /**
-     * @inheritDoc
-     * <p>
+     * @inheritDoc <p>
      * Creates the session using the JPA service and then caches the newly created session.
      * </p>
      */
@@ -83,8 +83,7 @@ public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionMa
     }
 
     /**
-     * @inheritDoc
-     * <p>
+     * @inheritDoc <p>
      * Attempts to retrieve the session from the cache first. If not found, it fetches
      * the session from the JPA service and then caches it before returning.
      * </p>
@@ -106,8 +105,7 @@ public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionMa
     }
 
     /**
-     * @inheritDoc
-     * <p>
+     * @inheritDoc <p>
      * Deletes the session from both the JPA store and the cache. It first attempts
      * to retrieve the session to ensure it exists before attempting deletion.
      * </p>
@@ -128,8 +126,19 @@ public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionMa
     }
 
     /**
-     * @inheritDoc
-     * <p>
+     * @param sessionIds A set of unique session IDs to delete.
+     * @inheritDoc Deletes all sessions from both the JPA store and the cache.
+     */
+    @Transactional
+    @Override
+    public void deleteAllSessions(Set<String> sessionIds) {
+        log.debug("Attempting to delete all sessions from both Jpa Store and Cache.");
+        sessionService.deleteAllSessions(sessionIds);
+        cacheService.deleteAllSessions(sessionIds);
+    }
+
+    /**
+     * @inheritDoc <p>
      * Attempts to retrieve all sessions for a user from the cache. If the cache
      * is empty for the user, it fetches the sessions from the JPA service and
      * then caches the list of sessions before returning.
@@ -151,8 +160,29 @@ public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionMa
     }
 
     /**
-     * @inheritDoc
-     * <p>
+     * @param userId The unique identifier of the user whose sessions are to be retrieved.
+     * @return
+     * @inheritDoc <p>
+     * Attempts to retrieve all active sessions for a user from the cache. If the cache
+     * is empty for the user, it fetches the sessions from the JPA service and
+     * then caches the list of active sessions before returning.
+     * </p>
+     */
+    @Override
+    public List<VaultiqSession> getActiveSessionsByUser(String userId) {
+        var sessions = cacheService.getActiveSessionsByUser(userId);
+        if (sessions.isEmpty()) {
+            log.debug("Active sessions for user '{}' not found in cache. Fetching from DB.", userId);
+            // If cache is empty for the user, fetch from the database via the JPA service.
+            sessions = sessionService.getActiveSessionsByUser(userId);
+            // Cache the list of active sessions for the user.
+            cacheService.cacheUserSessions(userId, sessions);
+        }
+        return sessions;
+    }
+
+    /**
+     * @inheritDoc <p>
      * Attempts to get the count of sessions for a user from the cache (by checking
      * the size of the user's session ID set). If the cache does not contain the
      * session IDs for the user, it falls back to counting sessions using the JPA service.

@@ -20,7 +20,7 @@ import java.util.List;
  * being used by the active implementation.
  * </p>
  */
-public interface SessionBacklistManager {
+public interface SessionBlocklistManager {
 
     /**
      * Adds one or more sessions to the blocklist based on the criteria specified
@@ -32,7 +32,7 @@ public interface SessionBacklistManager {
      * </p>
      *
      * @param context the context describing the blocklist operation, including
-     * the sessions to blocklist and the reason. Must not be {@code null}.
+     *                the sessions to blocklist and the reason. Must not be {@code null}.
      */
     void blocklist(BlocklistContext context);
 
@@ -57,10 +57,21 @@ public interface SessionBacklistManager {
      * </p>
      *
      * @param userId the unique identifier of the user whose blocklisted sessions are
-     * to be retrieved. Must not be blank.
+     *               to be retrieved. Must not be blank.
      * @return A {@link List} of {@link SessionBlocklist} objects representing the
      * sessions blocklisted for the user. Returns an empty list if the user
      * has no blocklisted sessions. Never returns {@code null}.
      */
     List<SessionBlocklist> getBlocklistedSessions(String userId);
+
+    /**
+     * Clears the blocklist for a specific session or multiple sessions.
+     * <p>
+     * Implementations will remove the specified session(s) from their underlying persistence store(s).
+     * No attempts to clear blocklist will be made if the sessionIds are empty or blank.
+     * </p>
+     *
+     * @param sessionIds an array of unique sessions identifiers to clear. Can be empty. It Can be blank.
+     */
+    void clearBlocklist(String... sessionIds);
 }

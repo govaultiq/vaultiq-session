@@ -20,20 +20,20 @@ import vaultiq.session.fingerprint.DeviceFingerprintValidator;
  * </ul>
  * <p>
  * This bean is only created when the application context includes all the following:
- * {@link VaultiqSessionManager}, {@link SessionBacklistManager}, and {@link DeviceFingerprintValidator}.
+ * {@link VaultiqSessionManager}, {@link SessionBlocklistManager}, and {@link DeviceFingerprintValidator}.
  * This ensures that session validation is only enabled when all required infrastructures are available.
  */
 @Component
-@ConditionalOnBean({VaultiqSessionManager.class, SessionBacklistManager.class, DeviceFingerprintValidator.class})
+@ConditionalOnBean({VaultiqSessionManager.class, SessionBlocklistManager.class, DeviceFingerprintValidator.class})
 public class VaultiqSessionValidator {
 
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionValidator.class);
 
-    private final SessionBacklistManager blocklistManager;
+    private final SessionBlocklistManager blocklistManager;
     private final DeviceFingerprintValidator deviceFingerprintValidator;
 
     public VaultiqSessionValidator(
-            SessionBacklistManager blocklistManager,
+            SessionBlocklistManager blocklistManager,
             DeviceFingerprintValidator deviceFingerprintValidator
     ) {
         this.blocklistManager = blocklistManager;

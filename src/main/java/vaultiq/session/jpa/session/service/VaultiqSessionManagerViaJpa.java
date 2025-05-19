@@ -13,6 +13,7 @@ import vaultiq.session.core.VaultiqSessionManager;
 import vaultiq.session.jpa.session.service.internal.VaultiqSessionEntityService;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * JPA-only implementation of the {@link VaultiqSessionManager} interface.
@@ -57,8 +58,7 @@ public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
     }
 
     /**
-     * @inheritDoc
-     * <p>Delegates session creation to the underlying JPA service.</p>
+     * @inheritDoc <p>Delegates session creation to the underlying JPA service.</p>
      */
     @Override
     public VaultiqSession createSession(String userId, HttpServletRequest request) {
@@ -67,8 +67,7 @@ public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
     }
 
     /**
-     * @inheritDoc
-     * <p>Delegates session retrieval by ID to the underlying JPA service.</p>
+     * @inheritDoc <p>Delegates session retrieval by ID to the underlying JPA service.</p>
      */
     @Override
     public VaultiqSession getSession(String sessionId) {
@@ -77,8 +76,7 @@ public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
     }
 
     /**
-     * @inheritDoc
-     * <p>Delegates session deletion by ID to the underlying JPA service.</p>
+     * @inheritDoc <p>Delegates session deletion by ID to the underlying JPA service.</p>
      */
     @Override
     public void deleteSession(String sessionId) {
@@ -87,8 +85,17 @@ public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
     }
 
     /**
-     * @inheritDoc
-     * <p>Delegates listing sessions by user ID to the underlying JPA service.</p>
+     * @param sessionIds A set of unique session IDs to delete.
+     * @inheritDoc <p>Delegates deletion of all sessions by ID to the underlying JPA service.</p>
+     */
+    @Override
+    public void deleteAllSessions(Set<String> sessionIds) {
+        log.debug("Deleting all sessions via JPA.");
+        sessionService.deleteAllSessions(sessionIds);
+    }
+
+    /**
+     * @inheritDoc <p>Delegates listing sessions by user ID to the underlying JPA service.</p>
      */
     @Override
     public List<VaultiqSession> getSessionsByUser(String userId) {
@@ -97,8 +104,18 @@ public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
     }
 
     /**
-     * @inheritDoc
-     * <p>Delegates counting sessions by user ID to the underlying JPA service.</p>
+     * @inheritDoc <p>Delegates counting active sessions by user ID to the underlying JPA service.</p>
+     * @param userId The unique identifier of the user whose sessions are to be retrieved.
+     * @return the active sessions for user.
+     */
+    @Override
+    public List<VaultiqSession> getActiveSessionsByUser(String userId) {
+        log.debug("Getting all active sessions for user '{}' via JPA.", userId);
+        return sessionService.getActiveSessionsByUser(userId);
+    }
+
+    /**
+     * @inheritDoc <p>Delegates counting sessions by user ID to the underlying JPA service.</p>
      */
     @Override
     public int totalUserSessions(String userId) {
