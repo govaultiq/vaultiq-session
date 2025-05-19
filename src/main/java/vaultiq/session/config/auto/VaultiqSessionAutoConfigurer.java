@@ -1,5 +1,7 @@
 package vaultiq.session.config.auto;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
@@ -11,4 +13,10 @@ import org.springframework.context.annotation.Configuration;
         "vaultiq.session.fingerprint",
 })
 public class VaultiqSessionAutoConfigurer {
+
+    private static final Logger log = LoggerFactory.getLogger(VaultiqSessionAutoConfigurer.class);
+
+    public VaultiqSessionAutoConfigurer() {
+        log.info("Initializing VaultiqSessionAutoConfigurer 🚀");
+    }
 }
