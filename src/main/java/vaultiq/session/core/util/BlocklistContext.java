@@ -1,12 +1,12 @@
 package vaultiq.session.core.util;
 
 import vaultiq.session.core.model.RevocationType;
-import vaultiq.session.core.SessionBacklistManager;
+import vaultiq.session.core.SessionBlocklistManager;
 
 /**
  * Context object used to define the parameters of a session blocklist operation.
  * <p>
- * This class encapsulates the necessary information for {@link SessionBacklistManager}
+ * This class encapsulates the necessary information for {@link SessionBlocklistManager}
  * implementations to perform various types of session invalidation, such as
  * blocklisting a single session, all sessions for a user, or all sessions for a
  * user except specific ones.
@@ -18,7 +18,7 @@ import vaultiq.session.core.SessionBacklistManager;
  * </p>
  *
  * @see RevocationType
- * @see SessionBacklistManager
+ * @see SessionBlocklistManager
  */
 public class BlocklistContext {
 

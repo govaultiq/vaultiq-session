@@ -10,17 +10,15 @@ import vaultiq.session.cache.model.SessionBlocklistCacheEntry;
 import vaultiq.session.cache.service.internal.SessionBlocklistCacheService;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
-import vaultiq.session.core.SessionBacklistManager;
+import vaultiq.session.core.SessionBlocklistManager;
 import vaultiq.session.core.model.SessionBlocklist;
 import vaultiq.session.core.util.BlocklistContext;
 import vaultiq.session.core.util.VaultiqSessionContext;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 /**
- * Implementation of {@link SessionBacklistManager} that manages the blocklist state via an in-memory or distributed cache.
+ * Implementation of {@link SessionBlocklistManager} that manages the blocklist state via an in-memory or distributed cache.
  * <p>
  * This implementation is enabled only when Vaultiq is configured for cache-only blocklist management
  * ({@code VaultiqPersistenceMode.CACHE_ONLY} for {@code ModelType.BLOCKLIST}).
@@ -31,8 +29,8 @@ import java.util.Set;
 @Service
 @ConditionalOnBean(VaultiqSessionContext.class)
 @ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.CACHE_ONLY, type = ModelType.BLOCKLIST)
-public class SessionBacklistManagerViaCache implements SessionBacklistManager {
-    private static final Logger log = LoggerFactory.getLogger(SessionBacklistManagerViaCache.class);
+public class SessionBlocklistManagerViaCache implements SessionBlocklistManager {
+    private static final Logger log = LoggerFactory.getLogger(SessionBlocklistManagerViaCache.class);
     private final SessionBlocklistCacheService cacheService;
 
     /**
@@ -40,7 +38,7 @@ public class SessionBacklistManagerViaCache implements SessionBacklistManager {
      *
      * @param cacheService Cache-backed blocklist handler (must not be null)
      */
-    public SessionBacklistManagerViaCache(SessionBlocklistCacheService cacheService) {
+    public SessionBlocklistManagerViaCache(SessionBlocklistCacheService cacheService) {
         this.cacheService = cacheService;
     }
 

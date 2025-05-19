@@ -1,6 +1,7 @@
 
 package vaultiq.session.cache.model;
 
+import vaultiq.session.cache.service.SessionBlocklistManagerViaCache;
 import vaultiq.session.core.model.RevocationType;
 import vaultiq.session.core.model.SessionBlocklist;
 
@@ -13,7 +14,7 @@ import java.time.Instant;
  * such as session ID, user ID, revocation type, optional note, who triggered it, and timestamp.
  * It is designed for efficient in-memory caching and interoperability between
  * {@link vaultiq.session.cache.service.internal.SessionBlocklistCacheService}
- * and {@link vaultiq.session.cache.service.SessionBacklistManagerViaCache}.
+ * and {@link SessionBlocklistManagerViaCache}.
  * </p>
  *
  * <p>

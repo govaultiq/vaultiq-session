@@ -20,7 +20,7 @@ import java.util.List;
  * being used by the active implementation.
  * </p>
  */
-public interface SessionBacklistManager {
+public interface SessionBlocklistManager {
 
     /**
      * Adds one or more sessions to the blocklist based on the criteria specified

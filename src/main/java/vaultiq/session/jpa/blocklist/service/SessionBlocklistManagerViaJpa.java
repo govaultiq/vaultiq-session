@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import vaultiq.session.cache.model.ModelType;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
-import vaultiq.session.core.SessionBacklistManager;
+import vaultiq.session.core.SessionBlocklistManager;
 import vaultiq.session.core.model.SessionBlocklist;
 import vaultiq.session.jpa.blocklist.model.SessionBlocklistEntity;
 import vaultiq.session.jpa.blocklist.service.internal.SessionBlocklistEntityService;
@@ -17,7 +17,7 @@ import vaultiq.session.core.util.BlocklistContext;
 import java.util.*;
 
 /**
- * JPA-backed implementation of the {@link SessionBacklistManager} interface.
+ * JPA-backed implementation of the {@link SessionBlocklistManager} interface.
  * <p>
  * This service delegates all session blocklisting operations for the BLOCKLIST model type
  * to {@link SessionBlocklistEntityService}. Blocklisting functionality includes invalidating
@@ -29,13 +29,13 @@ import java.util.*;
  * and the persistence configuration matches JPA mode with a BLOCKLIST model type.
  * </p>
  *
- * @see SessionBacklistManager
+ * @see SessionBlocklistManager
  * @see SessionBlocklistEntityService
  */
 @Service
 @ConditionalOnBean(SessionBlocklistEntityService.class)
 @ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_ONLY, type = ModelType.BLOCKLIST)
-public class SessionBlocklistManagerViaJpa implements SessionBacklistManager {
+public class SessionBlocklistManagerViaJpa implements SessionBlocklistManager {
 
     private static final Logger log = LoggerFactory.getLogger(SessionBlocklistManagerViaJpa.class);
 

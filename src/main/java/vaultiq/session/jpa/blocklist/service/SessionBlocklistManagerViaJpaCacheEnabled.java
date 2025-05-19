@@ -10,7 +10,7 @@ import vaultiq.session.cache.model.SessionBlocklistCacheEntry;
 import vaultiq.session.cache.service.internal.SessionBlocklistCacheService;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
-import vaultiq.session.core.SessionBacklistManager;
+import vaultiq.session.core.SessionBlocklistManager;
 import vaultiq.session.core.contracts.UserIdentityAware;
 import vaultiq.session.core.model.SessionBlocklist;
 import vaultiq.session.core.util.BlocklistContext;
@@ -20,7 +20,7 @@ import vaultiq.session.jpa.blocklist.service.internal.SessionBlocklistEntityServ
 import java.util.*;
 
 /**
- * An implementation of the SessionBacklistManager that utilizes both cache and JPA persistence for session blocklisting.
+ * An implementation of the SessionBlocklistManager that utilizes both cache and JPA persistence for session blocklisting.
  * <p>
  * Primary preference is given to the cache for retrieving or updating blocklist status to achieve maximum performance;
  * database is used as a fallback and authoritative source to keep the cache updated in case of cache misses or stale data.
@@ -34,7 +34,7 @@ import java.util.*;
 @Service
 @ConditionalOnBean({SessionBlocklistEntityService.class, SessionBlocklistCacheService.class})
 @ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_ONLY, type = {ModelType.BLOCKLIST, ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
-public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBacklistManager {
+public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBlocklistManager {
     private static final Logger log = LoggerFactory.getLogger(SessionBlocklistManagerViaJpaCacheEnabled.class);
 
     private final SessionBlocklistEntityService sessionBlocklistEntityService;
