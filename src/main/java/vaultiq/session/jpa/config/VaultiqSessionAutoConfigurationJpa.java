@@ -40,9 +40,4 @@ import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 @EnableJpaRepositories("vaultiq.session.jpa.session.repository")
 @ComponentScan(basePackages = "vaultiq.session.jpa.session")
 public final class VaultiqSessionAutoConfigurationJpa {
-    private static final Logger log = LoggerFactory.getLogger(VaultiqSessionAutoConfigurationJpa.class);
-
-    public VaultiqSessionAutoConfigurationJpa() {
-        log.info("Initializing SessionBlocklistAutoConfigurationJpa 📦");
-    }
 }
