@@ -86,7 +86,20 @@ public class SessionBacklistManagerViaCache implements SessionBacklistManager {
     }
 
     /**
+     * Clear the blocklist for a specific session or multiple sessions.
+     * Delegates to the cache service.
+     *
+     * @param sessionIds an array of unique sessions identifiers to clear. Can be empty. It Can be blank.
+     */
+    @Override
+    public void clearBlocklist(String... sessionIds) {
+        log.debug("Attempting to clear blocklist for {} sessions", sessionIds.length);
+        cacheService.clearBlocklist(sessionIds);
+    }
+
+    /**
      * Helper method to convert a cache entry to a SessionBlocklist object.
+     *
      * @param entry the cache entry to convert
      * @return the converted SessionBlocklist object
      */

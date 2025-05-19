@@ -44,9 +44,9 @@ public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBacklis
     /**
      * Constructs a new SessionBlocklistManagerViaJpaCacheEnabled.
      *
-     * @param sessionBlocklistEntityService   the service for JPA-based blocklist persistence
-     * @param sessionBlocklistCacheService the service for cache-based blocklist management
-     * @param userIdentityAware            used to acquire the current user for audit purposes
+     * @param sessionBlocklistEntityService the service for JPA-based blocklist persistence
+     * @param sessionBlocklistCacheService  the service for cache-based blocklist management
+     * @param userIdentityAware             used to acquire the current user for audit purposes
      */
     public SessionBlocklistManagerViaJpaCacheEnabled(
             SessionBlocklistEntityService sessionBlocklistEntityService,
@@ -68,7 +68,7 @@ public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBacklis
     public void blocklist(BlocklistContext context) {
         log.debug("Blocking sessions with Revocation type/mode: {}", context.getRevocationType().name());
         var entity = sessionBlocklistEntityService.blocklistSession(context.getIdentifier(), context.getNote());
-        if(entity != null) cacheEntity(entity);
+        if (entity != null) cacheEntity(entity);
     }
 
     /**
@@ -156,6 +156,19 @@ public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBacklis
         for (SessionBlocklist bl : cacheBlocklisted) merged.put(bl.getSessionId(), bl); // override with cache
 
         return new ArrayList<>(merged.values());
+    }
+
+    /**
+     * Clears the blocklist for a specific session or multiple sessions.
+     * <p>
+     *
+     * @param sessionIds an array of unique sessions identifiers to clear. Can be empty. It Can be blank.
+     */
+    @Override
+    public void clearBlocklist(String... sessionIds) {
+        log.debug("Attempting to clear blocklist for {} sessions.", sessionIds.length);
+        sessionBlocklistEntityService.clearBlocklist(sessionIds);
+        sessionBlocklistCacheService.clearBlocklist(sessionIds);
     }
 
     /**
