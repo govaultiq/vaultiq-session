@@ -101,6 +101,8 @@ public class SessionBlocklistCacheService {
      */
     public void blocklist(SessionBlocklistCacheEntry entry) {
         blockSession(entry);
+        vaultiqSessionCacheService.deleteSession(entry.getSessionId());
+        log.info("Session with sessionId={} blocked.", entry.getSessionId());
     }
 
     /**
