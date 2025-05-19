@@ -20,7 +20,6 @@ import java.util.Map;
  * any configured model type.
  * </p>
  */
-@Component
 public class VaultiqSessionContext {
 
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionContext.class);

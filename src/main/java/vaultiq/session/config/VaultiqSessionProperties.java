@@ -25,7 +25,6 @@ import java.util.List;
  * settings used by components like {@link VaultiqSessionContext}.
  * </p>
  */
-@Configuration
 @ConfigurationProperties("vaultiq.session")
 public class VaultiqSessionProperties {
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionProperties.class);
