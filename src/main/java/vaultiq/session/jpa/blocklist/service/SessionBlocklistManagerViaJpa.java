@@ -33,7 +33,6 @@ import java.util.*;
  * @see SessionBlocklistEntityService
  */
 @Service
-@ConditionalOnBean(SessionBlocklistEntityService.class)
 @ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_ONLY, type = ModelType.BLOCKLIST)
 public class SessionBlocklistManagerViaJpa implements SessionBlocklistManager {
 

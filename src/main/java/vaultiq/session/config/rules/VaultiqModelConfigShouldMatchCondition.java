@@ -75,12 +75,6 @@ public class VaultiqModelConfigShouldMatchCondition implements Condition {
      */
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-        // Get the bean factory and ensure VaultiqSessionContext exists
-//        var beanFactory = context.getBeanFactory();
-//        if (beanFactory == null || beanFactory.getBeanNamesForType(VaultiqSessionContext.class, false, false).length == 0) {
-//            log.error("VaultiqSessionContext not found in the bean factory.");
-//            return false;
-//        }
 
         // Extract annotation attributes
         Map<String, Object> attrs = metadata.getAnnotationAttributes(
@@ -91,16 +85,19 @@ public class VaultiqModelConfigShouldMatchCondition implements Condition {
         VaultiqPersistenceMethod method = (VaultiqPersistenceMethod) attrs.get("method");
         ModelType[] modelTypes = (ModelType[]) attrs.get("type");
 
+        log.debug("Validating condition for persistence method: {}, and modelTypes: {}", method, modelTypes);
         // Get the VaultiqSessionContext to access current configuration
         VaultiqSessionContext sessionContext = VaultiqSessionContextHolder.getContext();
 
         // Check if all specified model types match the required persistence method
-        return Arrays.stream(modelTypes)
-                .map(sessionContext::getModelConfig)            // Get config for each model type
+        var result = Arrays.stream(modelTypes)
+                .map(sessionContext::getModelConfig)
                 .filter(Objects::nonNull)                       // Filter out any null configs
                 .anyMatch(cfg -> switch (method) {              // Check if method matches requirement
                     case USE_CACHE -> cfg.useCache();           // For cache-based persistence
                     case USE_JPA -> cfg.useJpa();               // For JPA-based persistence
                 });
+        log.debug("Condition result: {}", result);
+        return result;
     }
 }

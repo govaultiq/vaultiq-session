@@ -53,32 +53,21 @@ public class VaultiqPersistenceModeCondition implements Condition {
      */
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-//        var beanFactory = context.getBeanFactory();
-//        // Check if bean factory is available and VaultiqSessionContext bean exists.
-//        if (beanFactory == null || beanFactory.getBeanNamesForType(VaultiqSessionContext.class, false, false).length == 0) {
-//            log.error("VaultiqSessionContext not found in the bean factory.");
-//            return false;
-//        }
 
-        // Get the attributes of the ConditionalOnVaultiqPersistence annotation.
         Map<String, Object> attrs = metadata.getAnnotationAttributes(
                 ConditionalOnVaultiqPersistence.class.getName());
         if (attrs == null) return false;
 
-        // Extract the required persistence mode and model types from annotation attributes.
         VaultiqPersistenceMode mode = (VaultiqPersistenceMode) attrs.get("mode");
         ModelType[] modelTypes = (ModelType[]) attrs.get("type");
 
-        // Get the VaultiqSessionContext bean.
         VaultiqSessionContext sessionContext = VaultiqSessionContextHolder.getContext();
 
-        // Iterate through the specified model types.
-        for (ModelType modelType : modelTypes) {
-            // Get the persistence configuration for the current model type.
-            var cfg = sessionContext.getModelConfig(modelType);
-            // Skip if configuration for this model type is not found.
-            if (cfg == null) continue;
+        log.debug("validating condition for mode: {}, type: {}", mode, modelTypes);
 
+        for (ModelType modelType : modelTypes) {
+            var cfg = sessionContext.getModelConfig(modelType);
+            if (cfg == null) continue;
             // Check persistence settings for the model type.
             boolean useCache = cfg.useCache();
             boolean useJpa = cfg.useJpa();
@@ -92,10 +81,12 @@ public class VaultiqPersistenceModeCondition implements Condition {
 
             // If a match is found for any model type, the condition is met.
             if (matches) {
+                log.debug("Condition result: {}", true);
                 return true;
             }
         }
         // No match found for any specified model type.
+        log.debug("Condition result: {}", false);
         return false;
     }
 }

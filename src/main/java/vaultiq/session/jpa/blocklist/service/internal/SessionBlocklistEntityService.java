@@ -30,7 +30,6 @@ import java.util.*;
  * Typical usage includes logging-out sessions, forced logout for security, and checking blocklist status for token validation.
  */
 @Service
-@ConditionalOnBean(UserIdentityAware.class)
 @ConditionalOnVaultiqModelConfig(method = VaultiqPersistenceMethod.USE_JPA, type = ModelType.BLOCKLIST)
 public class SessionBlocklistEntityService {
     private static final Logger log = LoggerFactory.getLogger(SessionBlocklistEntityService.class);
