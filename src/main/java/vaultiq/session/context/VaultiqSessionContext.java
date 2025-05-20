@@ -1,10 +1,12 @@
-package vaultiq.session.core.util;
+package vaultiq.session.context;
 
-import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import vaultiq.session.cache.model.ModelType;
 import vaultiq.session.config.VaultiqSessionProperties;
 import vaultiq.session.core.model.VaultiqModelConfig;
 
+import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -18,9 +20,9 @@ import java.util.Map;
  * any configured model type.
  * </p>
  */
-@Component
 public class VaultiqSessionContext {
 
+    private static final Logger log = LoggerFactory.getLogger(VaultiqSessionContext.class);
     private final String cacheManagerName;
     private final Map<ModelType, VaultiqModelConfig> modelConfigs;
     private final boolean isUsingCache;
@@ -37,10 +39,26 @@ public class VaultiqSessionContext {
      * @param props the Vaultiq session/application properties, typically injected by Spring.
      */
     public VaultiqSessionContext(VaultiqSessionProperties props) {
+        log.debug("Initializing VaultiqSessionContext with properties.");
         this.cacheManagerName = props.getPersistence().getCacheConfig().getManager();
         this.modelConfigs = VaultiqModelConfigEnhancer.enhance(props);
         this.isUsingCache = checkIfUsingCache();
         this.isUsingJpa = checkIfUsingJpa();
+        logContext();
+    }
+
+    private void logContext() {
+        if(isUsingCache)
+            log.debug("Vaultiq Session Context initialized; is-using-jpa: {}. is-using-cache: {}, cache-manager-name: {}", isUsingJpa, true, cacheManagerName);
+        else
+            log.debug("Vaultiq Session Context initialized; is-using-jpa: {}. is-using-cache: {}", isUsingJpa, false);
+
+        var configs = Arrays.stream(ModelType.values())
+                .map(this::getModelConfig)
+                .map(VaultiqModelConfig::toString)
+                .toList();
+
+        log.debug("Resolved Model configurations After Enrichment: {}", configs);
     }
 
     /**

@@ -1,14 +1,17 @@
 
 package vaultiq.session.config.rules;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 import vaultiq.session.cache.model.ModelType;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
+import vaultiq.session.context.VaultiqSessionContextHolder;
 import vaultiq.session.core.model.VaultiqModelConfig;
-import vaultiq.session.core.util.VaultiqSessionContext;
+import vaultiq.session.context.VaultiqSessionContext;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -49,6 +52,7 @@ import java.util.Objects;
  */
 public class VaultiqModelConfigShouldMatchCondition implements Condition {
 
+    private final static Logger log = LoggerFactory.getLogger(VaultiqModelConfigShouldMatchCondition.class);
     /**
      * Evaluates whether the condition is satisfied for the given context.
      * <p>
@@ -71,11 +75,6 @@ public class VaultiqModelConfigShouldMatchCondition implements Condition {
      */
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-        // Get the bean factory and ensure VaultiqSessionContext exists
-        var beanFactory = context.getBeanFactory();
-        if (beanFactory == null || beanFactory.getBeanNamesForType(VaultiqSessionContext.class, false, false).length == 0) {
-            return false;
-        }
 
         // Extract annotation attributes
         Map<String, Object> attrs = metadata.getAnnotationAttributes(
@@ -86,16 +85,19 @@ public class VaultiqModelConfigShouldMatchCondition implements Condition {
         VaultiqPersistenceMethod method = (VaultiqPersistenceMethod) attrs.get("method");
         ModelType[] modelTypes = (ModelType[]) attrs.get("type");
 
+        log.debug("Validating condition for persistence method: {}, and modelTypes: {}", method, modelTypes);
         // Get the VaultiqSessionContext to access current configuration
-        VaultiqSessionContext sessionContext = beanFactory.getBean(VaultiqSessionContext.class);
+        VaultiqSessionContext sessionContext = VaultiqSessionContextHolder.getContext();
 
         // Check if all specified model types match the required persistence method
-        return Arrays.stream(modelTypes)
-                .map(sessionContext::getModelConfig)            // Get config for each model type
+        var result = Arrays.stream(modelTypes)
+                .map(sessionContext::getModelConfig)
                 .filter(Objects::nonNull)                       // Filter out any null configs
                 .anyMatch(cfg -> switch (method) {              // Check if method matches requirement
                     case USE_CACHE -> cfg.useCache();           // For cache-based persistence
                     case USE_JPA -> cfg.useJpa();               // For JPA-based persistence
                 });
+        log.debug("Condition result: {}", result);
+        return result;
     }
 }

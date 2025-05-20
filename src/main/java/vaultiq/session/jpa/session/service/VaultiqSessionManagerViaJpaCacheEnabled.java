@@ -45,7 +45,6 @@ import java.util.Set;
  * @see ModelType#USER_SESSION_MAPPING
  */
 @Service
-@ConditionalOnBean({VaultiqSessionEntityService.class, VaultiqSessionCacheService.class})
 @ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_AND_CACHE, type = {ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
 public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionManager {
 
@@ -65,6 +64,7 @@ public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionMa
                                                    VaultiqSessionCacheService cacheService) {
         this.sessionService = sessionService;
         this.cacheService = cacheService;
+        log.info("VaultiqSessionManager initialized; Persistence via - JPA_AND_CACHE.");
     }
 
     /**

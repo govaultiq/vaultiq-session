@@ -12,7 +12,7 @@ import vaultiq.session.core.SessionBlocklistManager;
 import vaultiq.session.core.model.SessionBlocklist;
 import vaultiq.session.jpa.blocklist.model.SessionBlocklistEntity;
 import vaultiq.session.jpa.blocklist.service.internal.SessionBlocklistEntityService;
-import vaultiq.session.core.util.BlocklistContext;
+import vaultiq.session.context.BlocklistContext;
 
 import java.util.*;
 
@@ -33,7 +33,6 @@ import java.util.*;
  * @see SessionBlocklistEntityService
  */
 @Service
-@ConditionalOnBean(SessionBlocklistEntityService.class)
 @ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_ONLY, type = ModelType.BLOCKLIST)
 public class SessionBlocklistManagerViaJpa implements SessionBlocklistManager {
 
@@ -48,6 +47,7 @@ public class SessionBlocklistManagerViaJpa implements SessionBlocklistManager {
      */
     public SessionBlocklistManagerViaJpa(SessionBlocklistEntityService sessionBlocklistEntityService) {
         this.sessionBlocklistEntityService = sessionBlocklistEntityService;
+        log.info("SessionBlocklistManager initialized; Persistence via - JPA_ONLY.");
     }
 
     /**

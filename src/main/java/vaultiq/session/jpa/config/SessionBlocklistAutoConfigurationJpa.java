@@ -39,6 +39,6 @@ import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 )
 @EntityScan("vaultiq.session.jpa.blocklist.model")
 @EnableJpaRepositories("vaultiq.session.jpa.blocklist.repository")
-@ComponentScan(basePackages = "vaultiq.session.jpa.blocklist.service")
+@ComponentScan(basePackages = "vaultiq.session.jpa.blocklist")
 public class SessionBlocklistAutoConfigurationJpa {
 }

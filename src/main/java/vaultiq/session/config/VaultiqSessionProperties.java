@@ -1,10 +1,11 @@
 package vaultiq.session.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 import vaultiq.session.cache.model.ModelType;
-import vaultiq.session.core.util.VaultiqModelConfigEnhancer;
-import vaultiq.session.core.util.VaultiqSessionContext;
+import vaultiq.session.context.VaultiqModelConfigEnhancer;
+import vaultiq.session.context.VaultiqSessionContext;
 
 import java.time.Duration;
 import java.util.List;
@@ -23,9 +24,9 @@ import java.util.List;
  * settings used by components like {@link VaultiqSessionContext}.
  * </p>
  */
-@Component
 @ConfigurationProperties("vaultiq.session")
 public class VaultiqSessionProperties {
+    private static final Logger log = LoggerFactory.getLogger(VaultiqSessionProperties.class);
 
     /**
      * Configures "zen mode" for session persistence.

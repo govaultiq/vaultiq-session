@@ -1,11 +1,14 @@
 package vaultiq.session.config.rules;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
-import vaultiq.session.core.util.VaultiqSessionContext;
+import vaultiq.session.context.VaultiqSessionContext;
+import vaultiq.session.context.VaultiqSessionContextHolder;
 
 import java.util.Map;
 
@@ -31,6 +34,7 @@ import java.util.Map;
  * @see org.springframework.context.annotation.Conditional
  */
 public class VaultiqPersistenceRequirementByAny implements Condition {
+    private final static Logger log = LoggerFactory.getLogger(VaultiqPersistenceRequirementByAny.class);
 
     /**
      * Determines if the condition matches and the bean should be enabled.
@@ -50,10 +54,11 @@ public class VaultiqPersistenceRequirementByAny implements Condition {
      */
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-        var beanFactory = context.getBeanFactory();
-        if (beanFactory == null || beanFactory.getBeanNamesForType(VaultiqSessionContext.class, false, false).length == 0) {
-            return false;
-        }
+//        var beanFactory = context.getBeanFactory();
+//        if (beanFactory == null || beanFactory.getBeanNamesForType(VaultiqSessionContext.class, false, false).length == 0) {
+//            log.error("VaultiqSessionContext not found in the bean factory.");
+//            return false;
+//        }
 
         Map<String, Object> attrs = metadata.getAnnotationAttributes(
                 ConditionalOnVaultiqPersistence.class.getName());
@@ -61,7 +66,7 @@ public class VaultiqPersistenceRequirementByAny implements Condition {
 
         var method = (VaultiqPersistenceMethod) attrs.get("value");
 
-        VaultiqSessionContext sessionContext = beanFactory.getBean(VaultiqSessionContext.class);
+        VaultiqSessionContext sessionContext = VaultiqSessionContextHolder.getContext();
 
         return switch (method) {
             case USE_JPA -> sessionContext.isUsingJpa();

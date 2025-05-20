@@ -14,8 +14,8 @@ import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.core.contracts.UserIdentityAware;
 import vaultiq.session.core.model.RevocationType;
-import vaultiq.session.core.util.BlocklistContext;
-import vaultiq.session.core.util.VaultiqSessionContext;
+import vaultiq.session.context.BlocklistContext;
+import vaultiq.session.context.VaultiqSessionContext;
 
 import java.util.*;
 import java.util.stream.Collectors;

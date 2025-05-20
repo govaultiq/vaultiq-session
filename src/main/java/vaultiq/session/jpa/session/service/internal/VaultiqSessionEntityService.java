@@ -44,7 +44,6 @@ import java.util.Set;
  * @see ModelType#USER_SESSION_MAPPING
  */
 @Service
-@ConditionalOnBean(VaultiqSessionEntityRepository.class) // Ensure the JPA repository is available
 @ConditionalOnVaultiqModelConfig(method = VaultiqPersistenceMethod.USE_JPA, type = {ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
 // Activate only when JPA is configured for sessions
 public class VaultiqSessionEntityService {

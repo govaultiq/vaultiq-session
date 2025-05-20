@@ -13,7 +13,7 @@ import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
 import vaultiq.session.core.SessionBlocklistManager;
 import vaultiq.session.core.contracts.UserIdentityAware;
 import vaultiq.session.core.model.SessionBlocklist;
-import vaultiq.session.core.util.BlocklistContext;
+import vaultiq.session.context.BlocklistContext;
 import vaultiq.session.jpa.blocklist.model.SessionBlocklistEntity;
 import vaultiq.session.jpa.blocklist.service.internal.SessionBlocklistEntityService;
 
@@ -32,8 +32,7 @@ import java.util.*;
  * </p>
  */
 @Service
-@ConditionalOnBean({SessionBlocklistEntityService.class, SessionBlocklistCacheService.class})
-@ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_ONLY, type = {ModelType.BLOCKLIST, ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
+@ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_AND_CACHE, type = {ModelType.BLOCKLIST, ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
 public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBlocklistManager {
     private static final Logger log = LoggerFactory.getLogger(SessionBlocklistManagerViaJpaCacheEnabled.class);
 
@@ -56,6 +55,7 @@ public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBlockli
         this.sessionBlocklistEntityService = sessionBlocklistEntityService;
         this.sessionBlocklistCacheService = sessionBlocklistCacheService;
         this.userIdentityAware = userIdentityAware;
+        log.info("SessionBlocklistManager Initialized; Persistence via - JPA_AND_CACHE.");
     }
 
     /**

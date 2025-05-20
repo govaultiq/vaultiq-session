@@ -15,7 +15,7 @@ import vaultiq.session.jpa.session.model.VaultiqSessionEntity;
 import vaultiq.session.jpa.blocklist.model.SessionBlocklistEntity;
 import vaultiq.session.jpa.blocklist.repository.SessionBlocklistEntityRepository;
 import vaultiq.session.jpa.session.repository.VaultiqSessionEntityRepository;
-import vaultiq.session.core.util.BlocklistContext;
+import vaultiq.session.context.BlocklistContext;
 
 import java.time.Instant;
 import java.util.*;
@@ -30,7 +30,6 @@ import java.util.*;
  * Typical usage includes logging-out sessions, forced logout for security, and checking blocklist status for token validation.
  */
 @Service
-@ConditionalOnBean(UserIdentityAware.class)
 @ConditionalOnVaultiqModelConfig(method = VaultiqPersistenceMethod.USE_JPA, type = ModelType.BLOCKLIST)
 public class SessionBlocklistEntityService {
     private static final Logger log = LoggerFactory.getLogger(SessionBlocklistEntityService.class);

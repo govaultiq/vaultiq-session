@@ -40,7 +40,6 @@ import java.util.Set;
  * @see ModelType#USER_SESSION_MAPPING
  */
 @Service
-@ConditionalOnBean(VaultiqSessionEntityService.class)
 @ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_ONLY, type = {ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
 public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionManagerViaJpa.class);
@@ -55,6 +54,7 @@ public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
      */
     public VaultiqSessionManagerViaJpa(VaultiqSessionEntityService sessionService) {
         this.sessionService = sessionService;
+        log.info("VaultiqSessionManager initialized; Persistence via - JPA_ONLY.");
     }
 
     /**
