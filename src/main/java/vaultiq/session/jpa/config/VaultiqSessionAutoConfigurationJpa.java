@@ -1,6 +1,5 @@
 package vaultiq.session.jpa.config;
 
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -8,7 +7,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import vaultiq.session.cache.model.ModelType;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
-import vaultiq.session.config.auto.VaultiqSessionContextAutoConfigurer;
 
 /**
  * Spring Boot autoconfiguration for enabling JPA persistence for Vaultiq session
@@ -32,7 +30,7 @@ import vaultiq.session.config.auto.VaultiqSessionContextAutoConfigurer;
  * @see ComponentScan
  */
 @Configuration(proxyBeanMethods = false)
-@AutoConfigureAfter(VaultiqSessionContextAutoConfigurer.class)
+//@AutoConfigureAfter(VaultiqSessionContextAutoConfigurer.class)
 @ConditionalOnVaultiqModelConfig(
         method = VaultiqPersistenceMethod.USE_JPA,
         type = {ModelType.SESSION, ModelType.USER_SESSION_MAPPING}

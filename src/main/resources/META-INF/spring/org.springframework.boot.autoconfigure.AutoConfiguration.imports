@@ -1,4 +1,3 @@
-vaultiq.session.config.auto.VaultiqSessionContextAutoConfigurer
 vaultiq.session.jpa.config.VaultiqSessionAutoConfigurationJpa
 vaultiq.session.jpa.config.SessionBlocklistAutoConfigurationJpa
 vaultiq.session.config.auto.VaultiqSessionAutoConfigurer
