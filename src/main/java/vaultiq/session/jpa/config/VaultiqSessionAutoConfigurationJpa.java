@@ -1,7 +1,5 @@
 package vaultiq.session.jpa.config;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
@@ -33,7 +31,7 @@ import vaultiq.session.config.auto.VaultiqSessionContextAutoConfigurer;
  * @see EnableJpaRepositories
  * @see ComponentScan
  */
-@Configuration(proxyBeanMethods=false)
+@Configuration(proxyBeanMethods = false)
 @AutoConfigureAfter(VaultiqSessionContextAutoConfigurer.class)
 @ConditionalOnVaultiqModelConfig(
         method = VaultiqPersistenceMethod.USE_JPA,

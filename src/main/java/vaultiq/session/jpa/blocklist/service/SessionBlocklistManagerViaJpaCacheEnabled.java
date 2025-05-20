@@ -32,7 +32,7 @@ import java.util.*;
  * </p>
  */
 @Service
-@ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_ONLY, type = {ModelType.BLOCKLIST, ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
+@ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_AND_CACHE, type = {ModelType.BLOCKLIST, ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
 public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBlocklistManager {
     private static final Logger log = LoggerFactory.getLogger(SessionBlocklistManagerViaJpaCacheEnabled.class);
 
