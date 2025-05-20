@@ -49,16 +49,16 @@ public class VaultiqSessionContext {
 
     private void logContext() {
         if(isUsingCache)
-            log.info("Vaultiq Session Context initialized; is-using-jpa: {}. is-using-cache: {}, cache-manager-name: {}", isUsingJpa, true, cacheManagerName);
+            log.debug("Vaultiq Session Context initialized; is-using-jpa: {}. is-using-cache: {}, cache-manager-name: {}", isUsingJpa, true, cacheManagerName);
         else
-            log.info("Vaultiq Session Context initialized; is-using-jpa: {}. is-using-cache: {}", isUsingJpa, false);
+            log.debug("Vaultiq Session Context initialized; is-using-jpa: {}. is-using-cache: {}", isUsingJpa, false);
 
         var configs = Arrays.stream(ModelType.values())
                 .map(this::getModelConfig)
                 .map(VaultiqModelConfig::toString)
                 .toList();
 
-        log.info("Resolved Model configurations After Enrichment: {}", configs);
+        log.debug("Resolved Model configurations After Enrichment: {}", configs);
     }
 
     /**
