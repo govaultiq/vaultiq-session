@@ -28,10 +28,6 @@ import java.util.List;
 public class VaultiqSessionProperties {
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionProperties.class);
 
-    public VaultiqSessionProperties() {
-        log.info("Configuring vaultiq session environment.");
-    }
-
     /**
      * Configures "zen mode" for session persistence.
      * <p>

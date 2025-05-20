@@ -30,7 +30,6 @@ import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
  * @see ComponentScan
  */
 @Configuration(proxyBeanMethods = false)
-//@AutoConfigureAfter(VaultiqSessionContextAutoConfigurer.class)
 @ConditionalOnVaultiqModelConfig(
         method = VaultiqPersistenceMethod.USE_JPA,
         type = {ModelType.SESSION, ModelType.USER_SESSION_MAPPING}
