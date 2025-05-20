@@ -1,4 +1,4 @@
-package vaultiq.session.core.util;
+package vaultiq.session.context;
 
 import vaultiq.session.core.model.RevocationType;
 import vaultiq.session.core.SessionBlocklistManager;

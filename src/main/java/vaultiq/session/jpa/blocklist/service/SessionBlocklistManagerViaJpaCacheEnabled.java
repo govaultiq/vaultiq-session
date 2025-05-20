@@ -13,7 +13,7 @@ import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
 import vaultiq.session.core.SessionBlocklistManager;
 import vaultiq.session.core.contracts.UserIdentityAware;
 import vaultiq.session.core.model.SessionBlocklist;
-import vaultiq.session.core.util.BlocklistContext;
+import vaultiq.session.context.BlocklistContext;
 import vaultiq.session.jpa.blocklist.model.SessionBlocklistEntity;
 import vaultiq.session.jpa.blocklist.service.internal.SessionBlocklistEntityService;
 

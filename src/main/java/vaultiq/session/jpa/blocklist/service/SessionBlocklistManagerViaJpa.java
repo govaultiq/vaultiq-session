@@ -12,7 +12,7 @@ import vaultiq.session.core.SessionBlocklistManager;
 import vaultiq.session.core.model.SessionBlocklist;
 import vaultiq.session.jpa.blocklist.model.SessionBlocklistEntity;
 import vaultiq.session.jpa.blocklist.service.internal.SessionBlocklistEntityService;
-import vaultiq.session.core.util.BlocklistContext;
+import vaultiq.session.context.BlocklistContext;
 
 import java.util.*;
 

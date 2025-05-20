@@ -15,7 +15,7 @@ import vaultiq.session.jpa.session.model.VaultiqSessionEntity;
 import vaultiq.session.jpa.blocklist.model.SessionBlocklistEntity;
 import vaultiq.session.jpa.blocklist.repository.SessionBlocklistEntityRepository;
 import vaultiq.session.jpa.session.repository.VaultiqSessionEntityRepository;
-import vaultiq.session.core.util.BlocklistContext;
+import vaultiq.session.context.BlocklistContext;
 
 import java.time.Instant;
 import java.util.*;

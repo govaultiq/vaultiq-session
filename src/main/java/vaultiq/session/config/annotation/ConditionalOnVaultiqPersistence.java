@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Conditional;
 import vaultiq.session.cache.model.ModelType;
 import vaultiq.session.config.rules.VaultiqPersistenceModeCondition;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
+import vaultiq.session.context.VaultiqSessionContext;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -18,7 +19,7 @@ import java.lang.annotation.Target;
  * This annotation leverages Spring's {@link Conditional} mechanism and the
  * {@link VaultiqPersistenceModeCondition} to evaluate the condition based on the
  * application's configured {@link VaultiqPersistenceMode} for specific
- * {@link ModelType}s within the {@link vaultiq.session.core.util.VaultiqSessionContext}.
+ * {@link ModelType}s within the {@link VaultiqSessionContext}.
  * </p>
  * <p>
  * It provides a flexible way to activate different bean implementations (e.g.,

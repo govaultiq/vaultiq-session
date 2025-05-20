@@ -3,10 +3,9 @@ package vaultiq.session.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 import vaultiq.session.cache.model.ModelType;
-import vaultiq.session.core.util.VaultiqModelConfigEnhancer;
-import vaultiq.session.core.util.VaultiqSessionContext;
+import vaultiq.session.context.VaultiqModelConfigEnhancer;
+import vaultiq.session.context.VaultiqSessionContext;
 
 import java.time.Duration;
 import java.util.List;

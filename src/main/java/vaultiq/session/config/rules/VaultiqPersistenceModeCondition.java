@@ -8,7 +8,8 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 import vaultiq.session.cache.model.ModelType;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
-import vaultiq.session.core.util.VaultiqSessionContext;
+import vaultiq.session.context.VaultiqSessionContext;
+import vaultiq.session.context.VaultiqSessionContextHolder;
 
 import java.util.Map;
 
@@ -52,12 +53,12 @@ public class VaultiqPersistenceModeCondition implements Condition {
      */
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-        var beanFactory = context.getBeanFactory();
-        // Check if bean factory is available and VaultiqSessionContext bean exists.
-        if (beanFactory == null || beanFactory.getBeanNamesForType(VaultiqSessionContext.class, false, false).length == 0) {
-            log.error("VaultiqSessionContext not found in the bean factory.");
-            return false;
-        }
+//        var beanFactory = context.getBeanFactory();
+//        // Check if bean factory is available and VaultiqSessionContext bean exists.
+//        if (beanFactory == null || beanFactory.getBeanNamesForType(VaultiqSessionContext.class, false, false).length == 0) {
+//            log.error("VaultiqSessionContext not found in the bean factory.");
+//            return false;
+//        }
 
         // Get the attributes of the ConditionalOnVaultiqPersistence annotation.
         Map<String, Object> attrs = metadata.getAnnotationAttributes(
@@ -69,7 +70,7 @@ public class VaultiqPersistenceModeCondition implements Condition {
         ModelType[] modelTypes = (ModelType[]) attrs.get("type");
 
         // Get the VaultiqSessionContext bean.
-        VaultiqSessionContext sessionContext = beanFactory.getBean(VaultiqSessionContext.class);
+        VaultiqSessionContext sessionContext = VaultiqSessionContextHolder.getContext();
 
         // Iterate through the specified model types.
         for (ModelType modelType : modelTypes) {

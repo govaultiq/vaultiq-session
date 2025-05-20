@@ -1,5 +1,7 @@
 package vaultiq.session.core.model;
 
+import vaultiq.session.context.BlocklistContext;
+
 /**
  * Enumeration defining the different types or strategies of session revocation (blocklisting).
  * <p>
@@ -10,12 +12,12 @@ package vaultiq.session.core.model;
  * </p>
  * <p>
  * Used within {@link SessionBlocklist} to record the type of revocation and in
- * {@link vaultiq.session.core.util.BlocklistContext} to specify the intended
+ * {@link BlocklistContext} to specify the intended
  * blocklist operation.
  * </p>
  *
  * @see SessionBlocklist
- * @see vaultiq.session.core.util.BlocklistContext
+ * @see BlocklistContext
  */
 public enum RevocationType {
     /**

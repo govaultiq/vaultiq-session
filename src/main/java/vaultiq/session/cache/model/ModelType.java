@@ -1,11 +1,13 @@
 
 package vaultiq.session.cache.model;
 
+import vaultiq.session.context.VaultiqSessionContext;
+
 /**
  * Enumeration of the major session-related model types supported by the Vaultiq session platform.
  * <p>
  * This enum enables type-safe configuration and lookup of persistence strategies (cache/JPA) for each data model.
- * It is used extensively by {@link vaultiq.session.core.util.VaultiqSessionContext} and {@link vaultiq.session.config.VaultiqSessionProperties}
+ * It is used extensively by {@link VaultiqSessionContext} and {@link vaultiq.session.config.VaultiqSessionProperties}
  * to determine how each type of session data is persisted, cached, or revoked.
  * </p>
  *

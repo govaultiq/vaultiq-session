@@ -1,7 +1,7 @@
 package vaultiq.session.core;
 
 import vaultiq.session.core.model.SessionBlocklist;
-import vaultiq.session.core.util.BlocklistContext;
+import vaultiq.session.context.BlocklistContext;
 
 import java.util.List;
 

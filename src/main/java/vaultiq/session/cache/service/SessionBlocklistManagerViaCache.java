@@ -12,8 +12,8 @@ import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
 import vaultiq.session.core.SessionBlocklistManager;
 import vaultiq.session.core.model.SessionBlocklist;
-import vaultiq.session.core.util.BlocklistContext;
-import vaultiq.session.core.util.VaultiqSessionContext;
+import vaultiq.session.context.BlocklistContext;
+import vaultiq.session.context.VaultiqSessionContext;
 
 import java.util.List;
 

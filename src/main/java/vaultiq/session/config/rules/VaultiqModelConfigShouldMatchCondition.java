@@ -9,8 +9,9 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 import vaultiq.session.cache.model.ModelType;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
+import vaultiq.session.context.VaultiqSessionContextHolder;
 import vaultiq.session.core.model.VaultiqModelConfig;
-import vaultiq.session.core.util.VaultiqSessionContext;
+import vaultiq.session.context.VaultiqSessionContext;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -75,11 +76,11 @@ public class VaultiqModelConfigShouldMatchCondition implements Condition {
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
         // Get the bean factory and ensure VaultiqSessionContext exists
-        var beanFactory = context.getBeanFactory();
-        if (beanFactory == null || beanFactory.getBeanNamesForType(VaultiqSessionContext.class, false, false).length == 0) {
-            log.error("VaultiqSessionContext not found in the bean factory.");
-            return false;
-        }
+//        var beanFactory = context.getBeanFactory();
+//        if (beanFactory == null || beanFactory.getBeanNamesForType(VaultiqSessionContext.class, false, false).length == 0) {
+//            log.error("VaultiqSessionContext not found in the bean factory.");
+//            return false;
+//        }
 
         // Extract annotation attributes
         Map<String, Object> attrs = metadata.getAnnotationAttributes(
@@ -91,7 +92,7 @@ public class VaultiqModelConfigShouldMatchCondition implements Condition {
         ModelType[] modelTypes = (ModelType[]) attrs.get("type");
 
         // Get the VaultiqSessionContext to access current configuration
-        VaultiqSessionContext sessionContext = beanFactory.getBean(VaultiqSessionContext.class);
+        VaultiqSessionContext sessionContext = VaultiqSessionContextHolder.getContext();
 
         // Check if all specified model types match the required persistence method
         return Arrays.stream(modelTypes)

@@ -1,6 +1,8 @@
 package vaultiq.session.core.model;
 
 import vaultiq.session.cache.model.ModelType;
+import vaultiq.session.context.VaultiqModelConfigEnhancer;
+import vaultiq.session.context.VaultiqSessionContext;
 
 import java.time.Duration;
 
@@ -10,11 +12,11 @@ import java.time.Duration;
  * This record holds the effective persistence settings (whether JPA and/or Cache are used),
  * the specific cache name, and the synchronization interval for a given {@link ModelType}.
  * The values in this record are the result of the configuration enhancement process
- * performed by {@link vaultiq.session.core.util.VaultiqModelConfigEnhancer}, which
+ * performed by {@link VaultiqModelConfigEnhancer}, which
  * consolidates settings from global properties, model-specific overrides, and zen mode.
  * </p>
  * <p>
- * Instances of this record are stored and provided by {@link vaultiq.session.core.util.VaultiqSessionContext}
+ * Instances of this record are stored and provided by {@link VaultiqSessionContext}
  * for use by other library components that need to know the persistence strategy
  * for a particular model type.
  * </p>
@@ -25,8 +27,8 @@ import java.time.Duration;
  * @param useCache     {@code true} if cache persistence is enabled for this model type, {@code false} otherwise.
  * @param syncInterval The effective synchronization interval for this model type, if applicable.
  * @see ModelType
- * @see vaultiq.session.core.util.VaultiqSessionContext
- * @see vaultiq.session.core.util.VaultiqModelConfigEnhancer
+ * @see VaultiqSessionContext
+ * @see VaultiqModelConfigEnhancer
  */
 public record VaultiqModelConfig(
         ModelType modelType,

@@ -7,7 +7,8 @@ import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
-import vaultiq.session.core.util.VaultiqSessionContext;
+import vaultiq.session.context.VaultiqSessionContext;
+import vaultiq.session.context.VaultiqSessionContextHolder;
 
 import java.util.Map;
 
@@ -53,11 +54,11 @@ public class VaultiqPersistenceRequirementByAny implements Condition {
      */
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-        var beanFactory = context.getBeanFactory();
-        if (beanFactory == null || beanFactory.getBeanNamesForType(VaultiqSessionContext.class, false, false).length == 0) {
-            log.error("VaultiqSessionContext not found in the bean factory.");
-            return false;
-        }
+//        var beanFactory = context.getBeanFactory();
+//        if (beanFactory == null || beanFactory.getBeanNamesForType(VaultiqSessionContext.class, false, false).length == 0) {
+//            log.error("VaultiqSessionContext not found in the bean factory.");
+//            return false;
+//        }
 
         Map<String, Object> attrs = metadata.getAnnotationAttributes(
                 ConditionalOnVaultiqPersistence.class.getName());
@@ -65,7 +66,7 @@ public class VaultiqPersistenceRequirementByAny implements Condition {
 
         var method = (VaultiqPersistenceMethod) attrs.get("value");
 
-        VaultiqSessionContext sessionContext = beanFactory.getBean(VaultiqSessionContext.class);
+        VaultiqSessionContext sessionContext = VaultiqSessionContextHolder.getContext();
 
         return switch (method) {
             case USE_JPA -> sessionContext.isUsingJpa();

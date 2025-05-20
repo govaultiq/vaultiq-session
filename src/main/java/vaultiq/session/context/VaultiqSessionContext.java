@@ -1,8 +1,7 @@
-package vaultiq.session.core.util;
+package vaultiq.session.context;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 import vaultiq.session.cache.model.ModelType;
 import vaultiq.session.config.VaultiqSessionProperties;
 import vaultiq.session.core.model.VaultiqModelConfig;
