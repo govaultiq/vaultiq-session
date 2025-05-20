@@ -54,6 +54,7 @@ public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
      */
     public VaultiqSessionManagerViaJpa(VaultiqSessionEntityService sessionService) {
         this.sessionService = sessionService;
+        log.info("VaultiqSessionManager initialized; Persistence via - JPA_ONLY.");
     }
 
     /**

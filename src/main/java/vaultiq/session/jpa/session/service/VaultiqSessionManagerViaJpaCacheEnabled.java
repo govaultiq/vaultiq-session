@@ -64,6 +64,7 @@ public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionMa
                                                    VaultiqSessionCacheService cacheService) {
         this.sessionService = sessionService;
         this.cacheService = cacheService;
+        log.info("VaultiqSessionManager initialized; Persistence via - JPA_AND_CACHE.");
     }
 
     /**

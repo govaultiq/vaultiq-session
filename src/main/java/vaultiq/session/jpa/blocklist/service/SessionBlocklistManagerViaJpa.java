@@ -47,6 +47,7 @@ public class SessionBlocklistManagerViaJpa implements SessionBlocklistManager {
      */
     public SessionBlocklistManagerViaJpa(SessionBlocklistEntityService sessionBlocklistEntityService) {
         this.sessionBlocklistEntityService = sessionBlocklistEntityService;
+        log.info("SessionBlocklistManager initialized; Persistence via - JPA_ONLY.");
     }
 
     /**

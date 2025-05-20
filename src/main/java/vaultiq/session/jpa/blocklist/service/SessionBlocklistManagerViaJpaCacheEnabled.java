@@ -55,6 +55,7 @@ public class SessionBlocklistManagerViaJpaCacheEnabled implements SessionBlockli
         this.sessionBlocklistEntityService = sessionBlocklistEntityService;
         this.sessionBlocklistCacheService = sessionBlocklistCacheService;
         this.userIdentityAware = userIdentityAware;
+        log.info("SessionBlocklistManager Initialized; Persistence via - JPA_AND_CACHE.");
     }
 
     /**
