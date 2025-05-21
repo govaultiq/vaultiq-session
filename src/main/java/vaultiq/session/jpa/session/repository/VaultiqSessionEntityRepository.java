@@ -37,11 +37,11 @@ public interface VaultiqSessionEntityRepository extends JpaRepository<VaultiqSes
     int countByUserId(String userId);
 
     /**
-     * Finds all session entities belonging to a specific user and are blocked.
+     * Finds all session entities belonging to a specific user and are revoked.
      *
      * @param userId    The unique identifier of the user.
-     * @param isBlocked The blocked status of the sessions.
-     * @return A list of session entities for the user that are blocked.
+     * @param isRevoked The revoked status of the sessions.
+     * @return A list of session entities for the user that are revoked.
      */
-    List<VaultiqSessionEntity> findAllByUserIdAndIsBlocked(String userId, boolean isBlocked);
+    List<VaultiqSessionEntity> findAllByUserIdAndIsRevoked(String userId, boolean isRevoked);
 }

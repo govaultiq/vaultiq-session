@@ -173,7 +173,7 @@ public class VaultiqSessionEntityService {
     public List<VaultiqSession> getActiveSessionsByUser(String userId) {
         log.debug("Fetching active sessions for user '{}'.", userId);
 
-        return sessionRepository.findAllByUserIdAndIsBlocked(userId, false).stream()
+        return sessionRepository.findAllByUserIdAndIsRevoked(userId, false).stream()
                 .map(this::mapToVaultiqSession).toList();
     }
 
