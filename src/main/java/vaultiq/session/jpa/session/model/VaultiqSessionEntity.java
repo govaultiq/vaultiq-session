@@ -9,7 +9,7 @@ import java.time.Instant;
  * JPA entity representing a Vaultiq session in the database.
  * <p>
  * This entity is used internally by the {@code vaultiq-session} library's
- * JPA persistence layer to map session data to the {@code vaultiq_session_pool}
+ * JPA persistence layer to map session data to the {@code session_pool}
  * database table. It holds the persistent state of a user session, including
  * identifiers, timestamps, and revoke status.
  * </p>
@@ -22,7 +22,7 @@ import java.time.Instant;
  * @see VaultiqSessionEntityRepository
  */
 @Entity
-@Table(name = "vaultiq_session_pool")
+@Table(name = "session_pool")
 public final class VaultiqSessionEntity {
 
     /**

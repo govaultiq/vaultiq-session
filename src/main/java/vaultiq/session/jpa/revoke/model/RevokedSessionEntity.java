@@ -7,7 +7,7 @@ import java.time.Instant;
 /**
  * Represents a revoked session entity persisted in the database.
  * <p>
- * This JPA entity maps to the {@code revoked_session} table and stores
+ * This JPA entity maps to the {@code revoked_session_pool} table and stores
  * details about sessions that have been marked as revoked (invalidated).
  * <p>
  * It captures information such as the session's unique identifier, associated user ID,
@@ -18,7 +18,7 @@ import java.time.Instant;
  * session records and is key to enforcing session invalidation in the system.
  */
 @Entity
-@Table(name = "revoked_session")
+@Table(name = "revoked_session_pool")
 public class RevokedSessionEntity {
 
     /**
