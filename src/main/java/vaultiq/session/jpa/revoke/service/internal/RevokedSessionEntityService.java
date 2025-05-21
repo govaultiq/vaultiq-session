@@ -52,13 +52,33 @@ public class RevokedSessionEntityService {
      */
     @Transactional
     public void revoke(RevocationRequest request) {
-        if (request == null) return;
-        switch (request.getRevocationType()) {
-            case LOGOUT -> revokeSession(request.getIdentifier(), request.getNote());
-            case LOGOUT_WITH_EXCLUSION -> revokeAllExcept(request.getIdentifier(), request.getNote(), request.getExcludedSessionIds());
-            case LOGOUT_ALL -> revokeAll(request.getIdentifier(), request.getNote());
+        if (request == null) {
+            log.warn("Revoke Attempted; Nothing to revoke - request was null.");
+            return;
+        }
+
+        RevocationType type = request.getRevocationType();
+        String note = request.getNote();
+
+        String id = switch (type) {
+            case LOGOUT ->
+                // session revoke must have a sessionId
+                    Objects.requireNonNull(request.getIdentifier(),
+                            "sessionId is required for LOGOUT");
+            case LOGOUT_ALL, LOGOUT_WITH_EXCLUSION ->
+                // user-level revoke can fall back to current user
+                    request.isForCurrentUser()
+                            ? userIdentityAware.getCurrentUserID()
+                            : request.getIdentifier();
+        };
+
+        switch (type) {
+            case LOGOUT -> revokeSession(id, note);
+            case LOGOUT_ALL -> revokeAll(id, note);
+            case LOGOUT_WITH_EXCLUSION -> revokeAllExcept(id, note, request.getExcludedSessionIds());
         }
     }
+
 
     /**
      * Revokes all sessions for a user.
@@ -79,20 +99,18 @@ public class RevokedSessionEntityService {
     /**
      * Revokes all sessions for a user except specified ones.
      *
-     * @param userId           the user identifier
-     * @param note             optional audit note
-     * @param excludedIds      session IDs to exclude
+     * @param userId      the user identifier
+     * @param note        optional audit note
+     * @param excludedIds session IDs to exclude
      */
     @Transactional
-    public void revokeAllExcept(String userId, String note, String... excludedIds) {
-        var sessions = sessionRepo.findAllByUserId(userId);
-        var excluded = excludedIds == null ? Collections.<String>emptySet() : new HashSet<>(Arrays.asList(excludedIds));
+    public void revokeAllExcept(String userId, String note, Set<String> excludedIds) {
+        var sessions = sessionRepo.findAllByUserIdAndIsRevokedFalseAndSessionIdNotIn(userId, excludedIds);
         var entities = sessions.stream()
-                .filter(s -> !excluded.contains(s.getSessionId()))
                 .map(s -> toEntity(s, note, RevocationType.LOGOUT_WITH_EXCLUSION))
                 .toList();
         revokedSessionRepo.saveAll(entities);
-        log.info("Revoked all sessions for user '{}' except {}.", userId, excluded);
+        log.info("Revoked {} sessions for user '{}' except {}.", entities.size(), userId, excludedIds);
     }
 
     /**
