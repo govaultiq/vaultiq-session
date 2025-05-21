@@ -42,9 +42,9 @@ import java.lang.annotation.Target;
  * &#64;Service
  * &#64;ConditionalOnVaultiqModelConfig(
  *     method = VaultiqPersistenceMethod.USE_JPA,
- *     type = ModelType.BLOCKLIST
+ *     type = ModelType.REVOKE
  * )
- * public class SessionBlocklistEntityService {
+ * public class RevokedSessionEntityService {
  *     // Implementation
  * }
  * </pre>
@@ -88,7 +88,7 @@ public @interface ConditionalOnVaultiqModelConfig {
      * <ul>
      *   <li>{@link ModelType#SESSION} - Primary session objects (active sessions)</li>
      *   <li>{@link ModelType#USER_SESSION_MAPPING} - Mapping between users and their session IDs</li>
-     *   <li>{@link ModelType#BLOCKLIST} - List of revoked/blocklisted sessions</li>
+     *   <li>{@link ModelType#REVOKE} - List of revoked/blocklisted sessions</li>
      *   <li>{@link ModelType#USER_ACTIVITY_LOGS} - Activity logs for user sessions</li>
      * </ul>
      * </p>

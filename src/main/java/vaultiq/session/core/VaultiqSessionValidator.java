@@ -14,29 +14,29 @@ import vaultiq.session.fingerprint.DeviceFingerprintValidator;
  * This component performs two critical checks to determine the legitimacy
  * of a session associated with an incoming HTTP request:
  * <ul>
- *   <li><b>Blocklist Validation:</b> Ensures the session ID is not blocklisted.</li>
+ *   <li><b>Blocklist Validation:</b> Ensures the session ID is not revoked.</li>
  *   <li><b>Device Fingerprint Validation:</b> Confirms the request's device characteristics
  *   match the original session's device fingerprint using {@link DeviceFingerprintValidator}.</li>
  * </ul>
  * <p>
  * This bean is only created when the application context includes all the following:
- * {@link VaultiqSessionManager}, {@link SessionBlocklistManager}, and {@link DeviceFingerprintValidator}.
+ * {@link VaultiqSessionManager}, {@link SessionRevocationManager}, and {@link DeviceFingerprintValidator}.
  * This ensures that session validation is only enabled when all required infrastructures are available.
  */
 @Component
-@ConditionalOnBean({VaultiqSessionManager.class, SessionBlocklistManager.class, DeviceFingerprintValidator.class})
+@ConditionalOnBean({VaultiqSessionManager.class, SessionRevocationManager.class, DeviceFingerprintValidator.class})
 public class VaultiqSessionValidator {
 
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionValidator.class);
 
-    private final SessionBlocklistManager blocklistManager;
+    private final SessionRevocationManager revocationManager;
     private final DeviceFingerprintValidator deviceFingerprintValidator;
 
     public VaultiqSessionValidator(
-            SessionBlocklistManager blocklistManager,
+            SessionRevocationManager revocationManager,
             DeviceFingerprintValidator deviceFingerprintValidator
     ) {
-        this.blocklistManager = blocklistManager;
+        this.revocationManager = VaultiqSessionValidator.this.revocationManager;
         this.deviceFingerprintValidator = deviceFingerprintValidator;
     }
 
@@ -46,7 +46,7 @@ public class VaultiqSessionValidator {
      * The method performs the following validations in sequence:
      * <ol>
      *   <li>Extracts the session ID from the request. If absent, validation fails.</li>
-     *   <li>Checks whether the session ID is in the blocklist. If blocklisted, validation fails.</li>
+     *   <li>Checks whether the session ID is in the revoke. If revoked, validation fails.</li>
      *   <li>Validates the device fingerprint to ensure the request originates from the
      *   same device as the one that initiated the session.</li>
      * </ol>
@@ -64,8 +64,8 @@ public class VaultiqSessionValidator {
             return false;
         }
 
-        if (blocklistManager.isSessionBlocklisted(sessionId)) {
-            log.warn("Session ID [{}] is blocklisted.", sessionId);
+        if (revocationManager.isSessionRevoked(sessionId)) {
+            log.warn("Session ID [{}] is revoked.", sessionId);
             return false;
         }
 

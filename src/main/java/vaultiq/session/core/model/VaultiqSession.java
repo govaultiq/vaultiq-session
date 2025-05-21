@@ -22,7 +22,7 @@ import vaultiq.session.core.VaultiqSessionManager;
  * </p>
  *
  * @see VaultiqSessionManager
- * @see SessionBlocklist
+ * @see RevokedSession
  */
 public final class VaultiqSession {
     /**

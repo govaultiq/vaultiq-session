@@ -59,7 +59,7 @@ vaultiq:
     zen-mode: true
     persistence:
       models:
-        - type: BLOCKLIST
+        - type: REVOKE
           use-jpa: false
 ```
 
@@ -83,7 +83,7 @@ vaultiq:
           cache-name: "user-session-mapping"
           use-jpa: false
 
-        - type: BLOCKLIST
+        - type: REVOKE
           use-jpa: false
 ```
 

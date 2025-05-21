@@ -15,7 +15,7 @@ import vaultiq.session.context.VaultiqSessionContext;
  *   <li>{@link #SESSION} - Standard in-memory session objects (active sessions).</li>
  *   <li>{@link #USER_SESSION_MAPPING} - Mapping of user identifiers to their associated session IDs.</li>
  *   <li>{@link #USER_ACTIVITY_LOGS} - Activity and audit logs relating to user actions in the session context.</li>
- *   <li>{@link #BLOCKLIST} - List of blocklisted/invalidated session IDs to enforce revocation across subsystems.</li>
+ *   <li>{@link #REVOKE} - List of blocklisted/invalidated session IDs to enforce revocation across subsystems.</li>
  * </ul>
  *
  * <p>
@@ -41,7 +41,7 @@ public enum ModelType {
     /**
      * Represents the model tracking blocklisted (revoked) sessions.
      */
-    BLOCKLIST("blocklist");
+    REVOKE("revoke");
 
     private final String alias;
 

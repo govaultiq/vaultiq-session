@@ -10,24 +10,24 @@ import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 
 /**
  * Spring Boot autoconfiguration for enabling JPA persistence specifically for the
- * Vaultiq session blocklist model.
+ * Vaultiq session revoke model.
  * <p>
  * This configuration is active only when the Vaultiq session persistence is
- * explicitly configured to use JPA for the {@link ModelType#BLOCKLIST} via
+ * explicitly configured to use JPA for the {@link ModelType#REVOKE} via
  * the {@link ConditionalOnVaultiqModelConfig} annotation.
  * </p>
  * <p>
  * When active, it automatically configures:
  * <ul>
- * <li>JPA entity scanning for blocklist-related entities.</li>
- * <li>JPA repository scanning for blocklist repositories.</li>
- * <li>Component scanning for JPA-based blocklist services.</li>
+ * <li>JPA entity scanning for revoke-related entities.</li>
+ * <li>JPA repository scanning for revoke repositories.</li>
+ * <li>Component scanning for JPA-based revoke services.</li>
  * </ul>
  * </p>
  *
  * @see ConditionalOnVaultiqModelConfig
  * @see VaultiqPersistenceMethod#USE_JPA
- * @see ModelType#BLOCKLIST
+ * @see ModelType#REVOKE
  * @see EntityScan
  * @see EnableJpaRepositories
  * @see ComponentScan
@@ -35,10 +35,10 @@ import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnVaultiqModelConfig(
         method = VaultiqPersistenceMethod.USE_JPA,
-        type = ModelType.BLOCKLIST
+        type = ModelType.REVOKE
 )
-@EntityScan("vaultiq.session.jpa.blocklist.model")
-@EnableJpaRepositories("vaultiq.session.jpa.blocklist.repository")
-@ComponentScan(basePackages = "vaultiq.session.jpa.blocklist")
-public class SessionBlocklistAutoConfigurationJpa {
+@EntityScan("vaultiq.session.jpa.revoke.model")
+@EnableJpaRepositories("vaultiq.session.jpa.revoke.repository")
+@ComponentScan(basePackages = "vaultiq.session.jpa.revoke")
+public class SessionRevocationAutoConfigurationJpa {
 }

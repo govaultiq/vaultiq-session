@@ -1,12 +1,14 @@
 
 package vaultiq.session.cache.util;
 
+import vaultiq.session.cache.service.internal.SessionRevocationCacheService;
+
 /**
- * Utility class for consistent construction of cache keys used throughout the Vaultiq session and blocklist cache infrastructure.
+ * Utility class for consistent construction of cache keys used throughout the Vaultiq session and revoke cache infrastructure.
  *
  * <p>
  * All static key-creation methods here produce unique and type-specific keys to avoid collisions in multi-tenant/session-cache environments.
- * These key formats are used to store and retrieve sessions, user-to-sessions mappings, last active timestamps, and blocklist entries
+ * These key formats are used to store and retrieve sessions, user-to-sessions mappings, last active timestamps, and revoke entries
  * for both sessions and users in distributed or in-memory caches.
  * </p>
  *
@@ -14,7 +16,7 @@ package vaultiq.session.cache.util;
  * Used broadly in:
  * <ul>
  *   <li>{@link vaultiq.session.cache.service.internal.VaultiqSessionCacheService}</li>
- *   <li>{@link vaultiq.session.cache.service.internal.SessionBlocklistCacheService}</li>
+ *   <li>{@link SessionRevocationCacheService}</li>
  * </ul>
  * </p>
  *
@@ -65,28 +67,28 @@ public final class CacheKeyResolver {
     }
 
     /**
-     * Returns the cache key for a blocklist entry by session id.
-     * Format: {@code blacklist-{sessionId}}
+     * Returns the cache key for a revoke entry by session id.
+     * Format: {@code revocation-{sessionId}}
      *
-     * Used to store the blocklist (revocation) state for specific session tokens.
+     * Used to store the revoke (revocation) state for specific session tokens.
      *
      * @param sessionId the session identifier
-     * @return the key for use in session blocklist map
+     * @return the key for use in a session revoke map
      */
-    public static String keyForBlacklist(String sessionId) {
-        return "blacklist-" + sessionId;
+    public static String keyForRevocation(String sessionId) {
+        return "revocation-" + sessionId;
     }
 
     /**
-     * Returns the cache key for all blocklisted sessions for a user.
-     * Format: {@code blacklist-by-user-{userId}}
+     * Returns the cache key for all revoked sessions for a user.
+     * Format: {@code revocation-by-user-{userId}}
      *
-     * Used to fetch/remove the complete list of blocklisted session IDs for a user.
+     * Used to fetch/remove the complete list of revoked session IDs for a user.
      *
      * @param userId the user identifier
-     * @return the key for use in user-to-blocklist map
+     * @return the key for use in a user-to-revoke map
      */
-    public static String keyForBlacklistByUser(String userId) {
-        return "blacklist-by-user-" + userId;
+    public static String keyForRevocationByUser(String userId) {
+        return "revocation-by-user-" + userId;
     }
 }

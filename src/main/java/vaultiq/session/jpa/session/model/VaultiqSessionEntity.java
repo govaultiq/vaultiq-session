@@ -11,7 +11,7 @@ import java.time.Instant;
  * This entity is used internally by the {@code vaultiq-session} library's
  * JPA persistence layer to map session data to the {@code vaultiq_session_pool}
  * database table. It holds the persistent state of a user session, including
- * identifiers, timestamps, and blocklist status.
+ * identifiers, timestamps, and revoke status.
  * </p>
  * <p>
  * This class is not intended for direct use by consuming applications;
