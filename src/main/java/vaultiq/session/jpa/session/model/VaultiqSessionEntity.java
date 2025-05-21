@@ -9,9 +9,9 @@ import java.time.Instant;
  * JPA entity representing a Vaultiq session in the database.
  * <p>
  * This entity is used internally by the {@code vaultiq-session} library's
- * JPA persistence layer to map session data to the {@code vaultiq_session_pool}
+ * JPA persistence layer to map session data to the {@code session_pool}
  * database table. It holds the persistent state of a user session, including
- * identifiers, timestamps, and blocklist status.
+ * identifiers, timestamps, and revoke status.
  * </p>
  * <p>
  * This class is not intended for direct use by consuming applications;
@@ -22,7 +22,13 @@ import java.time.Instant;
  * @see VaultiqSessionEntityRepository
  */
 @Entity
-@Table(name = "vaultiq_session_pool")
+@Table(
+        name = "session_pool",
+        indexes = {
+                @Index(name = "idx_user_id_is_revoked", columnList = "user_id, is_revoked"),
+                @Index(name = "idx_revoked_at", columnList = "revoked_at")
+        }
+)
 public final class VaultiqSessionEntity {
 
     /**
@@ -56,17 +62,17 @@ public final class VaultiqSessionEntity {
     private Instant createdAt;
 
     /**
-     * Flag indicating whether this session is currently blocklisted.
+     * Flag indicating whether this session is currently revoked.
      */
-    @Column(name = "is_blocked", nullable = false)
-    private boolean isBlocked;
+    @Column(name = "is_revoked", nullable = false)
+    private boolean isRevoked;
 
     /**
-     * The timestamp (UTC) when this session was blocklisted.
-     * This field is nullable, as it's only set when the session is blocked.
+     * The timestamp (UTC) when this session was revoked.
+     * This field is nullable, as it's only set when the session is revoked.
      */
-    @Column(name = "blocked_at", nullable = true)
-    private Instant blockedAt;
+    @Column(name = "revoked_at", nullable = true)
+    private Instant revokedAt;
 
     /**
      * Static factory method to create a new {@link VaultiqSessionEntity} instance
@@ -81,7 +87,7 @@ public final class VaultiqSessionEntity {
         vaultiqSession.userId = userId;
         vaultiqSession.deviceFingerPrint = deviceFingerPrint;
         vaultiqSession.createdAt = Instant.now();
-        // isBlocked defaults to false, blockedAt defaults to null by JPA
+        // isRevoked defaults to false, revokedAt defaults to null by JPA
         return vaultiqSession;
     }
 
@@ -119,19 +125,19 @@ public final class VaultiqSessionEntity {
         this.createdAt = createdAt;
     }
 
-    public boolean isBlocked() {
-        return isBlocked;
+    public boolean isRevoked() {
+        return isRevoked;
     }
 
-    public void setBlocked(boolean blocked) {
-        isBlocked = blocked;
+    public void setRevoked(boolean revoked) {
+        isRevoked = revoked;
     }
 
-    public Instant getBlockedAt() {
-        return blockedAt;
+    public Instant getRevokedAt() {
+        return revokedAt;
     }
 
-    public void setBlockedAt(Instant blockedAt) {
-        this.blockedAt = blockedAt;
+    public void setRevokedAt(Instant revokedAt) {
+        this.revokedAt = revokedAt;
     }
 }

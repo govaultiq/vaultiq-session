@@ -1,6 +1,5 @@
 package vaultiq.session.core.model;
 
-import vaultiq.session.cache.model.ModelType;
 import vaultiq.session.context.VaultiqModelConfigEnhancer;
 import vaultiq.session.context.VaultiqSessionContext;
 

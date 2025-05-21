@@ -22,7 +22,7 @@ import vaultiq.session.core.VaultiqSessionManager;
  * </p>
  *
  * @see VaultiqSessionManager
- * @see SessionBlocklist
+ * @see RevokedSession
  */
 public final class VaultiqSession {
     /**
@@ -44,12 +44,12 @@ public final class VaultiqSession {
     /**
      * Indicates whether this session is currently blocklisted.
      */
-    private boolean isBlocked;
+    private boolean isRevoked;
     /**
      * The timestamp (UTC) when this session was blocklisted, if applicable.
      * This will be {@code null} if the session is not blocked.
      */
-    private Instant blockedAt;
+    private Instant revokedAt;
 
     /**
      * Private constructor to prevent direct instantiation.
@@ -70,23 +70,23 @@ public final class VaultiqSession {
      * @param userId            The unique identifier of the user.
      * @param deviceFingerPrint The device fingerprint.
      * @param createdAt         The timestamp when the session was created.
-     * @param isBlocked         Whether the session is blocked.
-     * @param blockedAt         The timestamp when the session was blocked (can be null).
+     * @param isRevoked         Whether the session is blocked.
+     * @param revokedAt         The timestamp when the session was blocked (can be null).
      */
     private VaultiqSession(
             String sessionId,
             String userId,
             String deviceFingerPrint,
             Instant createdAt,
-            boolean isBlocked,
-            Instant blockedAt
+            boolean isRevoked,
+            Instant revokedAt
     ) {
         this.sessionId = sessionId;
         this.userId = userId;
         this.deviceFingerPrint = deviceFingerPrint;
         this.createdAt = createdAt;
-        this.isBlocked = isBlocked;
-        this.blockedAt = blockedAt;
+        this.isRevoked = isRevoked;
+        this.revokedAt = revokedAt;
     }
 
     /**
@@ -143,8 +143,8 @@ public final class VaultiqSession {
      *
      * @return {@code true} if the session is blocked, {@code false} otherwise.
      */
-    public boolean isBlocked() {
-        return isBlocked;
+    public boolean isRevoked() {
+        return isRevoked;
     }
 
     /**
@@ -152,8 +152,8 @@ public final class VaultiqSession {
      *
      * @return the blocklisted timestamp, or {@code null} if not blocked.
      */
-    public Instant getBlockedAt() {
-        return blockedAt;
+    public Instant getRevokedAt() {
+        return revokedAt;
     }
 
     /**

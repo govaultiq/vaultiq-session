@@ -1,6 +1,8 @@
 
 package vaultiq.session.cache.model;
 
+import vaultiq.session.cache.service.internal.SessionRevocationCacheService;
+
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
@@ -10,7 +12,7 @@ import java.util.Set;
  *
  * <p>
  * Used primarily by cache service layers (see {@link vaultiq.session.cache.service.internal.VaultiqSessionCacheService}
- * and {@link vaultiq.session.cache.service.internal.SessionBlocklistCacheService}) to efficiently store,
+ * and {@link SessionRevocationCacheService}) to efficiently store,
  * update, and expire mappings of a user's session IDs—either for active sessions or blocklisted ones.
  * Stores all IDs for fast read/write with minimal overhead and enables quick last-modified checks for cache staleness logic.
  * </p>
@@ -18,7 +20,7 @@ import java.util.Set;
  * <p>
  * Typical use:
  * <ul>
- *   <li>As the value object for mapping user IDs to sets of session IDs in caches (per-user session pool or blocklist).</li>
+ *   <li>As the value object for mapping user IDs to sets of session IDs in caches (per-user session pool or revoke).</li>
  *   <li>Maintains a <b>lastUpdated</b> timestamp (epoch millis, UTC) for use in proper staleness and invalidation logic.</li>
  * </ul>
  * </p>

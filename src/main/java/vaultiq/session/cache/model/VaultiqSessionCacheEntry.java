@@ -47,11 +47,11 @@ public final class VaultiqSessionCacheEntry implements Serializable {
     /**
      * If true, the session has been blocklisted or invalidated.
      */
-    private boolean isBlocked;
+    private boolean isRevoked;
     /**
      * Blocklisting timestamp, if ever blocked.
      */
-    private Instant blockedAt;
+    private Instant revokedAt;
 
     /**
      * No-arg constructor for serialization/deserialization only.
@@ -90,15 +90,17 @@ public final class VaultiqSessionCacheEntry implements Serializable {
         cacheEntry.userId = source.getUserId();
         cacheEntry.deviceFingerPrint = source.getDeviceFingerPrint();
         cacheEntry.createdAt = source.getCreatedAt();
+        cacheEntry.revokedAt = source.getRevokedAt();
+        cacheEntry.isRevoked = source.isRevoked();
         return cacheEntry;
     }
 
     /**
      * Marks this cache entry as blocklisted and records the current time as block/invalidated.
      */
-    public void block() {
-        this.isBlocked = true;
-        this.blockedAt = Instant.now();
+    public void revoke() {
+        this.isRevoked = true;
+        this.revokedAt = Instant.now();
     }
 
     /**
@@ -132,15 +134,15 @@ public final class VaultiqSessionCacheEntry implements Serializable {
     /**
      * @return true if this session has been blocked/invalidated
      */
-    public boolean isBlocked() {
-        return isBlocked;
+    public boolean isRevoked() {
+        return isRevoked;
     }
 
     /**
      * @return the time of blocklisting, or null if never blocked
      */
-    public Instant getBlockedAt() {
-        return blockedAt;
+    public Instant getRevokedAt() {
+        return revokedAt;
     }
 
     @Override
@@ -164,8 +166,8 @@ public final class VaultiqSessionCacheEntry implements Serializable {
                 "sessionId='" + sessionId + '\'' +
                 ", userId='" + userId + '\'' +
                 ", createdAt=" + createdAt +
-                ", isBlocked=" + isBlocked +
-                ", blockedAt=" + blockedAt +
+                ", isRevoked=" + isRevoked +
+                ", revokedAt=" + revokedAt +
                 '}';
     }
 }

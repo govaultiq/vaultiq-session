@@ -2,7 +2,8 @@ package vaultiq.session.context;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import vaultiq.session.cache.model.ModelType;
+import vaultiq.session.cache.util.DefaultCacheNames;
+import vaultiq.session.core.model.ModelType;
 import vaultiq.session.config.VaultiqSessionProperties;
 import vaultiq.session.core.model.VaultiqModelConfig;
 
@@ -71,8 +72,8 @@ public final class VaultiqModelConfigEnhancer {
 
                     String cacheName = model.getCacheName();
                     if (cacheName == null || cacheName.isBlank()) {
-                        cacheName = type.getAlias();
-                        log.debug("Cache name for model type {} was blank. Using alias: {}", type, cacheName);
+                        cacheName = DefaultCacheNames.get(type);
+                        log.debug("Cache name for model type {} was blank or null. Using alias: {}", type, cacheName);
                     }
 
                     var resolvedConfig = new VaultiqModelConfig(type, cacheName, useJpa, useCache, syncInterval);

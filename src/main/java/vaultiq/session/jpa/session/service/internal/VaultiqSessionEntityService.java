@@ -3,10 +3,9 @@ package vaultiq.session.jpa.session.service.internal;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import vaultiq.session.cache.model.ModelType;
+import vaultiq.session.core.model.ModelType;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.core.model.VaultiqSession;
@@ -88,7 +87,7 @@ public class VaultiqSessionEntityService {
         entity.setUserId(userId);
         entity.setDeviceFingerPrint(deviceFingerPrint);
         entity.setCreatedAt(now);
-        // isBlocked and blockedAt will default to false/null in the entity.
+        // isRevoked and blockedAt will default to false/null in the entity.
 
         // Save the entity to the database.
         entity = sessionRepository.save(entity);
@@ -174,7 +173,7 @@ public class VaultiqSessionEntityService {
     public List<VaultiqSession> getActiveSessionsByUser(String userId) {
         log.debug("Fetching active sessions for user '{}'.", userId);
 
-        return sessionRepository.findAllByUserIdAndIsBlocked(userId, false).stream()
+        return sessionRepository.findAllByUserIdAndIsRevoked(userId, false).stream()
                 .map(this::mapToVaultiqSession).toList();
     }
 
@@ -201,8 +200,8 @@ public class VaultiqSessionEntityService {
                 .userId(entity.getUserId())
                 .deviceFingerPrint(entity.getDeviceFingerPrint())
                 .createdAt(entity.getCreatedAt())
-                .isBlocked(entity.isBlocked())
-                .blockedAt(entity.getBlockedAt())
+                .isBlocked(entity.isRevoked())
+                .blockedAt(entity.getRevokedAt())
                 .build();
     }
 }

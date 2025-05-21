@@ -3,11 +3,11 @@ package vaultiq.session.cache.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
-import vaultiq.session.cache.model.ModelType;
+import vaultiq.session.core.model.ModelType;
+import vaultiq.session.cache.service.internal.SessionRevocationCacheService;
 import vaultiq.session.config.VaultiqSessionProperties;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistenceRequirement;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
@@ -19,7 +19,7 @@ import java.util.Map;
  * <p>
  * Resolves and validates named caches according to session configuration, simplifying cache management for dependent
  * services such as {@link vaultiq.session.cache.service.internal.VaultiqSessionCacheService} and
- * {@link vaultiq.session.cache.service.internal.SessionBlocklistCacheService}.
+ * {@link SessionRevocationCacheService}.
  * </p>
  * <ul>
  *   <li>Ensures caches are present and fail-fast if missing/misconfigured.</li>

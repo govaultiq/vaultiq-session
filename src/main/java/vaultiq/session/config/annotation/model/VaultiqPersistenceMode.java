@@ -1,11 +1,13 @@
 package vaultiq.session.config.annotation.model;
 
+import vaultiq.session.core.model.ModelType;
+
 /**
  * Enumeration defining the possible persistence modes for Vaultiq session data models.
  * <p>
  * These modes are used in conjunction with the {@link vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence}
  * annotation and {@link vaultiq.session.config.rules.VaultiqPersistenceModeCondition}
- * to conditionally enable beans based on how specific {@link vaultiq.session.cache.model.ModelType}s
+ * to conditionally enable beans based on how specific {@link ModelType}s
  * are configured for persistence (using JPA, cache, or both).
  * </p>
  */
