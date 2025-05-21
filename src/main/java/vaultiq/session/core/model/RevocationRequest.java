@@ -2,43 +2,58 @@ package vaultiq.session.core.model;
 
 import vaultiq.session.core.SessionRevocationManager;
 
+import java.util.*;
+import java.util.stream.Collectors;
+
 /**
- * Context object used to define the parameters of a session revoke operation.
+ * Immutable context object used to define parameters for session revocation.
  * <p>
- * This class encapsulates the necessary information for {@link SessionRevocationManager}
- * implementations to perform various types of session invalidation, such as
- * blocklisting a single session, all sessions for a user, or all sessions for a
- * user except specific ones.
+ * This object is constructed via static factory methods that allow for different revocation
+ * strategies while ensuring immutability and clarity of intent.
  * </p>
  * <p>
- * Instances of this class are typically created using the static factory methods
- * and their fluent builder patterns: {@link #revoke()}, {@link #revokeAll()},
- * and {@link #revokeAllExcept()}.
+ * Supported revocation patterns include:
+ * <ul>
+ *     <li>{@link #revoke(String)} — Revokes a specific session by ID</li>
+ *     <li>{@link #revokeAll()} — Revokes all sessions for a specific user or the current user</li>
+ *     <li>{@link #revokeAllExcept(String...)} — Revokes all sessions except the provided ones</li>
+ * </ul>
+ * </p>
+ * <p>
+ * This API is intended for use by {@link SessionRevocationManager} implementations and follows a
+ * fail-silent approach for non-critical inputs. A {@link NullPointerException} is thrown only if
+ * a required session ID or user ID is null.
  * </p>
  *
- * @see RevocationType
  * @see SessionRevocationManager
+ * @see RevocationType
  */
-public class RevocationRequest {
+public final class RevocationRequest {
 
     private final RevocationType revocationType;
+    private final boolean forCurrentUser;
     private final String identifier;
     private final String note;
-    private final String[] excludedSessionIds;
+    private final Set<String> excludedSessionIds;
 
-    public RevocationRequest(RevocationType revocationType, String identifier, String note) {
-        this(revocationType, identifier, note, null);
-    }
-
-    public RevocationRequest(RevocationType revocationType, String identifier, String note, String[] excludedSessionIds) {
-        this.revocationType = revocationType;
-        this.identifier = identifier;
+    private RevocationRequest(RevocationType revocationType,
+                              boolean forCurrentUser,
+                              String identifier,
+                              String note,
+                              Set<String> excludedSessionIds) {
+        this.revocationType = Objects.requireNonNull(revocationType, "Revocation type must not be null");
+        this.forCurrentUser = forCurrentUser;
+        this.identifier = forCurrentUser ? null : identifier;
         this.note = note;
         this.excludedSessionIds = excludedSessionIds;
     }
 
     public RevocationType getRevocationType() {
         return revocationType;
+    }
+
+    public boolean isForCurrentUser() {
+        return forCurrentUser;
     }
 
     public String getIdentifier() {
@@ -49,110 +64,146 @@ public class RevocationRequest {
         return note;
     }
 
-    public String[] getExcludedSessionIds() {
+    public Set<String> getExcludedSessionIds() {
         return excludedSessionIds;
     }
 
-    public static RevokeAllBuilder revokeAll() {
-        return new RevokeAllBuilder(RevocationType.LOGOUT_ALL);
-    }
-
-    public static RevokeOneBuilder revoke() {
-        return new RevokeOneBuilder(RevocationType.LOGOUT);
-    }
-
-    public static RevokeAllExceptBuilder revokeAllExcept() {
-        return new RevokeAllExceptBuilder(RevocationType.LOGOUT_WITH_EXCLUSION);
+    /**
+     * Start a single-session revoke request.
+     *
+     * @param sessionId must not be null
+     * @throws NullPointerException if sessionId is null
+     */
+    public static RevokeOneBuilder revoke(String sessionId) {
+        return new RevokeOneBuilder(Objects.requireNonNull(sessionId, "Session ID cannot be null"));
     }
 
     /**
-     * Builder for creating a {@link RevocationRequest} with {@link RevocationType#LOGOUT_ALL}.
-     * <p>
-     * Used to define a revoke operation that targets all sessions of a specific user.
-     * </p>
+     * Start a revoke-all request (by user or current user).
      */
-    public static class RevokeAllBuilder {
-        private final RevocationType revocationType;
-        private String identifier;
+    public static RevokeAllBuilder revokeAll() {
+        return new RevokeAllBuilder();
+    }
 
-        private RevokeAllBuilder(RevocationType revocationType) {
-            this.revocationType = revocationType;
+    /**
+     * Start a revoke-all-except request with initial exclusions.
+     *
+     * @param excludedSessionIds session IDs to exclude
+     */
+    public static RevokeAllExceptBuilder revokeAllExcept(String... excludedSessionIds) {
+        Collection<String> list = excludedSessionIds != null
+                ? Arrays.asList(excludedSessionIds)
+                : Collections.emptyList();
+        Set<String> cleaned = clean(list);
+        return new RevokeAllExceptBuilder(cleaned);
+    }
+
+    /**
+     * Start a revoke-all-except request with initial exclusions.
+     *
+     * @param excludedSessionIds session IDs to exclude
+     */
+    public static RevokeAllExceptBuilder revokeAllExcept(Set<String> excludedSessionIds) {
+        Set<String> cleaned = clean(excludedSessionIds);
+        return new RevokeAllExceptBuilder(cleaned);
+    }
+
+    private static Set<String> clean(Collection<String> input) {
+        if (input == null) {
+            return Collections.emptySet();
+        }
+        return Set.copyOf(input.stream()
+                .filter(Objects::nonNull)
+                .map(String::strip)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toSet()));
+    }
+
+    public static final class RevokeOneBuilder {
+        private final String sessionId;
+        private String note;
+
+        private RevokeOneBuilder(String sessionId) {
+            this.sessionId = sessionId;
+        }
+
+        public RevokeOneBuilder withNote(String note) {
+            this.note = note;
+            return this;
+        }
+
+        public RevocationRequest build() {
+            return new RevocationRequest(RevocationType.LOGOUT,
+                    false,
+                    sessionId,
+                    note,
+                    null);
+        }
+    }
+
+    public static final class RevokeAllBuilder {
+        private String identifier;
+        private boolean forCurrentUser;
+        private String note;
+
+        private RevokeAllBuilder() {
         }
 
         public RevokeAllBuilder forUser(String identifier) {
-            this.identifier = identifier;
+            this.identifier = Objects.requireNonNull(identifier, "User ID cannot be null");
             return this;
         }
 
-        public RevocationRequest withNote(String note) {
-            return new RevocationRequest(revocationType, identifier, note);
-        }
-
-        public RevocationRequest noNote() {
-            return new RevocationRequest(revocationType, identifier, null);
-        }
-    }
-
-    /**
-     * Builder for creating a {@link RevocationRequest} with {@link RevocationType#LOGOUT}.
-     * <p>
-     * Used to define a revoke operation that targets a single, specific session.
-     * </p>
-     */
-    public static class RevokeOneBuilder {
-        private final RevocationType revocationType;
-        private String identifier;
-
-        private RevokeOneBuilder(RevocationType revocationType) {
-            this.revocationType = revocationType;
-        }
-
-        public RevokeOneBuilder withId(String identifier) {
-            this.identifier = identifier;
+        public RevokeAllBuilder forCurrentUser() {
+            this.forCurrentUser = true;
             return this;
         }
 
-        public RevocationRequest withNote(String note) {
-            return new RevocationRequest(revocationType, identifier, note);
+        public RevokeAllBuilder withNote(String note) {
+            this.note = note;
+            return this;
         }
 
-        public RevocationRequest noNote() {
-            return new RevocationRequest(revocationType, identifier, null);
+        public RevocationRequest build() {
+            return new RevocationRequest(RevocationType.LOGOUT_ALL,
+                    forCurrentUser,
+                    identifier,
+                    note,
+                    null);
         }
     }
 
-    /**
-     * Builder for creating a {@link RevocationRequest} with {@link RevocationType#LOGOUT_WITH_EXCLUSION}.
-     * <p>
-     * Used to define a revoke operation that targets all sessions of a specific user,
-     * explicitly excluding a provided list of session IDs.
-     * </p>
-     */
-    public static class RevokeAllExceptBuilder {
-        private final RevocationType revocationType;
+    public static final class RevokeAllExceptBuilder {
         private String identifier;
-        private String[] excludedSessionIds;
+        private boolean forCurrentUser;
+        private final Set<String> excludedSessionIds;
+        private String note;
 
-        private RevokeAllExceptBuilder(RevocationType revocationType) {
-            this.revocationType = revocationType;
+        private RevokeAllExceptBuilder(Set<String> excludedSessionIds) {
+            this.excludedSessionIds = excludedSessionIds;
         }
 
         public RevokeAllExceptBuilder forUser(String identifier) {
-            this.identifier = identifier;
+            this.identifier = Objects.requireNonNull(identifier, "User ID cannot be null");
             return this;
         }
 
-        public RevokeAllExceptBuilder excluding(String... excludedSessionIds) {
-            this.excludedSessionIds = excludedSessionIds;
+        public RevokeAllExceptBuilder forCurrentUser() {
+            this.forCurrentUser = true;
             return this;
         }
 
-        public RevocationRequest withNote(String note) {
-            return new RevocationRequest(revocationType, identifier, note, excludedSessionIds);
+        public RevokeAllExceptBuilder withNote(String note) {
+            this.note = note;
+            return this;
         }
 
-        public RevocationRequest noNote() {
-            return new RevocationRequest(revocationType, identifier, null, excludedSessionIds);
+        public RevocationRequest build() {
+            return new RevocationRequest(RevocationType.LOGOUT_WITH_EXCLUSION,
+                    forCurrentUser,
+                    identifier,
+                    note,
+                    excludedSessionIds);
         }
     }
 }

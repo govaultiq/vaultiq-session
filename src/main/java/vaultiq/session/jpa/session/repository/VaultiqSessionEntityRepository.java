@@ -6,6 +6,7 @@ import vaultiq.session.jpa.session.model.VaultiqSessionEntity;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Spring Data JPA repository for managing {@link VaultiqSessionEntity} entities.
@@ -44,4 +45,8 @@ public interface VaultiqSessionEntityRepository extends JpaRepository<VaultiqSes
      * @return A list of session entities for the user that are revoked.
      */
     List<VaultiqSessionEntity> findAllByUserIdAndIsRevoked(String userId, boolean isRevoked);
-}
+
+    List<VaultiqSessionEntity> findAllByUserIdAndIsRevokedFalseAndSessionIdNotIn(
+            String userId,
+            Set<String> excludedIds
+    );}
