@@ -1,5 +1,5 @@
 
-package vaultiq.session.cache.model;
+package vaultiq.session.core.model;
 
 import vaultiq.session.context.VaultiqSessionContext;
 
@@ -15,7 +15,7 @@ import vaultiq.session.context.VaultiqSessionContext;
  *   <li>{@link #SESSION} - Standard in-memory session objects (active sessions).</li>
  *   <li>{@link #USER_SESSION_MAPPING} - Mapping of user identifiers to their associated session IDs.</li>
  *   <li>{@link #USER_ACTIVITY_LOGS} - Activity and audit logs relating to user actions in the session context.</li>
- *   <li>{@link #REVOKE} - List of blocklisted/invalidated session IDs to enforce revocation across subsystems.</li>
+ *   <li>{@link #REVOKE} - List of revoked/invalidated session IDs to enforce revocation across subsystems.</li>
  * </ul>
  *
  * <p>
@@ -39,7 +39,7 @@ public enum ModelType {
     USER_ACTIVITY_LOGS("user-activity-logs"),
 
     /**
-     * Represents the model tracking blocklisted (revoked) sessions.
+     * Represents the model tracking revoked (revoked) sessions.
      */
     REVOKE("revoke");
 

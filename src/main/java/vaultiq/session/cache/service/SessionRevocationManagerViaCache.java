@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
-import vaultiq.session.cache.model.ModelType;
+import vaultiq.session.core.model.ModelType;
 import vaultiq.session.cache.model.RevokedSessionCacheEntry;
 import vaultiq.session.cache.service.internal.SessionRevocationCacheService;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;

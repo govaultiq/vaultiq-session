@@ -4,7 +4,7 @@ package vaultiq.session.jpa.revoke.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import vaultiq.session.cache.model.ModelType;
+import vaultiq.session.core.model.ModelType;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
 import vaultiq.session.core.SessionRevocationManager;

@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
 import org.springframework.stereotype.Service;
-import vaultiq.session.cache.model.ModelType;
+import vaultiq.session.core.model.ModelType;
 import vaultiq.session.cache.model.SessionIds;
 import vaultiq.session.cache.util.VaultiqCacheContext;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;

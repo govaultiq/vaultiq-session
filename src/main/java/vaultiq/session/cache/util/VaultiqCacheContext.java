@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
-import vaultiq.session.cache.model.ModelType;
+import vaultiq.session.core.model.ModelType;
 import vaultiq.session.cache.service.internal.SessionRevocationCacheService;
 import vaultiq.session.config.VaultiqSessionProperties;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistenceRequirement;

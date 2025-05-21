@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
-import vaultiq.session.cache.model.ModelType;
+import vaultiq.session.core.model.ModelType;
 import vaultiq.session.cache.service.internal.VaultiqSessionCacheService;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
@@ -15,7 +15,6 @@ import vaultiq.session.core.VaultiqSessionManager;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Cache-only implementation of {@link VaultiqSessionManager} for Vaultiq sessions.

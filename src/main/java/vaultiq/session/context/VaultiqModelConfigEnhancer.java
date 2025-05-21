@@ -2,7 +2,7 @@ package vaultiq.session.context;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import vaultiq.session.cache.model.ModelType;
+import vaultiq.session.core.model.ModelType;
 import vaultiq.session.config.VaultiqSessionProperties;
 import vaultiq.session.core.model.VaultiqModelConfig;
 
