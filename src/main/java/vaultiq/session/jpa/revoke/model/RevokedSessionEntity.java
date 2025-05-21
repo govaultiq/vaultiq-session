@@ -18,7 +18,12 @@ import java.time.Instant;
  * session records and is key to enforcing session invalidation in the system.
  */
 @Entity
-@Table(name = "revoked_session_pool")
+@Table(
+        name = "revoked_session_pool",
+        indexes = {
+                @Index(name = "idx_revoked_at", columnList = "revoked_at")
+        }
+)
 public class RevokedSessionEntity {
 
     /**

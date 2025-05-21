@@ -22,7 +22,13 @@ import java.time.Instant;
  * @see VaultiqSessionEntityRepository
  */
 @Entity
-@Table(name = "session_pool")
+@Table(
+        name = "session_pool",
+        indexes = {
+                @Index(name = "idx_user_id_is_revoked", columnList = "user_id, is_revoked"),
+                @Index(name = "idx_revoked_at", columnList = "revoked_at")
+        }
+)
 public final class VaultiqSessionEntity {
 
     /**
