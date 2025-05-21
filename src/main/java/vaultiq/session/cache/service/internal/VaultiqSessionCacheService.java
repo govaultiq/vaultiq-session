@@ -199,8 +199,8 @@ public class VaultiqSessionCacheService {
                 .userId(source.getUserId())
                 .deviceFingerPrint(source.getDeviceFingerPrint())
                 .createdAt(source.getCreatedAt())
-                .isBlocked(source.isBlocked())
-                .blockedAt(source.getBlockedAt())
+                .isBlocked(source.isRevoked())
+                .blockedAt(source.getRevokedAt())
                 .build();
     }
 
@@ -237,10 +237,10 @@ public class VaultiqSessionCacheService {
         return getSessionsByUser(userId)
                 .stream()
                 .peek(session -> {
-                    if (session.isBlocked())
+                    if (session.isRevoked())
                         deleteSession(session.getSessionId());
                 })
-                .filter(VaultiqSession::isBlocked)
+                .filter(VaultiqSession::isRevoked)
                 .collect(Collectors.toList());
     }
 }

@@ -114,7 +114,7 @@ public class DeviceFingerprintBeanConfigFallback {
 
             if (session != null) {
 
-                if(session.isBlocked()) {
+                if(session.isRevoked()) {
                     log.error("Session ID [{}] is blocked. Fingerprint validation aborted.", sessionId);
                     return false;
                 }

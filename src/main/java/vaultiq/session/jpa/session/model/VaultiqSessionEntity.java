@@ -56,17 +56,17 @@ public final class VaultiqSessionEntity {
     private Instant createdAt;
 
     /**
-     * Flag indicating whether this session is currently blocklisted.
+     * Flag indicating whether this session is currently revoked.
      */
-    @Column(name = "is_blocked", nullable = false)
-    private boolean isBlocked;
+    @Column(name = "is_revoked", nullable = false)
+    private boolean isRevoked;
 
     /**
-     * The timestamp (UTC) when this session was blocklisted.
-     * This field is nullable, as it's only set when the session is blocked.
+     * The timestamp (UTC) when this session was revoked.
+     * This field is nullable, as it's only set when the session is revoked.
      */
-    @Column(name = "blocked_at", nullable = true)
-    private Instant blockedAt;
+    @Column(name = "revoked_at", nullable = true)
+    private Instant revokedAt;
 
     /**
      * Static factory method to create a new {@link VaultiqSessionEntity} instance
@@ -81,7 +81,7 @@ public final class VaultiqSessionEntity {
         vaultiqSession.userId = userId;
         vaultiqSession.deviceFingerPrint = deviceFingerPrint;
         vaultiqSession.createdAt = Instant.now();
-        // isBlocked defaults to false, blockedAt defaults to null by JPA
+        // isRevoked defaults to false, revokedAt defaults to null by JPA
         return vaultiqSession;
     }
 
@@ -119,19 +119,19 @@ public final class VaultiqSessionEntity {
         this.createdAt = createdAt;
     }
 
-    public boolean isBlocked() {
-        return isBlocked;
+    public boolean isRevoked() {
+        return isRevoked;
     }
 
-    public void setBlocked(boolean blocked) {
-        isBlocked = blocked;
+    public void setRevoked(boolean revoked) {
+        isRevoked = revoked;
     }
 
-    public Instant getBlockedAt() {
-        return blockedAt;
+    public Instant getRevokedAt() {
+        return revokedAt;
     }
 
-    public void setBlockedAt(Instant blockedAt) {
-        this.blockedAt = blockedAt;
+    public void setRevokedAt(Instant revokedAt) {
+        this.revokedAt = revokedAt;
     }
 }

@@ -87,7 +87,7 @@ public class VaultiqSessionEntityService {
         entity.setUserId(userId);
         entity.setDeviceFingerPrint(deviceFingerPrint);
         entity.setCreatedAt(now);
-        // isBlocked and blockedAt will default to false/null in the entity.
+        // isRevoked and blockedAt will default to false/null in the entity.
 
         // Save the entity to the database.
         entity = sessionRepository.save(entity);
@@ -200,8 +200,8 @@ public class VaultiqSessionEntityService {
                 .userId(entity.getUserId())
                 .deviceFingerPrint(entity.getDeviceFingerPrint())
                 .createdAt(entity.getCreatedAt())
-                .isBlocked(entity.isBlocked())
-                .blockedAt(entity.getBlockedAt())
+                .isBlocked(entity.isRevoked())
+                .blockedAt(entity.getRevokedAt())
                 .build();
     }
 }
