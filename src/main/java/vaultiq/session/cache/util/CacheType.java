@@ -25,10 +25,6 @@ public enum CacheType {
      */
     SESSION_POOL("session-pool", ModelType.SESSION),
     /**
-     * Cache type for user-session mappings.
-     */
-    USER_SESSION_MAPPINGS("user-session-mappings", ModelType.SESSION),
-    /**
      * Cache type for revoked SIDs (Session IDs).
      */
     REVOKED_SIDS("revoked-sids", ModelType.REVOKE),
