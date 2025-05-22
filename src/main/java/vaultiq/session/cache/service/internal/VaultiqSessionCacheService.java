@@ -42,7 +42,6 @@ public class VaultiqSessionCacheService {
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionCacheService.class);
 
     private final Cache sessionPoolCache;
-    private final Cache userSessionMappingCache;
     private final DeviceFingerprintGenerator fingerprintGenerator;
 
     /**
@@ -58,11 +57,6 @@ public class VaultiqSessionCacheService {
             DeviceFingerprintGenerator fingerprintGenerator) {
 
         this.sessionPoolCache = cacheContext.getCacheMandatory(context.getModelConfig(CacheType.SESSION_POOL).cacheName(), CacheType.SESSION_POOL);
-        this.userSessionMappingCache = cacheContext.getCacheOptional(
-                        context.getModelConfig(CacheType.USER_SESSION_MAPPINGS).cacheName(),
-                        CacheType.USER_SESSION_MAPPINGS)
-                .orFallbackTo(sessionPoolCache, ModelType.SESSION);
-
         this.fingerprintGenerator = fingerprintGenerator;
     }
 
@@ -130,7 +124,7 @@ public class VaultiqSessionCacheService {
 
             SessionIds updated = new SessionIds();
             updated.setSessionIds(sessionIds);
-            userSessionMappingCache.put(keyForUserSessionMapping(session.getUserId()), updated);
+            sessionPoolCache.put(keyForUserSessionMapping(session.getUserId()), updated);
         }
     }
 
@@ -173,7 +167,7 @@ public class VaultiqSessionCacheService {
 
         SessionIds updated = new SessionIds();
         updated.setSessionIds(sessionIds);
-        userSessionMappingCache.put(keyForUserSessionMapping(userId), updated);
+        sessionPoolCache.put(keyForUserSessionMapping(userId), updated);
     }
 
     /**
@@ -183,7 +177,7 @@ public class VaultiqSessionCacheService {
      * @return set of session IDs (maybe empty)
      */
     public Set<String> getUserSessionIds(String userId) {
-        return Optional.ofNullable(userSessionMappingCache.get(keyForUserSessionMapping(userId), SessionIds.class))
+        return Optional.ofNullable(sessionPoolCache.get(keyForUserSessionMapping(userId), SessionIds.class))
                 .map(SessionIds::getSessionIds)
                 .orElseGet(HashSet::new);
     }
@@ -216,7 +210,7 @@ public class VaultiqSessionCacheService {
         var sessionIds = sessions.stream().map(VaultiqSession::getSessionId).collect(Collectors.toSet());
         SessionIds ids = new SessionIds();
         ids.setSessionIds(sessionIds);
-        userSessionMappingCache.put(keyForUserSessionMapping(userId), ids);
+        sessionPoolCache.put(keyForUserSessionMapping(userId), ids);
     }
 
     /**
