@@ -1,11 +1,10 @@
 package vaultiq.session.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import vaultiq.session.cache.util.CacheType;
+import vaultiq.session.core.model.ModelType;
 import vaultiq.session.context.VaultiqModelConfigEnhancer;
 import vaultiq.session.context.VaultiqSessionContext;
 
-import java.time.Duration;
 import java.util.List;
 
 /**
@@ -29,7 +28,7 @@ public class VaultiqSessionProperties {
      * <p>
      * When set to {@code true}, this enables a simplified configuration mode
      * where both Cache and JPA persistence methods are considered active by
-     * default for all {@link CacheType}s. This setting acts as a base default
+     * default for all {@link ModelType}s. This setting acts as a base default
      * and can be overridden by more specific configurations in {@link Persistence}
      * and {@link ModelPersistenceConfig}.
      * </p>
@@ -110,17 +109,7 @@ public class VaultiqSessionProperties {
         private String manager = "cacheManager";
 
         /**
-         * The default interval for cache synchronization operations, if supported and
-         * applicable to the configured cache implementation. This can be overridden
-         * by model-specific settings in {@link ModelPersistenceConfig#syncInterval}.
-         * <p>
-         * Defaults to 5 minutes.
-         * </p>
-         */
-        private Duration syncInterval = Duration.ofMinutes(5);
-
-        /**
-         * A list of specific persistence configurations for individual model types ({@link CacheType}).
+         * A list of specific persistence configurations for individual model types ({@link ModelType}).
          * These configurations can override the global settings defined in this {@link Persistence} class.
          */
         private List<ModelPersistenceConfig> models;
@@ -165,19 +154,6 @@ public class VaultiqSessionProperties {
         }
 
         /**
-         * Gets the global default cache synchronization interval.
-         *
-         * @return the global sync interval.
-         */
-        public Duration getSyncInterval() {
-            return syncInterval;
-        }
-
-        public void setSyncInterval(Duration syncInterval) {
-            this.syncInterval = syncInterval;
-        }
-
-        /**
          * Returns the list of specific persistence configurations per model type.
          * These configurations override the global persistence settings.
          *
@@ -193,7 +169,7 @@ public class VaultiqSessionProperties {
     }
 
     /**
-     * Persistence configuration for a specific {@link CacheType}.
+     * Persistence configuration for a specific {@link ModelType}.
      * <p>
      * Properties defined here override the global settings in {@link Persistence}
      * for the specified {@link #type model type}. If a property (e.g., {@code useJpa}, {@code useCache},
@@ -204,17 +180,10 @@ public class VaultiqSessionProperties {
      */
     public static class ModelPersistenceConfig {
         /**
-         * The {@link CacheType} to which this specific configuration applies. This field is mandatory
+         * The {@link ModelType} to which this specific configuration applies. This field is mandatory
          * for a model-specific configuration to be valid.
          */
-        private CacheType type;
-        /**
-         * The specific cache name to use for this model type within the configured
-         * {@link Persistence#manager cache manager}.
-         * If not specified, the library might fall back to a default name
-         * derived from the {@link CacheType}'s alias (e.g., {@code CacheType#getAlias()}).
-         */
-        private String cacheName;
+        private ModelType type;
         /**
          * Explicitly enable or disable JPA usage for this model type.
          * If {@code null}, the effective setting is determined by {@link Persistence#isUseJpa()}
@@ -227,36 +196,18 @@ public class VaultiqSessionProperties {
          * or the {@link VaultiqSessionProperties#isZenMode()} default.
          */
         private Boolean useCache;
-        /**
-         * The synchronization interval specifically for this model type.
-         * If {@code null}, the global {@link Persistence#getSyncInterval()} is used.
-         */
-        private Duration syncInterval;
 
         /**
-         * Gets the {@link CacheType} this configuration applies to.
+         * Gets the {@link ModelType} this configuration applies to.
          *
-         * @return the {@link CacheType}.
+         * @return the {@link ModelType}.
          */
-        public CacheType getType() {
+        public ModelType getType() {
             return type;
         }
 
-        public void setType(CacheType type) {
+        public void setType(ModelType type) {
             this.type = type;
-        }
-
-        /**
-         * Gets the specific cache name for this model type.
-         *
-         * @return the cache name, or {@code null} if not specified.
-         */
-        public String getCacheName() {
-            return cacheName;
-        }
-
-        public void setCacheName(String cacheName) {
-            this.cacheName = cacheName;
         }
 
         /**
@@ -285,19 +236,6 @@ public class VaultiqSessionProperties {
 
         public void setUseCache(Boolean useCache) {
             this.useCache = useCache;
-        }
-
-        /**
-         * Gets the specific synchronization interval for this model type.
-         *
-         * @return the model-specific sync interval, or {@code null} if not specified.
-         */
-        public Duration getSyncInterval() {
-            return syncInterval;
-        }
-
-        public void setSyncInterval(Duration syncInterval) {
-            this.syncInterval = syncInterval;
         }
     }
 }

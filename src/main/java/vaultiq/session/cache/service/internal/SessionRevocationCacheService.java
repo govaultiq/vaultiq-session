@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cache.Cache;
 import org.springframework.stereotype.Service;
+import vaultiq.session.cache.util.CacheType;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.cache.model.RevokedSessionCacheEntry;
 import vaultiq.session.cache.model.SessionIds;
@@ -57,7 +58,7 @@ public class SessionRevocationCacheService {
             UserIdentityAware userIdentityAware
     ) {
         this.userIdentityAware = userIdentityAware;
-        var vaultiqModelConfig = VaultiqSessionContextHolder.getContext().getModelConfig(ModelType.REVOKE);
+        var vaultiqModelConfig = VaultiqSessionContextHolder.getContext().getModelConfig(CacheType.REVOKED_SESSION_POOL);
         if (vaultiqModelConfig == null) {
             throw new IllegalArgumentException("Model config not found! Check your configuration for ModelType.REVOKE.");
         }
@@ -65,7 +66,7 @@ public class SessionRevocationCacheService {
         this.vaultiqSessionCacheService = Objects.requireNonNull(vaultiqSessionCacheService, "VaultiqSessionCacheService may not be null");
         this.revocationPoolCache = cacheContext.getCacheMandatory(
                 vaultiqModelConfig.cacheName(),
-                ModelType.REVOKE
+                CacheType.REVOKED_SESSION_POOL
         );
     }
 
@@ -151,13 +152,10 @@ public class SessionRevocationCacheService {
      * @param note               note/reason for revoking.
      * @param excludedSessionIds session IDs to be excluded from revoking.
      */
-    public void revokeWithExclusions(String userId, String note, String... excludedSessionIds) {
-        Set<String> excludedSet = (excludedSessionIds == null)
-                ? Collections.emptySet()
-                : Set.of(excludedSessionIds);
+    public void revokeWithExclusions(String userId, String note, Set<String> excludedSessionIds) {
 
         var sessionIds = vaultiqSessionCacheService.getUserSessionIds(userId).stream()
-                .filter(id -> !excludedSet.contains(id))
+                .filter(id -> !excludedSessionIds.contains(id))
                 .collect(Collectors.toSet());
 
         if (sessionIds.isEmpty()) {

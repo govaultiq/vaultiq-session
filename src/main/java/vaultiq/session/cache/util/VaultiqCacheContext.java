@@ -44,7 +44,7 @@ public class VaultiqCacheContext {
      * @throws IllegalStateException if the configured cache manager does not exist
      */
     public VaultiqCacheContext(VaultiqSessionProperties props, Map<String, CacheManager> cacheManagers) {
-        String configuredCacheManagerName = props.getPersistence().getCacheConfig().getManager();
+        String configuredCacheManagerName = props.getPersistence().getManager();
         if (configuredCacheManagerName == null || !cacheManagers.containsKey(configuredCacheManagerName)) {
             log.error("CacheManager '{}' not found. Provided: {}", configuredCacheManagerName,
                     cacheManagers.keySet());
@@ -58,13 +58,13 @@ public class VaultiqCacheContext {
      * Fails if the cache is missing or the name is blank.
      *
      * @param name      configured cache name (must not be blank)
-     * @param modelType the associated model type for error messaging
+     * @param cacheType the associated cacheType type for error messaging
      * @return resolved cache (never null)
      * @throws IllegalStateException if the cache cannot be found
      */
-    public Cache getCacheMandatory(String name, ModelType modelType) {
+    public Cache getCacheMandatory(String name, CacheType cacheType) {
         if (name == null || name.isBlank()) {
-            throw new IllegalStateException("Missing cache name for the type: '" + modelType.name() + "'.");
+            throw new IllegalStateException("Missing cache name for the type: '" + cacheType.name() + "'.");
         }
         Cache cache = cacheManager.getCache(name);
         if (cache == null) {
@@ -77,11 +77,11 @@ public class VaultiqCacheContext {
      * Starts resolution of an optional cache. Supports fluent fallbacks if the preferred cache is missing.
      *
      * @param name      preferred cache name (may be blank/unset)
-     * @param modelType the associated model type for fallback/error messaging
+     * @param cacheType the associated cache type for fallback/error messaging
      * @return an {@link OptionalCacheResolver} for fluent fallback selection
      */
-    public OptionalCacheResolver getCacheOptional(String name, ModelType modelType) {
-        return new OptionalCacheResolver(name, modelType, cacheManager);
+    public OptionalCacheResolver getCacheOptional(String name, CacheType cacheType) {
+        return new OptionalCacheResolver(name, cacheType, cacheManager);
     }
 
     /**
@@ -89,12 +89,12 @@ public class VaultiqCacheContext {
      */
     public static class OptionalCacheResolver {
         private final String requiredCacheName;
-        private final ModelType requiredModelType;
+        private final CacheType requiredCacheType;
         private final CacheManager cacheManager;
 
-        public OptionalCacheResolver(String requiredCacheName, ModelType requiredModelType, CacheManager cacheManager) {
+        public OptionalCacheResolver(String requiredCacheName, CacheType requiredCacheType, CacheManager cacheManager) {
             this.requiredCacheName = requiredCacheName;
-            this.requiredModelType = requiredModelType;
+            this.requiredCacheType = requiredCacheType;
             this.cacheManager = cacheManager;
         }
 
@@ -151,7 +151,7 @@ public class VaultiqCacheContext {
         private Cache tryGetCache() {
             if (requiredCacheName == null || requiredCacheName.isBlank()) {
                 Logger log = LoggerFactory.getLogger(OptionalCacheResolver.class);
-                log.warn("No cache name configured for property: '{}', will use fallback.", requiredModelType.name());
+                log.warn("No cache name configured for property: '{}', will use fallback.", requiredCacheType.name());
                 return null;
             }
             Cache cache = cacheManager.getCache(requiredCacheName);

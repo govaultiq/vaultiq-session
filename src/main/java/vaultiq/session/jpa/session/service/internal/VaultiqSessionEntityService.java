@@ -40,10 +40,9 @@ import java.util.Set;
  * @see ConditionalOnVaultiqModelConfig
  * @see VaultiqPersistenceMethod#USE_JPA
  * @see ModelType#SESSION
- * @see ModelType#USER_SESSION_MAPPING
  */
 @Service
-@ConditionalOnVaultiqModelConfig(method = VaultiqPersistenceMethod.USE_JPA, type = {ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
+@ConditionalOnVaultiqModelConfig(method = VaultiqPersistenceMethod.USE_JPA, type = ModelType.SESSION)
 // Activate only when JPA is configured for sessions
 public class VaultiqSessionEntityService {
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionEntityService.class);

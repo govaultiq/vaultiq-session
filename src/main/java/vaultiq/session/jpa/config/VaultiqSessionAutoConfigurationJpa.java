@@ -13,8 +13,7 @@ import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
  * and user-session mapping models.
  * <p>
  * This configuration is active only when the Vaultiq session persistence is
- * explicitly configured to use JPA for {@link ModelType#SESSION} and
- * {@link ModelType#USER_SESSION_MAPPING} via {@link ConditionalOnVaultiqModelConfig}.
+ * explicitly configured to use JPA for {@link ModelType#SESSION} via {@link ConditionalOnVaultiqModelConfig}.
  * </p>
  * <p>
  * When active, it configures JPA entity scanning, JPA repositories, and component
@@ -24,7 +23,6 @@ import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
  * @see ConditionalOnVaultiqModelConfig
  * @see VaultiqPersistenceMethod#USE_JPA
  * @see ModelType#SESSION
- * @see ModelType#USER_SESSION_MAPPING
  * @see EntityScan
  * @see EnableJpaRepositories
  * @see ComponentScan
@@ -32,7 +30,7 @@ import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnVaultiqModelConfig(
         method = VaultiqPersistenceMethod.USE_JPA,
-        type = {ModelType.SESSION, ModelType.USER_SESSION_MAPPING}
+        type = ModelType.SESSION
 )
 @EntityScan("vaultiq.session.jpa.session.model")
 @EnableJpaRepositories("vaultiq.session.jpa.session.repository")

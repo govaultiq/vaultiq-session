@@ -31,7 +31,7 @@ import java.util.*;
  * </p>
  */
 @Service
-@ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_AND_CACHE, type = {ModelType.REVOKE, ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
+@ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_AND_CACHE, type = {ModelType.REVOKE, ModelType.SESSION})
 public class SessionRevocationManagerViaJpaCacheEnabled implements SessionRevocationManager {
     private static final Logger log = LoggerFactory.getLogger(SessionRevocationManagerViaJpaCacheEnabled.class);
 

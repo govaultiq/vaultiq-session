@@ -1,5 +1,6 @@
 package vaultiq.session.core.model;
 
+import vaultiq.session.cache.util.CacheType;
 import vaultiq.session.context.VaultiqModelConfigEnhancer;
 import vaultiq.session.context.VaultiqSessionContext;
 
@@ -9,7 +10,7 @@ import java.time.Duration;
  * Represents the final, resolved configuration for a specific Vaultiq session data model type.
  * <p>
  * This record holds the effective persistence settings (whether JPA and/or Cache are used),
- * the specific cache name, and the synchronization interval for a given {@link ModelType}.
+ * the specific cache name, and the synchronization interval for a given {@link CacheType}.
  * The values in this record are the result of the configuration enhancement process
  * performed by {@link VaultiqModelConfigEnhancer}, which
  * consolidates settings from global properties, model-specific overrides, and zen mode.
@@ -20,27 +21,26 @@ import java.time.Duration;
  * for a particular model type.
  * </p>
  *
- * @param modelType    The {@link ModelType} this configuration applies to.
+ * @param type    The {@link CacheType} this configuration applies to.
  * @param cacheName    The effective name of the cache to be used for this model type.
  * @param useJpa       {@code true} if JPA persistence is enabled for this model type, {@code false} otherwise.
  * @param useCache     {@code true} if cache persistence is enabled for this model type, {@code false} otherwise.
  * @param syncInterval The effective synchronization interval for this model type, if applicable.
- * @see ModelType
+ * @see CacheType
  * @see VaultiqSessionContext
  * @see VaultiqModelConfigEnhancer
  */
 public record VaultiqModelConfig(
-        ModelType modelType,
+        CacheType type,
         String cacheName,
         boolean useJpa,
-        boolean useCache,
-        Duration syncInterval
+        boolean useCache
 ) {
     @Override
     public String toString() {
         return String.format(
-                "{ \"modelType\": \"%s\", \"cacheName\": \"%s\", \"useJpa\": %b, \"useCache\": %b, \"syncInterval\": \"%s\" }",
-                modelType, cacheName, useJpa, useCache, syncInterval
+                "{ \"CacheType\": \"%s\", \"cacheName\": \"%s\", \"useJpa\": %b, \"useCache\": %b }",
+                type, cacheName, useJpa, useCache
         );
     }
 

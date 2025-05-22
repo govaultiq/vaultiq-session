@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
+import vaultiq.session.cache.util.CacheType;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
@@ -83,19 +84,19 @@ public class VaultiqModelConfigShouldMatchCondition implements Condition {
 
         // Get the required persistence method and model types from the annotation
         VaultiqPersistenceMethod method = (VaultiqPersistenceMethod) attrs.get("method");
-        ModelType[] modelTypes = (ModelType[]) attrs.get("type");
+        CacheType[] cacheTypes = (CacheType[]) attrs.get("type");
 
-        log.debug("Validating condition for persistence method: {}, and modelTypes: {}", method, modelTypes);
+        log.debug("Validating condition for persistence method: {}, and cacheTypes: {}", method, cacheTypes);
         // Get the VaultiqSessionContext to access current configuration
         VaultiqSessionContext sessionContext = VaultiqSessionContextHolder.getContext();
 
         // Check if all specified model types match the required persistence method
-        var result = Arrays.stream(modelTypes)
+        var result = Arrays.stream(cacheTypes)
                 .map(sessionContext::getModelConfig)
-                .filter(Objects::nonNull)                       // Filter out any null configs
-                .anyMatch(cfg -> switch (method) {              // Check if method matches requirement
-                    case USE_CACHE -> cfg.useCache();           // For cache-based persistence
-                    case USE_JPA -> cfg.useJpa();               // For JPA-based persistence
+                .filter(Objects::nonNull)
+                .anyMatch(cfg -> switch (method) {
+                    case USE_CACHE -> cfg.useCache();
+                    case USE_JPA -> cfg.useJpa();
                 });
         log.debug("Condition result: {}", result);
         return result;
