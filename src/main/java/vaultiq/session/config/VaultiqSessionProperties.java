@@ -84,20 +84,18 @@ public class VaultiqSessionProperties {
          * <p>
          * This can be overridden by {@link VaultiqSessionProperties#zenMode} or
          * model-specific settings in {@link ModelPersistenceConfig#useJpa}.
-         * Defaults to {@code false}.
          * </p>
          */
-        private boolean useJpa = false;
+        private Boolean useJpa;
 
         /**
          * Global default setting to enable or disable cache-based persistence for all models.
          * <p>
          * This can be overridden by {@link VaultiqSessionProperties#zenMode} or
          * model-specific settings in {@link ModelPersistenceConfig#useCache}.
-         * Defaults to {@code false}.
          * </p>
          */
-        private boolean useCache = false;
+        private Boolean useCache;
 
         /**
          * The name of the Spring {@link org.springframework.cache.CacheManager} bean
@@ -119,11 +117,11 @@ public class VaultiqSessionProperties {
          *
          * @return {@code true} if JPA is globally enabled, {@code false} otherwise.
          */
-        public boolean isUseJpa() {
+        public Boolean isUseJpa() {
             return useJpa;
         }
 
-        public void setUseJpa(boolean useJpa) {
+        public void setUseJpa(Boolean useJpa) {
             this.useJpa = useJpa;
         }
 
@@ -132,11 +130,11 @@ public class VaultiqSessionProperties {
          *
          * @return {@code true} if caching is globally enabled, {@code false} otherwise.
          */
-        public boolean isUseCache() {
+        public Boolean isUseCache() {
             return useCache;
         }
 
-        public void setUseCache(boolean useCache) {
+        public void setUseCache(Boolean useCache) {
             this.useCache = useCache;
         }
 
