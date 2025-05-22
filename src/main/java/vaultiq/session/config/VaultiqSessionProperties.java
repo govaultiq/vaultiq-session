@@ -3,7 +3,7 @@ package vaultiq.session.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import vaultiq.session.core.model.ModelType;
+import vaultiq.session.cache.util.CacheType;
 import vaultiq.session.context.VaultiqModelConfigEnhancer;
 import vaultiq.session.context.VaultiqSessionContext;
 
@@ -33,7 +33,7 @@ public class VaultiqSessionProperties {
      * <p>
      * When set to {@code true}, this enables a simplified configuration mode
      * where both Cache and JPA persistence methods are considered active by
-     * default for all {@link ModelType}s. This setting acts as a base default
+     * default for all {@link CacheType}s. This setting acts as a base default
      * and can be overridden by more specific configurations in {@link Persistence}
      * and {@link ModelPersistenceConfig}.
      * </p>
@@ -168,7 +168,7 @@ public class VaultiqSessionProperties {
     }
 
     /**
-     * Persistence configuration for a specific {@link ModelType}.
+     * Persistence configuration for a specific {@link CacheType}.
      * <p>
      * Properties defined here override the global settings in {@link CacheConfig}
      * for the specified {@link #type}.
@@ -176,13 +176,13 @@ public class VaultiqSessionProperties {
      */
     public static class ModelPersistenceConfig {
         /**
-         * The {@link ModelType} to which this specific configuration applies.
+         * The {@link CacheType} to which this specific configuration applies.
          */
-        private ModelType type;
+        private CacheType type;
         /**
          * The specific cache name to use for this model type.
          * If not specified, the library might fall back to a default name
-         * based on the {@link ModelType}'s alias.
+         * based on the {@link CacheType}'s alias.
          */
         private String cacheName;
         /**
@@ -203,11 +203,11 @@ public class VaultiqSessionProperties {
          */
         private Duration syncInterval;
 
-        public ModelType getType() {
+        public CacheType getType() {
             return type;
         }
 
-        public void setType(ModelType type) {
+        public void setType(CacheType type) {
             this.type = type;
         }
 
