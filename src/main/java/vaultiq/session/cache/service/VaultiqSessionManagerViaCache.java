@@ -29,7 +29,7 @@ import java.util.Set;
  */
 @Service
 @ConditionalOnBean(VaultiqSessionCacheService.class)
-@ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.CACHE_ONLY, type = {ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
+@ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.CACHE_ONLY, type = ModelType.SESSION)
 public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
 
     private final static Logger log = LoggerFactory.getLogger(VaultiqSessionManagerViaCache.class);

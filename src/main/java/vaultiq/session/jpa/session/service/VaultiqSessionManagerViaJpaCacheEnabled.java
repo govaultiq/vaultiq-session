@@ -31,7 +31,7 @@ import java.util.Set;
  * This bean is automatically configured by Spring when both a {@link VaultiqSessionEntityService}
  * (for JPA operations) and a {@link VaultiqSessionCacheService} (for cache operations)
  * are available, and the persistence configuration matches {@link VaultiqPersistenceMode#JPA_AND_CACHE}
- * for the relevant model types ({@link ModelType#SESSION}, {@link ModelType#USER_SESSION_MAPPING}),
+ * for the relevant model type {@link ModelType#SESSION},
  * as defined by {@link ConditionalOnVaultiqPersistence}.
  * </p>
  *
@@ -41,10 +41,9 @@ import java.util.Set;
  * @see ConditionalOnVaultiqPersistence
  * @see VaultiqPersistenceMode#JPA_AND_CACHE
  * @see ModelType#SESSION
- * @see ModelType#USER_SESSION_MAPPING
  */
 @Service
-@ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_AND_CACHE, type = {ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
+@ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_AND_CACHE, type = ModelType.SESSION)
 public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionManager {
 
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionManagerViaJpaCacheEnabled.class);

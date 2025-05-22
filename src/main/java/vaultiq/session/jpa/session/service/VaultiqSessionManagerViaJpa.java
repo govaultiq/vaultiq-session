@@ -21,7 +21,7 @@ import java.util.Set;
  * delete, list, count) by delegating all calls to an underlying JPA-based
  * {@link VaultiqSessionEntityService}. It is designed to be active specifically
  * when the Vaultiq session library is configured to use JPA as the *only*
- * persistence method for {@link ModelType#SESSION} and {@link ModelType#USER_SESSION_MAPPING}
+ * persistence method for {@link ModelType#SESSION}
  * data models.
  * </p>
  * <p>
@@ -36,10 +36,9 @@ import java.util.Set;
  * @see ConditionalOnVaultiqPersistence
  * @see VaultiqPersistenceMode#JPA_ONLY
  * @see ModelType#SESSION
- * @see ModelType#USER_SESSION_MAPPING
  */
 @Service
-@ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_ONLY, type = {ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
+@ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_ONLY, type = ModelType.SESSION)
 public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionManagerViaJpa.class);
 

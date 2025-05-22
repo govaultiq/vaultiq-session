@@ -11,12 +11,6 @@ public enum ModelType {
     /** Active session objects. */
     SESSION,
 
-    /** Mapping of user IDs to their session IDs. */
-    USER_SESSION_MAPPING,
-
-    /** User activity and audit logs. */
-    USER_ACTIVITY_LOGS,
-
     /** Revoked or invalidated session identifiers. */
     REVOKE
 }
