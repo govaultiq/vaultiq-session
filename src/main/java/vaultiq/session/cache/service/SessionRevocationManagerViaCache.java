@@ -27,6 +27,7 @@ import java.util.List;
  * @see SessionRevocationCacheService
  */
 @Service
+@ConditionalOnBean(SessionRevocationCacheService.class)
 @ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.CACHE_ONLY, type = ModelType.REVOKE)
 public class SessionRevocationManagerViaCache implements SessionRevocationManager {
     private static final Logger log = LoggerFactory.getLogger(SessionRevocationManagerViaCache.class);
