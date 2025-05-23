@@ -3,8 +3,10 @@ package vaultiq.session.jpa.session.service;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vaultiq.session.cache.service.internal.SessionFingerprintCacheService;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.cache.service.internal.VaultiqSessionCacheService;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
@@ -13,8 +15,12 @@ import vaultiq.session.core.model.VaultiqSession;
 import vaultiq.session.core.VaultiqSessionManager;
 import vaultiq.session.jpa.session.service.internal.VaultiqSessionEntityService;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * Implementation of the {@link VaultiqSessionManager} interface that utilizes
@@ -49,19 +55,24 @@ public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionMa
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionManagerViaJpaCacheEnabled.class);
 
     private final VaultiqSessionEntityService sessionService;
-    private final VaultiqSessionCacheService cacheService;
+    private final ObjectProvider<VaultiqSessionCacheService> cacheServiceProvider;
+    private final SessionFingerprintCacheService fingerprintCacheService;
 
     /**
      * Constructs a new {@code VaultiqSessionManagerViaJpaCacheEnabled} with the required
      * JPA and Cache session service dependencies.
      *
-     * @param sessionService The underlying service for JPA-based session operations.
-     * @param cacheService   The underlying service for cache-based session operations.
+     * @param sessionService       The underlying service for JPA-based session operations.
+     * @param cacheServiceProvider The underlying service for cache-based session operations.
      */
-    public VaultiqSessionManagerViaJpaCacheEnabled(VaultiqSessionEntityService sessionService,
-                                                   VaultiqSessionCacheService cacheService) {
+    public VaultiqSessionManagerViaJpaCacheEnabled(
+            VaultiqSessionEntityService sessionService,
+            ObjectProvider<VaultiqSessionCacheService> cacheServiceProvider,
+            SessionFingerprintCacheService fingerprintCacheService
+    ) {
         this.sessionService = sessionService;
-        this.cacheService = cacheService;
+        this.cacheServiceProvider = cacheServiceProvider;
+        this.fingerprintCacheService = fingerprintCacheService;
         log.info("VaultiqSessionManager initialized; Persistence via - JPA_AND_CACHE.");
     }
 
@@ -75,8 +86,9 @@ public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionMa
         // Create the session in the database via the JPA service.
         VaultiqSession session = sessionService.create(userId, request);
         log.debug("Storing newly created session '{}' in cache.", session.getSessionId());
-        // Cache the newly created session.
-        cacheService.cacheSession(session);
+        // Cache session if sessionCacheService is available.
+        cacheServiceProvider.ifAvailable(service -> service.cacheSession(session));
+        fingerprintCacheService.cacheSessionFingerPrint(session);
         return session;
     }
 
@@ -88,16 +100,21 @@ public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionMa
      */
     @Override
     public VaultiqSession getSession(String sessionId) {
-        // Attempt to get the session from the cache.
-        VaultiqSession session = cacheService.getSession(sessionId);
-        if (session == null) {
-            log.debug("Session '{}' not found in cache. Fetching from DB.", sessionId);
-            // If not in cache, fetch from the database via the JPA service.
-            session = sessionService.get(sessionId);
-            if (session != null) {
-                // If found in DB, cache it for future lookups.
-                cacheService.cacheSession(session);
+        var cacheService = cacheServiceProvider.getIfAvailable();
+
+        // Try cache
+        if (cacheService != null) {
+            var fromCache = cacheService.getSession(sessionId);
+            if (fromCache != null) {
+                return fromCache;
             }
+            log.debug("Session '{}' not found in cache. Fetching from DB.", sessionId);
+        }
+
+        // Fallback to DB
+        var session = sessionService.get(sessionId);
+        if (session != null && cacheService != null) {
+            cacheService.cacheSession(session);
         }
         return session;
     }
@@ -111,13 +128,11 @@ public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionMa
     @Override
     public void deleteSession(String sessionId) {
         log.debug("Deleting session '{}' from DB and cache.", sessionId);
-        // Retrieve the session first to confirm existence before deleting.
-        VaultiqSession session = getSession(sessionId); // Uses read-through behavior
+        VaultiqSession session = sessionService.get(sessionId);
         if (session != null) {
-            // Delete from the database via the JPA service.
             sessionService.delete(sessionId);
-            // Delete from the cache.
-            cacheService.deleteSession(sessionId);
+            cacheServiceProvider.ifAvailable(service -> service.deleteSession(sessionId));
+            fingerprintCacheService.evictSessionFingerPrint(sessionId);
         } else {
             log.debug("Session '{}' not found while trying to delete.", sessionId);
         }
@@ -132,51 +147,69 @@ public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionMa
     public void deleteAllSessions(Set<String> sessionIds) {
         log.debug("Attempting to delete all sessions from both Jpa Store and Cache.");
         sessionService.deleteAllSessions(sessionIds);
-        cacheService.deleteAllSessions(sessionIds);
+        cacheServiceProvider.ifAvailable(service -> service.deleteAllSessions(sessionIds));
+        fingerprintCacheService.evictAllSessions(sessionIds);
     }
 
-    /**
-     * @inheritDoc <p>
-     * Attempts to retrieve all sessions for a user from the cache. If the cache
-     * is empty for the user, it fetches the sessions from the JPA service and
-     * then caches the list of sessions before returning.
-     * </p>
-     */
     @Override
     public List<VaultiqSession> getSessionsByUser(String userId) {
-        // Attempt to get sessions for the user from the cache.
-        var sessions = cacheService.getSessionsByUser(userId);
+        return fetchAndCache(
+                cacheService -> cacheService.getSessionsByUser(userId),
+                sessionService::list,
+                (id, list) -> svcCache().cacheUserSessions(id, list),
+                "Sessions for user",
+                userId
+        );
+    }
 
-        if (sessions.isEmpty()) {
-            log.debug("Sessions for user '{}' not found in cache. Fetching from DB.", userId);
-            // If cache is empty for the user, fetch from the database via the JPA service.
-            sessions = sessionService.list(userId);
-            // Cache the list of sessions for the user.
-            cacheService.cacheUserSessions(userId, sessions);
-        }
-        return sessions;
+    @Override
+    public List<VaultiqSession> getActiveSessionsByUser(String userId) {
+        return fetchAndCache(
+                cacheService -> cacheService.getActiveSessionsByUser(userId),
+                sessionService::getActiveSessionsByUser,
+                (id, list) -> svcCache().cacheUserSessions(id, list),
+                "Active sessions for user",
+                userId
+        );
     }
 
     /**
-     * @param userId The unique identifier of the user whose sessions are to be retrieved.
-     * @return
-     * @inheritDoc <p>
-     * Attempts to retrieve all active sessions for a user from the cache. If the cache
-     * is empty for the user, it fetches the sessions from the JPA service and
-     * then caches the list of active sessions before returning.
-     * </p>
+     * Common read‐through/write‐through helper.
+     *
+     * @param cacheFetcher   how to fetch from cache given the cache‐service
+     * @param dbFetcher      how to fetch from JPA given the userId
+     * @param cacheWriter    how to store into cache given (userId, sessions)
+     * @param logContext     prefix for your debug log
+     * @param userId         the key to look up
      */
-    @Override
-    public List<VaultiqSession> getActiveSessionsByUser(String userId) {
-        var sessions = cacheService.getActiveSessionsByUser(userId);
-        if (sessions.isEmpty()) {
-            log.debug("Active sessions for user '{}' not found in cache. Fetching from DB.", userId);
-            // If cache is empty for the user, fetch from the database via the JPA service.
-            sessions = sessionService.getActiveSessionsByUser(userId);
-            // Cache the list of active sessions for the user.
-            cacheService.cacheUserSessions(userId, sessions);
+    private List<VaultiqSession> fetchAndCache(
+            Function<VaultiqSessionCacheService, List<VaultiqSession>> cacheFetcher,
+            Function<String, List<VaultiqSession>> dbFetcher,
+            BiConsumer<String, List<VaultiqSession>> cacheWriter,
+            String logContext,
+            String userId) {
+
+        var cacheService = cacheServiceProvider.getIfAvailable();
+        if (cacheService != null) {
+            var fromCache = cacheFetcher.apply(cacheService);
+            if (fromCache != null && !fromCache.isEmpty()) {
+                return fromCache;
+            }
+            log.debug("{} '{}' not found in cache. Fetching from DB.", logContext, userId);
         }
-        return sessions;
+
+        var fromDb = Optional.ofNullable(dbFetcher.apply(userId))
+                .orElseGet(ArrayList::new);
+
+        if (cacheService != null && !fromDb.isEmpty()) {
+            cacheWriter.accept(userId, fromDb);
+        }
+        return fromDb;
+    }
+
+    /** helper to avoid repeating provider lookup */
+    private VaultiqSessionCacheService svcCache() {
+        return cacheServiceProvider.getIfAvailable();
     }
 
     /**
@@ -188,15 +221,15 @@ public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionMa
      */
     @Override
     public int totalUserSessions(String userId) {
-        // Attempt to get session IDs from the cache to determine the count.
-        Set<String> sessionIds = cacheService.getUserSessionIds(userId);
-        if (!sessionIds.isEmpty()) {
-            log.debug("Counting sessions for user '{}' via cache.", userId);
-            return sessionIds.size();
-        } else {
-            log.debug("Session IDs for user '{}' not found in cache. Counting via DB.", userId);
-            // If session IDs are not in cache, fall back to counting in the database.
-            return sessionService.count(userId);
+        var cacheService = cacheServiceProvider.getIfAvailable();
+        if (cacheService != null) {
+            Set<String> sessionIds = cacheService.getUserSessionIds(userId);
+            if (sessionIds != null && !sessionIds.isEmpty()) {
+                log.debug("Counting sessions for user '{}' via cache.", userId);
+                return sessionIds.size();
+            } else
+                log.debug("Session IDs for user '{}' not found in cache. Counting via DB.", userId);
         }
+        return sessionService.count(userId);
     }
 }

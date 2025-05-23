@@ -119,12 +119,13 @@ public class VaultiqSessionCacheService {
      *
      * @param sessionId the session identifier
      */
-    public void deleteSession(String sessionId) {
+    public boolean deleteSession(String sessionId) {
         log.debug("Deleting session with sessionId={}", sessionId);
         var session = getSession(sessionId);
 
+        boolean didEvict = false;
         if (session != null) {
-            sessionPoolCache.evict(keyForSession(sessionId));
+            didEvict = sessionPoolCache.evictIfPresent(keyForSession(sessionId));
             var sessionIds = getUserSessionIds(session.getUserId());
             sessionIds.remove(sessionId);
 
@@ -132,6 +133,7 @@ public class VaultiqSessionCacheService {
             updated.setSessionIds(sessionIds);
             sessionPoolCache.put(keyForUserSessionMapping(session.getUserId()), updated);
         }
+        return didEvict;
     }
 
     /**
@@ -225,8 +227,8 @@ public class VaultiqSessionCacheService {
      * @param sessionIds the session identifiers to delete
      */
     public void deleteAllSessions(Set<String> sessionIds) {
-        sessionIds.forEach(this::deleteSession);
-        log.debug("Deleted {} sessions via cache. Sessions: {}", sessionIds.size(), sessionIds);
+        var evictionList = sessionIds.stream().map(this::deleteSession).toList();
+        log.debug("{} of {} ClientSessions found and evicted.", evictionList.size(), sessionIds.size());
     }
 
     /**

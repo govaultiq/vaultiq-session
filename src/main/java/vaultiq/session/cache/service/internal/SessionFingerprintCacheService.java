@@ -12,6 +12,8 @@ import vaultiq.session.context.VaultiqSessionContext;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.core.model.VaultiqSession;
 
+import java.util.Set;
+
 /**
  * Service for managing session fingerprints in the cache.
  * This service is active only when the session model is configured to use caching.
@@ -68,5 +70,11 @@ public class SessionFingerprintCacheService {
     public void evictSessionFingerPrint(String sessionId) {
         log.debug("Evicting session fingerprint for sessionId={}", sessionId);
         sessionFingerprintsCache.evict(sessionId);
+    }
+
+    public void evictAllSessions(Set<String> sessionIds) {
+        log.debug("Evicting all session fingerprints for sessionIds= {}", sessionIds);
+        var resultList = sessionIds.stream().map(sessionFingerprintsCache::evictIfPresent).toList();
+        log.info("{} of {} session fingerprints found and evicted.", resultList.size(), sessionIds.size());
     }
 }
