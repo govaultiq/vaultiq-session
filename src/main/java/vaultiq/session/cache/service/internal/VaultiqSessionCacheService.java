@@ -5,13 +5,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
-import org.springframework.stereotype.Service;
+import vaultiq.session.cache.config.CacheServiceAutoRegistrar;
+import vaultiq.session.cache.service.VaultiqSessionManagerViaCache;
 import vaultiq.session.cache.util.CacheType;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.cache.model.SessionIds;
 import vaultiq.session.cache.util.VaultiqCacheContext;
-import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
-import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.core.model.VaultiqSession;
 import vaultiq.session.context.VaultiqSessionContext;
 import vaultiq.session.fingerprint.DeviceFingerprintGenerator;
@@ -24,19 +23,26 @@ import static vaultiq.session.cache.util.CacheKeyResolver.keyForSession;
 import static vaultiq.session.cache.util.CacheKeyResolver.keyForUserSessionMapping;
 
 /**
- * Provides in-memory or distributed cache-backed session pool operations for Vaultiq sessions.
+ * Cache service for managing {@link VaultiqSession} objects.
  * <p>
- * All active sessions, and the mapping of users to their session IDs, are managed in configurable caches.
- * This is the foundational service for "cache-only" session management and is used by {@link vaultiq.session.cache.service.VaultiqSessionManagerViaCache}.
+ * This service is typically used in conjunction with a {@link VaultiqSessionManagerViaCache} to provide a complete session management solution.
+ * And with {@link vaultiq.session.jpa.session.service.VaultiqSessionManagerViaJpaCacheEnabled} when session objects are required to be cached alongside Jpa Persistence.
  * </p>
- * <ul>
- *   <li>Fast CRUD for session objects (add, read, remove, a list).</li>
- *   <li>Keeps user-to-session mappings up to date in dedicated caches for efficient user/session lookup.</li>
- *   <li>Supports device fingerprinting for device-specific session tracking.</li>
- * </ul>
+ *
+ * <p>
+ * <b>Note: </b>
+ * Bean of this class is Registered conditionally via {@link CacheServiceAutoRegistrar}.
+ * This Service Bean is only required when the cache of type {@link CacheType#SESSION_POOL} is present/available.
+ * </p>
+ *
+ * @see VaultiqSessionCacheService
+ * @see VaultiqSessionContext
+ * @see VaultiqCacheContext
+ * @see DeviceFingerprintGenerator
+ * @see VaultiqSessionManagerViaCache
+ * @see CacheType
+ * @see ModelType
  */
-@Service
-@ConditionalOnVaultiqModelConfig(method = VaultiqPersistenceMethod.USE_CACHE, type = ModelType.SESSION)
 public class VaultiqSessionCacheService {
 
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionCacheService.class);
@@ -225,6 +231,7 @@ public class VaultiqSessionCacheService {
 
     /**
      * Retrieves all active sessions for a given user, filtering out blocked sessions.
+     *
      * @param userId the user identifier
      * @return list of VaultiqSession objects (maybe empty if none)
      */

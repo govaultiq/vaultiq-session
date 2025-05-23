@@ -29,10 +29,10 @@ import static vaultiq.session.cache.util.CacheKeyResolver.*;
  * Provides fast lookups and revoke operations for sessions, with support for revoking single or multiple sessions,
  * revoking all sessions except some, and querying for a user's revoked sessions.
  * </p>
+ * <b>Note: </b>
+ *  The bean of this class is registered conditionally via the {@link vaultiq.session.cache.config.CacheServiceAutoRegistrar}
+ *  ensuring the bean is only available if the cache of type {@link CacheType#REVOKED_SESSION_POOL} is available.
  */
-@Service
-@ConditionalOnBean(VaultiqCacheContext.class)
-@ConditionalOnVaultiqModelConfig(method = VaultiqPersistenceMethod.USE_CACHE, type = ModelType.REVOKE)
 public class SessionRevocationCacheService {
 
     private static final Logger log = LoggerFactory.getLogger(SessionRevocationCacheService.class);

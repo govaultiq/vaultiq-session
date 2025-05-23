@@ -74,6 +74,18 @@ public class VaultiqCacheContext {
     }
 
     /**
+     * Returns a cache for the specified cache type if found or else null;
+     *
+     * @param cacheType the associated cacheType type for error messaging
+     * @return resolved cache (never null)
+     * @throws IllegalStateException if the cache cannot be found
+     */
+    public Cache getCache(CacheType cacheType) {
+        var name = cacheType.alias();
+        return cacheManager.getCache(name);
+    }
+
+    /**
      * Starts resolution of an optional cache. Supports fluent fallbacks if the preferred cache is missing.
      *
      * @param name      preferred cache name (may be blank/unset)
