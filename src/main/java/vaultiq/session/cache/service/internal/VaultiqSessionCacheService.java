@@ -6,10 +6,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import vaultiq.session.cache.config.CacheServiceAutoRegistrar;
 import vaultiq.session.cache.service.VaultiqSessionManagerViaCache;
 import vaultiq.session.cache.util.CacheHelper;
 import vaultiq.session.cache.util.CacheType;
+import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistenceRequirement;
+import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.cache.model.SessionIds;
 import vaultiq.session.cache.util.VaultiqCacheContext;
@@ -45,6 +48,8 @@ import static vaultiq.session.cache.util.CacheKeyResolver.keyForUserSessionMappi
  * @see CacheType
  * @see ModelType
  */
+@Service
+@ConditionalOnVaultiqPersistenceRequirement(VaultiqPersistenceMethod.USE_CACHE)
 public class VaultiqSessionCacheService {
 
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionCacheService.class);
