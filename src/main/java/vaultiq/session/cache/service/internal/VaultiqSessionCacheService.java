@@ -85,7 +85,7 @@ public class VaultiqSessionCacheService {
 
         log.info("Creating session for userId='{}', deviceFingerprint='{}', sessionId='{}'", userId, fingerprint, entry.getSessionId());
         sessionPoolCache.cache(keyForSession(entry.getSessionId()), entry);
-        mapNewSessionIdToUser(userId, entry);
+        mapNewSessionIdToUser(entry);
 
         return toVaultiqSession(entry);
     }
@@ -97,12 +97,8 @@ public class VaultiqSessionCacheService {
      * @throws NullPointerException if {@code session} or its sessionId is null.
      */
     public void cacheSession(VaultiqSession session) {
-        Objects.requireNonNull(session, "VaultiqSession cannot be null for caching.");
-        Objects.requireNonNull(session.getSessionId(), "Session ID cannot be null for caching VaultiqSession.");
-
-        log.debug("Caching session with sessionId='{}'", session.getSessionId());
-        VaultiqSessionCacheEntry entry = VaultiqSessionCacheEntry.copy(session);
-        sessionPoolCache.cache(keyForSession(session.getSessionId()), entry);
+        var entry = cacheSessionEntry(session);
+        mapNewSessionIdToUser(entry);
     }
 
     /**
@@ -123,7 +119,7 @@ public class VaultiqSessionCacheService {
         }
 
         log.info("Caching {} sessions for userId='{}' in batch.", sessions.size(), userId);
-        sessions.forEach(this::cacheSession); // Cache individual sessions
+        sessions.forEach(this::cacheSessionEntry); // Cache individual sessions
 
         // Update the user-to-session mapping with all provided session IDs
         Set<String> newSessionIds = sessions.stream().map(VaultiqSession::getSessionId).collect(Collectors.toSet());
@@ -293,6 +289,23 @@ public class VaultiqSessionCacheService {
     // -------------------------------------------------------------------------
 
     /**
+     * Caches a session entry for a given {@link VaultiqSession} object. This method is used internally
+     *
+     * @param session The {@link VaultiqSession} object to cache. Cannot be null and must have a non-null sessionId.
+     * @return The cached {@link VaultiqSessionCacheEntry}.
+     * @throws NullPointerException if the {@code session} is null.
+     */
+    private VaultiqSessionCacheEntry cacheSessionEntry(VaultiqSession session) {
+        Objects.requireNonNull(session, "VaultiqSession cannot be null for caching.");
+        Objects.requireNonNull(session.getSessionId(), "Session ID cannot be null for caching VaultiqSession.");
+
+        log.debug("Caching session with sessionId='{}'", session.getSessionId());
+        VaultiqSessionCacheEntry entry = VaultiqSessionCacheEntry.copy(session);
+        sessionPoolCache.cache(keyForSession(session.getSessionId()), entry);
+        return entry;
+    }
+
+    /**
      * Retrieves the cached set of active session IDs for a user.
      *
      * @param userId The identifier of the user. Cannot be null or blank.
@@ -330,10 +343,10 @@ public class VaultiqSessionCacheService {
      * Updates or creates the user-to-session mapping in the cache after a new session is added.
      * This helper ensures that a user's set of session IDs is kept current.
      *
-     * @param userId The identifier of the user.
-     * @param entry  The {@link VaultiqSessionCacheEntry} to associate with the user.
+     * @param entry The {@link VaultiqSessionCacheEntry} to associate with the user.
      */
-    private void mapNewSessionIdToUser(String userId, VaultiqSessionCacheEntry entry) {
+    private void mapNewSessionIdToUser(VaultiqSessionCacheEntry entry) {
+        var userId = entry.getUserId();
         SessionIds sessionIds = getUserSessionIds(userId).orElseGet(SessionIds::new);
         sessionIds.addSessionId(entry.getSessionId()); // SessionIds wrapper manages lastUpdated automatically
         sessionPoolCache.cache(keyForUserSessionMapping(userId), sessionIds);

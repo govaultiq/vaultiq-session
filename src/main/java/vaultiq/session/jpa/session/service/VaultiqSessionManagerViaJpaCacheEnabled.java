@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vaultiq.session.cache.model.SessionIds;
 import vaultiq.session.cache.service.internal.SessionFingerprintCacheService;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistenceRequirement;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
@@ -185,8 +186,9 @@ public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionMa
      */
     @Override
     public int totalUserSessions(String userId) {
+        Set<String> sessionIds = sessionCacheService.getUserSessionIds(userId)
+                .map(SessionIds::getSessionIds).orElse(null);
 
-        Set<String> sessionIds = sessionCacheService.getUserSessionIds(userId);
         if (sessionIds != null && !sessionIds.isEmpty()) {
             log.debug("Counting sessions for user '{}' via cache.", userId);
             return sessionIds.size();

@@ -51,15 +51,4 @@ public interface SessionRevocationManager {
      * @return a list of revoked sessions; never null but may be empty.
      */
     List<RevokedSession> getRevokedSessions(String userId);
-
-    /**
-     * Clears revocation for specified sessions.
-     * <p>
-     * Removes the listed sessions from the revocation store.
-     * No action if input is empty or blank.
-     * </p>
-     *
-     * @param sessionIds array of session IDs to clear; can be empty or blank.
-     */
-    void clearRevocation(String... sessionIds);
 }

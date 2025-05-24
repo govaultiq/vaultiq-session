@@ -87,17 +87,6 @@ public class SessionRevocationManagerViaJpa implements SessionRevocationManager 
     }
 
     /**
-     * Clears the revoke for a specific session or multiple sessions.
-     *
-     * @param sessionIds an array of unique sessions identifiers to clear. Can be empty. It Can be blank.
-     */
-    @Override
-    public void clearRevocation(String... sessionIds) {
-        log.debug("Attempting to clear revoke for {} sessionIds.", sessionIds.length);
-        revokedSessionEntityService.clearRevocation(sessionIds);
-    }
-
-    /**
      * Helper method to convert a JPA entity to a RevokedSession object.
      *
      * @param revokedSessionEntity the JPA entity to convert
