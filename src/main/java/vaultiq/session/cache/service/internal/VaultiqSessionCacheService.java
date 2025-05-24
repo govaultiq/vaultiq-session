@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import vaultiq.session.cache.config.CacheServiceAutoRegistrar;
 import vaultiq.session.cache.service.VaultiqSessionManagerViaCache;
 import vaultiq.session.cache.util.CacheHelper;
 import vaultiq.session.cache.util.CacheType;
@@ -32,12 +31,6 @@ import static vaultiq.session.cache.util.CacheKeyResolver.keyForUserSessionMappi
  * <p>
  * This service is typically used in conjunction with a {@link VaultiqSessionManagerViaCache} to provide a complete session management solution.
  * And with {@link vaultiq.session.jpa.session.service.VaultiqSessionManagerViaJpaCacheEnabled} when session objects are required to be cached alongside Jpa Persistence.
- * </p>
- *
- * <p>
- * <b>Note: </b>
- * Bean of this class is Registered conditionally via {@link CacheServiceAutoRegistrar}.
- * This Service Bean is only required when the cache of type {@link CacheType#SESSION_POOL} is present/available.
  * </p>
  *
  * @see VaultiqSessionCacheService

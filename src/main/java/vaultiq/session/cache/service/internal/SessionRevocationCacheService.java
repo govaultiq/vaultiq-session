@@ -5,17 +5,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.cache.Cache;
-import org.springframework.stereotype.Service;
 import vaultiq.session.cache.util.CacheHelper;
 import vaultiq.session.cache.util.CacheType;
-import vaultiq.session.core.model.ModelType;
 import vaultiq.session.cache.model.RevokedSessionCacheEntry;
 import vaultiq.session.cache.model.SessionIds;
-import vaultiq.session.cache.util.VaultiqCacheContext;
-import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
-import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.context.VaultiqSessionContextHolder;
 import vaultiq.session.core.contracts.UserIdentityAware;
 import vaultiq.session.core.model.RevocationType;
@@ -32,9 +25,6 @@ import static vaultiq.session.cache.util.CacheKeyResolver.*;
  * Provides fast lookups and revoke operations for sessions, with support for revoking single or multiple sessions,
  * revoking all sessions except some, and querying for a user's revoked sessions.
  * </p>
- * <b>Note: </b>
- *  The bean of this class is registered conditionally via the {@link vaultiq.session.cache.config.CacheServiceAutoRegistrar}
- *  ensuring the bean is only available if the cache of type {@link CacheType#REVOKED_SESSION_POOL} is available.
  */
 public class SessionRevocationCacheService {
 
