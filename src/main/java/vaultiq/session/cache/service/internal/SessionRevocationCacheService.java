@@ -5,12 +5,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import vaultiq.session.cache.util.CacheHelper;
 import vaultiq.session.cache.util.CacheType;
 import vaultiq.session.cache.model.RevokedSessionCacheEntry;
 import vaultiq.session.cache.model.SessionIds;
+import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
+import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.context.VaultiqSessionContextHolder;
 import vaultiq.session.core.contracts.UserIdentityAware;
+import vaultiq.session.core.model.ModelType;
 import vaultiq.session.core.model.RevocationType;
 import vaultiq.session.core.model.RevocationRequest;
 
@@ -26,6 +30,8 @@ import static vaultiq.session.cache.util.CacheKeyResolver.*;
  * revoking all sessions except some, and querying for a user's revoked sessions.
  * </p>
  */
+@Service
+@ConditionalOnVaultiqModelConfig(method = VaultiqPersistenceMethod.USE_CACHE, type = ModelType.REVOKE)
 public class SessionRevocationCacheService {
 
     private static final Logger log = LoggerFactory.getLogger(SessionRevocationCacheService.class);

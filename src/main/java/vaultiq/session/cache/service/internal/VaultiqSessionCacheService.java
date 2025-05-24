@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import vaultiq.session.cache.service.VaultiqSessionManagerViaCache;
 import vaultiq.session.cache.util.CacheHelper;
 import vaultiq.session.cache.util.CacheType;
-import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistenceRequirement;
+import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.cache.model.SessionIds;
@@ -42,7 +42,7 @@ import static vaultiq.session.cache.util.CacheKeyResolver.keyForUserSessionMappi
  * @see ModelType
  */
 @Service
-@ConditionalOnVaultiqPersistenceRequirement(VaultiqPersistenceMethod.USE_CACHE)
+@ConditionalOnVaultiqModelConfig(method = VaultiqPersistenceMethod.USE_CACHE, type = ModelType.SESSION)
 public class VaultiqSessionCacheService {
 
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionCacheService.class);
