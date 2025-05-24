@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
  * {@code @Configuration} class of the consuming application and then autowired
  * with {@code @Qualifier} when multiple instances are needed for different {@code CacheType}s.
  * </p>
- *
  */
 public class CacheHelper {
 
@@ -42,8 +41,8 @@ public class CacheHelper {
      *
      * @param cacheManager The Spring {@link CacheManager} instance, typically autowired by the consuming application.
      * @param cacheType    The specific {@link CacheType} instance that defines the alias of the cache this helper will manage.
-     * (e.g., an enum representing various application caches). This generic parameter is
-     * scoped to the constructor and ensures the provided {@code cacheType} is valid.
+     *                     (e.g., an enum representing various application caches). This generic parameter is
+     *                     scoped to the constructor and ensures the provided {@code cacheType} is valid.
      */
     public CacheHelper(CacheManager cacheManager, CacheType cacheType) {
         this.cacheName = cacheType.alias(); // Store cacheName for logging consistency
@@ -206,5 +205,48 @@ public class CacheHelper {
                     .count();
             logger.debug("{} entries found and evicted from cache '{}'.", evictedCount, cacheName);
         }
+    }
+
+    /**
+     * <p>
+     * This class defines {@code public static final String} constants for the bean names
+     * of various {@link CacheHelper} instances within the application context.
+     * </p>
+     *
+     * <p>
+     * By centralizing bean names here, it ensures consistency and avoids "magic strings"
+     * spread throughout configuration classes. These constants can be directly used
+     * in annotations like {@code @Bean(name = ...)} or {@code @Qualifier(...)}
+     * because their values are known at compile time.
+     * </p>
+     */
+    public static class BeanNames {
+        /**
+         * The Spring bean name for the {@code CacheHelper} managing
+         * {@link CacheType#SESSION_FINGERPRINTS}.
+         * Value: {@value}
+         */
+        public static final String SESSION_FINGERPRINT_CACHE_HELPER = "sessionFingerprintCacheHelper";
+
+        /**
+         * The Spring bean name for the {@code CacheHelper} managing
+         * {@link CacheType#SESSION_POOL}.
+         * Value: {@value}
+         */
+        public static final String SESSION_POOL_CACHE_HELPER = "sessionPoolCacheHelper";
+
+        /**
+         * The Spring bean name for the {@code CacheHelper} managing
+         * {@link CacheType#REVOKED_SIDS}.
+         * Value: {@value}
+         */
+        public static final String REVOKED_SIDS_CACHE_HELPER = "revokedSidsCacheHelper";
+
+        /**
+         * The Spring bean name for the {@code CacheHelper} managing
+         * {@link CacheType#REVOKED_SESSION_POOL}.
+         * Value: {@value}
+         */
+        public static final String REVOKED_SESSION_POOL_CACHE_HELPER = "revokedSessionPoolCacheHelper";
     }
 }
