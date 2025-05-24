@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
-import vaultiq.session.core.model.ModelType;
 import vaultiq.session.cache.service.internal.SessionRevocationCacheService;
 import vaultiq.session.config.VaultiqSessionProperties;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistenceRequirement;
@@ -63,12 +62,10 @@ public class VaultiqCacheContext {
      * @throws IllegalStateException if the cache cannot be found
      */
     public Cache getCacheMandatory(String name, CacheType cacheType) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalStateException("Missing cache name for the type: '" + cacheType.name() + "'.");
-        }
-        Cache cache = cacheManager.getCache(name);
+        Cache cache = getCache(cacheType);
         if (cache == null) {
-            throw new IllegalStateException("Cache named '" + name + "' not found in configured CacheManager.");
+            log.error("Cache for type: '{}' not Found; Please create cache with name: '{}'.", cacheType.name(), cacheType.alias());
+            throw new IllegalStateException("Cache for type: '"+ cacheType.name() +"' not Found; Please create cache with name: '"+ cacheType.alias() +"'.");
         }
         return cache;
     }
@@ -88,24 +85,21 @@ public class VaultiqCacheContext {
     /**
      * Starts resolution of an optional cache. Supports fluent fallbacks if the preferred cache is missing.
      *
-     * @param name      preferred cache name (may be blank/unset)
-     * @param cacheType the associated cache type for fallback/error messaging
+     * @param cacheType the associated cache type
      * @return an {@link OptionalCacheResolver} for fluent fallback selection
      */
-    public OptionalCacheResolver getCacheOptional(String name, CacheType cacheType) {
-        return new OptionalCacheResolver(name, cacheType, cacheManager);
+    public OptionalCacheResolver getCacheOptional(CacheType cacheType) {
+        return new OptionalCacheResolver(cacheType, cacheManager);
     }
 
     /**
      * Fluent cache resolver for optional/secondary caches, supporting fallback-by-name or to a provided cache object.
      */
     public static class OptionalCacheResolver {
-        private final String requiredCacheName;
         private final CacheType requiredCacheType;
         private final CacheManager cacheManager;
 
-        public OptionalCacheResolver(String requiredCacheName, CacheType requiredCacheType, CacheManager cacheManager) {
-            this.requiredCacheName = requiredCacheName;
+        public OptionalCacheResolver(CacheType requiredCacheType, CacheManager cacheManager) {
             this.requiredCacheType = requiredCacheType;
             this.cacheManager = cacheManager;
         }
@@ -114,15 +108,15 @@ public class VaultiqCacheContext {
          * Resolves to the preferred cache if present, otherwise returns the provided fallback cache object.
          *
          * @param fallbackCache    the fallback cache (must not be null if needed)
-         * @param fallbackModelType used in log/error output for clarity
+         * @param fallbackCacheType used in log/error output for clarity
          * @return resolved cache
          */
-        public Cache orFallbackTo(Cache fallbackCache, ModelType fallbackModelType) {
+        public Cache orFallbackTo(Cache fallbackCache, CacheType fallbackCacheType) {
             Cache cache = tryGetCache();
             if (cache != null)
                 return cache;
 
-            logFallingBack(fallbackModelType);
+            logFallingBack(fallbackCacheType);
 
             if (fallbackCache != null)
                 return fallbackCache;
@@ -133,20 +127,16 @@ public class VaultiqCacheContext {
         /**
          * Resolves to the preferred cache if present, otherwise resolves by fallback cache name.
          *
-         * @param fallbackCacheName the fallback cache name
-         * @param fallbackModelType used in log/error output for clarity
+         * @param fallbackCacheType used in log/error output for clarity
          * @return resolved cache
          */
-        public Cache orFallbackTo(String fallbackCacheName, ModelType fallbackModelType) {
+        public Cache orFallbackTo(CacheType fallbackCacheType) {
             Cache cache = tryGetCache();
             if (cache != null)
                 return cache;
 
-            logFallingBack(fallbackModelType);
-
-            if (fallbackCacheName == null || fallbackCacheName.isBlank()) {
-                throw new IllegalStateException("Missing fallback cache name for the property: '" + fallbackModelType + "'.");
-            }
+            logFallingBack(fallbackCacheType);
+            var fallbackCacheName = fallbackCacheType.alias();
             cache = cacheManager.getCache(fallbackCacheName);
             if (cache == null) {
                 throw new IllegalStateException("Fallback cache named '" + fallbackCacheName + "' not found in configured CacheManager.");
@@ -154,22 +144,17 @@ public class VaultiqCacheContext {
             return cache;
         }
 
-        private void logFallingBack(ModelType fallbackModelType) {
-            Logger log = LoggerFactory.getLogger(OptionalCacheResolver.class);
+        private void logFallingBack(CacheType fallbackCacheType) {
             log.warn("Cache '{}' not found in CacheManager, falling back to type: '{}'.",
-                    requiredCacheName, fallbackModelType.name());
+                    fallbackCacheType.alias(), fallbackCacheType.name());
         }
 
         private Cache tryGetCache() {
-            if (requiredCacheName == null || requiredCacheName.isBlank()) {
-                Logger log = LoggerFactory.getLogger(OptionalCacheResolver.class);
-                log.warn("No cache name configured for property: '{}', will use fallback.", requiredCacheType.name());
-                return null;
-            }
+
+            var requiredCacheName = requiredCacheType.alias();
             Cache cache = cacheManager.getCache(requiredCacheName);
             if (cache != null) {
-                Logger log = LoggerFactory.getLogger(OptionalCacheResolver.class);
-                log.debug("Cache '{}' found in CacheManager, using it.", requiredCacheName);
+                log.debug("Cache '{}' found in CacheManager.", requiredCacheName);
             }
             return cache;
         }
