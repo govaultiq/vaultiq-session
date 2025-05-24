@@ -18,6 +18,7 @@ import vaultiq.session.core.VaultiqSessionManager;
 import vaultiq.session.jpa.session.service.internal.VaultiqSessionEntityService;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -60,8 +61,8 @@ public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionMa
      * Constructs a new {@code VaultiqSessionManagerViaJpaCacheEnabled} with the required
      * JPA and Cache session service dependencies.
      *
-     * @param sessionService The underlying service for JPA-based session operations.
-     * @param sessionCacheService   The underlying service for cache-based session operations.
+     * @param sessionService      The underlying service for JPA-based session operations.
+     * @param sessionCacheService The underlying service for cache-based session operations.
      */
     public VaultiqSessionManagerViaJpaCacheEnabled(
             VaultiqSessionEntityService sessionService,
@@ -139,6 +140,20 @@ public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionMa
             sessionCacheService.cacheSession(session);
         }
         return session;
+    }
+
+    /**
+     * @param sessionId The unique identifier of the session.
+     * @return Optional String (Device fingerprint) if found or empty.
+     * @inheritDoc <p>
+     * Retrieves all active sessions for a user.
+     * </p>
+     */
+    @Override
+    public Optional<String> getSessionFingerprint(String sessionId) {
+        return Optional.ofNullable(sessionId)
+                .map(fingerprintCacheService::getSessionFingerPrint)
+                .or(() -> sessionService.getSessionFingerprint(sessionId));
     }
 
     /**

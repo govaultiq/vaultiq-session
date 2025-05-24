@@ -12,6 +12,7 @@ import vaultiq.session.core.VaultiqSessionManager;
 import vaultiq.session.jpa.session.service.internal.VaultiqSessionEntityService;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -74,6 +75,17 @@ public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
     }
 
     /**
+     * @param sessionId The unique identifier of the session.
+     * @return Optional String representing the device fingerprint. Returns {@code null} if no session exists with the given ID in the database.
+     * @inheritDoc <p>Delegates session fingerprint retrieval by ID to the underlying JPA service.</p>
+     */
+    @Override
+    public Optional<String> getSessionFingerprint(String sessionId) {
+        log.debug("Retrieving session fingerprint for session '{}' via JPA.", sessionId);
+        return sessionService.getSessionFingerprint(sessionId);
+    }
+
+    /**
      * @inheritDoc <p>Delegates session deletion by ID to the underlying JPA service.</p>
      */
     @Override
@@ -102,9 +114,9 @@ public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
     }
 
     /**
-     * @inheritDoc <p>Delegates counting active sessions by user ID to the underlying JPA service.</p>
      * @param userId The unique identifier of the user whose sessions are to be retrieved.
      * @return the active sessions for user.
+     * @inheritDoc <p>Delegates counting active sessions by user ID to the underlying JPA service.</p>
      */
     @Override
     public List<VaultiqSession> getActiveSessionsByUser(String userId) {

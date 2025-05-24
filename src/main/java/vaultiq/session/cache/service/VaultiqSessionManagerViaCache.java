@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
+import vaultiq.session.cache.service.internal.SessionFingerprintCacheService;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.cache.service.internal.VaultiqSessionCacheService;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
@@ -14,6 +15,7 @@ import vaultiq.session.core.model.VaultiqSession;
 import vaultiq.session.core.VaultiqSessionManager;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -34,14 +36,16 @@ public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
 
     private final static Logger log = LoggerFactory.getLogger(VaultiqSessionManagerViaCache.class);
     private final VaultiqSessionCacheService vaultiqSessionCacheService;
+    private final SessionFingerprintCacheService sessionFingerprintCacheService;
 
     /**
      * Instantiates the manager with its required cache-backed service dependency.
      *
      * @param vaultiqSessionCacheService the service providing cache-based CRUD for sessions
      */
-    public VaultiqSessionManagerViaCache(VaultiqSessionCacheService vaultiqSessionCacheService) {
+    public VaultiqSessionManagerViaCache(VaultiqSessionCacheService vaultiqSessionCacheService, SessionFingerprintCacheService sessionFingerprintCacheService) {
         this.vaultiqSessionCacheService = vaultiqSessionCacheService;
+        this.sessionFingerprintCacheService = sessionFingerprintCacheService;
     }
 
     /**
@@ -65,6 +69,16 @@ public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
     @Override
     public VaultiqSession getSession(String sessionId) {
         return vaultiqSessionCacheService.getSession(sessionId);
+    }
+
+    /**
+     * Retrieves the device fingerprint associated with a session by sessionId.
+     * @param sessionId The unique identifier of the session.
+     * @return Optional instance of the device fingerprint, or empty if not found.
+     */
+    @Override
+    public Optional<String> getSessionFingerprint(String sessionId) {
+        return Optional.ofNullable(sessionFingerprintCacheService.getSessionFingerPrint(sessionId));
     }
 
     /**
