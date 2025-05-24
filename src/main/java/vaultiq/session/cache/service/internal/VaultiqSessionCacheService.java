@@ -117,13 +117,12 @@ public class VaultiqSessionCacheService {
      *
      * @param sessionId the session identifier
      */
-    public boolean deleteSession(String sessionId) {
+    public void deleteSession(String sessionId) {
         log.debug("Deleting session with sessionId={}", sessionId);
         var session = getSession(sessionId);
 
-        boolean didEvict = false;
         if (session != null) {
-            didEvict = sessionPoolCache.evict(keyForSession(sessionId));
+            sessionPoolCache.evict(keyForSession(sessionId));
             var sessionIds = getUserSessionIds(session.getUserId());
             sessionIds.remove(sessionId);
 
@@ -131,7 +130,6 @@ public class VaultiqSessionCacheService {
             updated.setSessionIds(sessionIds);
             sessionPoolCache.cache(keyForUserSessionMapping(session.getUserId()), updated);
         }
-        return didEvict;
     }
 
     /**
