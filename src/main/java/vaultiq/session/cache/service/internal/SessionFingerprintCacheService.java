@@ -2,13 +2,12 @@ package vaultiq.session.cache.service.internal;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cache.Cache;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import vaultiq.session.cache.util.CacheType;
-import vaultiq.session.cache.util.VaultiqCacheContext;
+import vaultiq.session.cache.util.CacheHelper;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
-import vaultiq.session.context.VaultiqSessionContext;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.core.model.VaultiqSession;
 
@@ -23,23 +22,9 @@ import java.util.Set;
 public class SessionFingerprintCacheService {
     private static final Logger log = LoggerFactory.getLogger(SessionFingerprintCacheService.class);
 
-    private final Cache sessionFingerprintsCache;
-
-    /**
-     * Constructs a new SessionFingerprintCacheService.
-     * Initializes the cache specifically for session fingerprints.
-     *
-     * @param cacheContext The context for accessing configured caches.
-     * @param sessionContext The session context for retrieving model configurations.
-     */
-    public SessionFingerprintCacheService(
-            VaultiqCacheContext cacheContext,
-            VaultiqSessionContext sessionContext
-    ) {
-        this.sessionFingerprintsCache = cacheContext.getCacheMandatory(
-                sessionContext.getModelConfig(CacheType.SESSION_FINGERPRINTS).cacheName(),
-                CacheType.SESSION_FINGERPRINTS);
-    }
+    @Autowired
+    @Qualifier(CacheHelper.BeanNames.SESSION_FINGERPRINT_CACHE_HELPER)
+    private CacheHelper sessionFingerprintsCache;
 
     /**
      * Caches a session's device fingerprint using its session ID as the key.
@@ -48,7 +33,7 @@ public class SessionFingerprintCacheService {
      */
     public void cacheSessionFingerPrint(VaultiqSession session) {
         log.debug("Caching session fingerprint for sessionId={}", session.getSessionId());
-        sessionFingerprintsCache.put(session.getSessionId(), session.getDeviceFingerPrint());
+        sessionFingerprintsCache.cache(session.getSessionId(), session.getDeviceFingerPrint());
     }
 
     /**
@@ -74,7 +59,6 @@ public class SessionFingerprintCacheService {
 
     public void evictAllSessions(Set<String> sessionIds) {
         log.debug("Evicting all session fingerprints for sessionIds= {}", sessionIds);
-        var resultList = sessionIds.stream().map(sessionFingerprintsCache::evictIfPresent).toList();
-        log.info("{} of {} session fingerprints found and evicted.", resultList.size(), sessionIds.size());
+        sessionFingerprintsCache.evictAll(sessionIds);
     }
 }

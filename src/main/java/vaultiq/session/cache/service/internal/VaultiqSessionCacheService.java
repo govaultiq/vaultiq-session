@@ -4,9 +4,11 @@ package vaultiq.session.cache.service.internal;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cache.Cache;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import vaultiq.session.cache.config.CacheServiceAutoRegistrar;
 import vaultiq.session.cache.service.VaultiqSessionManagerViaCache;
+import vaultiq.session.cache.util.CacheHelper;
 import vaultiq.session.cache.util.CacheType;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.cache.model.SessionIds;
@@ -47,22 +49,18 @@ public class VaultiqSessionCacheService {
 
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionCacheService.class);
 
-    private final Cache sessionPoolCache;
     private final DeviceFingerprintGenerator fingerprintGenerator;
+
+    @Autowired
+    @Qualifier(CacheHelper.BeanNames.SESSION_POOL_CACHE_HELPER)
+    private CacheHelper sessionPoolCache;
 
     /**
      * Initializes the cache service using designated caches and a fingerprint generator.
      *
-     * @param context              application session context for model-specific configuration
-     * @param cacheContext         cache context providing named caches
      * @param fingerprintGenerator device-specific session ID utility
      */
-    public VaultiqSessionCacheService(
-            VaultiqSessionContext context,
-            VaultiqCacheContext cacheContext,
-            DeviceFingerprintGenerator fingerprintGenerator) {
-
-        this.sessionPoolCache = cacheContext.getCacheMandatory(context.getModelConfig(CacheType.SESSION_POOL).cacheName(), CacheType.SESSION_POOL);
+    public VaultiqSessionCacheService(DeviceFingerprintGenerator fingerprintGenerator) {
         this.fingerprintGenerator = fingerprintGenerator;
     }
 
@@ -79,7 +77,7 @@ public class VaultiqSessionCacheService {
         VaultiqSessionCacheEntry sessionEntry = VaultiqSessionCacheEntry.create(userId, fingerprint);
         log.info("Creating session for userId={}, deviceFingerprint={}", userId, fingerprint);
 
-        sessionPoolCache.put(keyForSession(sessionEntry.getSessionId()), sessionEntry);
+        sessionPoolCache.cache(keyForSession(sessionEntry.getSessionId()), sessionEntry);
         mapNewSessionIdToUser(userId, sessionEntry);
 
         log.debug("Session added to pool and cached for userId={}, sessionId={}", userId, sessionEntry.getSessionId());
@@ -94,7 +92,7 @@ public class VaultiqSessionCacheService {
     public void cacheSession(VaultiqSession vaultiqSession) {
         log.info("Caching session with sessionId={}", vaultiqSession.getSessionId());
         VaultiqSessionCacheEntry cacheEntry = VaultiqSessionCacheEntry.copy(vaultiqSession);
-        sessionPoolCache.put(keyForSession(vaultiqSession.getSessionId()), cacheEntry);
+        sessionPoolCache.cache(keyForSession(vaultiqSession.getSessionId()), cacheEntry);
     }
 
     /**
@@ -125,13 +123,13 @@ public class VaultiqSessionCacheService {
 
         boolean didEvict = false;
         if (session != null) {
-            didEvict = sessionPoolCache.evictIfPresent(keyForSession(sessionId));
+            didEvict = sessionPoolCache.evict(keyForSession(sessionId));
             var sessionIds = getUserSessionIds(session.getUserId());
             sessionIds.remove(sessionId);
 
             SessionIds updated = new SessionIds();
             updated.setSessionIds(sessionIds);
-            sessionPoolCache.put(keyForUserSessionMapping(session.getUserId()), updated);
+            sessionPoolCache.cache(keyForUserSessionMapping(session.getUserId()), updated);
         }
         return didEvict;
     }
@@ -175,7 +173,7 @@ public class VaultiqSessionCacheService {
 
         SessionIds updated = new SessionIds();
         updated.setSessionIds(sessionIds);
-        sessionPoolCache.put(keyForUserSessionMapping(userId), updated);
+        sessionPoolCache.cache(keyForUserSessionMapping(userId), updated);
     }
 
     /**
@@ -218,7 +216,7 @@ public class VaultiqSessionCacheService {
         var sessionIds = sessions.stream().map(VaultiqSession::getSessionId).collect(Collectors.toSet());
         SessionIds ids = new SessionIds();
         ids.setSessionIds(sessionIds);
-        sessionPoolCache.put(keyForUserSessionMapping(userId), ids);
+        sessionPoolCache.cache(keyForUserSessionMapping(userId), ids);
     }
 
     /**
@@ -227,8 +225,8 @@ public class VaultiqSessionCacheService {
      * @param sessionIds the session identifiers to delete
      */
     public void deleteAllSessions(Set<String> sessionIds) {
-        var evictionList = sessionIds.stream().map(this::deleteSession).toList();
-        log.debug("{} of {} ClientSessions found and evicted.", evictionList.size(), sessionIds.size());
+        log.debug("Attempting to delete {} sessions via cache.", sessionIds.size());
+        sessionPoolCache.evictAll(sessionIds);
     }
 
     /**

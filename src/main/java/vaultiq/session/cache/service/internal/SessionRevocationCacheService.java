@@ -3,9 +3,12 @@ package vaultiq.session.cache.service.internal;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cache.Cache;
 import org.springframework.stereotype.Service;
+import vaultiq.session.cache.util.CacheHelper;
 import vaultiq.session.cache.util.CacheType;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.cache.model.RevokedSessionCacheEntry;
@@ -38,8 +41,11 @@ public class SessionRevocationCacheService {
     private static final Logger log = LoggerFactory.getLogger(SessionRevocationCacheService.class);
 
     private final VaultiqSessionCacheService vaultiqSessionCacheService;
-    private final Cache revocationPoolCache;
     private final UserIdentityAware userIdentityAware;
+
+    @Autowired
+    @Qualifier(CacheHelper.BeanNames.REVOKED_SESSION_POOL_CACHE_HELPER)
+    private CacheHelper revocationPoolCache;
 
     // -------------------------------------------------------------------------
     // Constructor
@@ -48,12 +54,10 @@ public class SessionRevocationCacheService {
     /**
      * Constructs a cache-backed revoke service for sessions.
      *
-     * @param cacheContext               context holding/initializing cache instances
      * @param vaultiqSessionCacheService backing service for session cache access
      * @param userIdentityAware          used for audit context (marking who triggers revokes)
      */
     public SessionRevocationCacheService(
-            VaultiqCacheContext cacheContext,
             VaultiqSessionCacheService vaultiqSessionCacheService,
             UserIdentityAware userIdentityAware
     ) {
@@ -64,10 +68,6 @@ public class SessionRevocationCacheService {
         }
 
         this.vaultiqSessionCacheService = Objects.requireNonNull(vaultiqSessionCacheService, "VaultiqSessionCacheService may not be null");
-        this.revocationPoolCache = cacheContext.getCacheMandatory(
-                vaultiqModelConfig.cacheName(),
-                CacheType.REVOKED_SESSION_POOL
-        );
     }
 
     // -------------------------------------------------------------------------
@@ -172,7 +172,7 @@ public class SessionRevocationCacheService {
      * @return true if revoked, false otherwise
      */
     public boolean isSessionRevoked(String sessionId) {
-        return revocationPoolCache.get(keyForRevocation(sessionId)) != null;
+        return revocationPoolCache.get(keyForRevocation(sessionId), RevokedSessionCacheEntry.class) != null;
     }
 
     /**
@@ -264,13 +264,13 @@ public class SessionRevocationCacheService {
         var userId = entry.getUserId();
         var sessionId = entry.getSessionId();
 
-        revocationPoolCache.put(keyForRevocation(sessionId), entry);
+        revocationPoolCache.cache(keyForRevocation(sessionId), entry);
         vaultiqSessionCacheService.deleteSession(sessionId);
 
         SessionIds sessionIds = Optional.ofNullable(getRevokedSessionIds(userId))
                 .orElseGet(SessionIds::new);
         sessionIds.addSessionId(sessionId);
-        revocationPoolCache.put(keyForRevocationByUser(userId), sessionIds);
+        revocationPoolCache.cache(keyForRevocationByUser(userId), sessionIds);
 
         log.info("User '{}' had session '{}' revoked.", userId, sessionId);
     }
