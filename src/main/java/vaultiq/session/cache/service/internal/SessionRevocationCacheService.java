@@ -79,12 +79,12 @@ public class SessionRevocationCacheService {
      *
      * @param context Describes what to revoke and how. If null, no operation is performed.
      */
-    public void revoke(RevocationRequest context) {
+    public Set<String> revoke(RevocationRequest context) {
         if (context == null) {
             log.debug("RevocationRequest context is null. Skipping revoke operation.");
-            return;
+            return Collections.emptySet();
         }
-        switch (context.getRevocationType()) {
+        return switch (context.getRevocationType()) {
             case LOGOUT -> revokeSession(context.getIdentifier(), context.getNote());
             case LOGOUT_ALL -> revokeAllSessions(context.getIdentifier(), context.getNote());
             case LOGOUT_WITH_EXCLUSION -> revokeWithExclusions(
@@ -92,8 +92,7 @@ public class SessionRevocationCacheService {
                     context.getNote(),
                     context.getExcludedSessionIds()
             );
-            default -> log.warn("Unsupported RevocationType: {}. No action taken.", context.getRevocationType());
-        }
+        };
     }
 
     /**
@@ -115,27 +114,29 @@ public class SessionRevocationCacheService {
      *
      * @param sessionId The session's identifier. Cannot be null or blank.
      * @param note      The note/reason for revoking the session. Can be null.
+     * @return {@code Set<String>} containing the revoked session ID. Returns an empty set if no session is found.
      */
-    public void revokeSession(String sessionId, String note) {
+    public Set<String> revokeSession(String sessionId, String note) {
         if (sessionId == null || sessionId.isBlank()) {
             log.warn("Attempt to revoke session with null or blank sessionId. Skipping.");
-            return;
+            return Collections.emptySet();
         }
 
         VaultiqSession session = vaultiqSessionManager.getSession(sessionId);
         if (session == null) {
             log.debug("Attempt to revoke non-existent active session: {}. Skipping.", sessionId);
-            return;
+            return Collections.emptySet();
         }
 
         if (isSessionRevoked(sessionId)) {
             log.debug("Session with sessionId='{}' is already revoked. Skipping re-revoke.", sessionId);
-            return;
+            return Collections.emptySet();
         }
 
         var entry = createRevokedSessionCacheEntry(session, note, RevocationType.LOGOUT);
         putRevokedSessionEntry(entry);
-        log.info("Session '{}' for user '{}' successfully revoked.", sessionId, session.getUserId()); // Keep INFO for explicit revoke action
+        log.info("Session '{}' for user '{}' successfully revoked.", sessionId, session.getUserId());
+        return Set.of(sessionId);
     }
 
     /**
@@ -143,15 +144,17 @@ public class SessionRevocationCacheService {
      *
      * @param userId The user whose sessions should be revoked. Cannot be null or blank.
      * @param note   The note/reason for revoking. Can be null.
+     * @return {@code Set<String>} containing the revoked session IDs. Returns an empty set if no sessions are found.
      */
-    public void revokeAllSessions(String userId, String note) {
+    public Set<String> revokeAllSessions(String userId, String note) {
         if (userId == null || userId.isBlank()) {
             log.warn("Attempt to revoke all sessions for null or blank userId. Skipping.");
-            return;
+            return Collections.emptySet();
         }
         List<VaultiqSession> sessions = vaultiqSessionManager.getActiveSessionsByUser(userId);
-        revokeSessionSet(userId, note, sessions, RevocationType.LOGOUT_ALL);
+        var sessionIdSet = revokeSessionSet(userId, note, sessions, RevocationType.LOGOUT_ALL);
         log.info("Successfully initiated revoke all for user '{}' affecting {} sessions.", userId, sessions.size());
+        return sessionIdSet;
     }
 
     /**
@@ -160,19 +163,22 @@ public class SessionRevocationCacheService {
      * @param userId             The user whose sessions to revoke. Cannot be null or blank.
      * @param note               The note/reason for revoking. Can be null.
      * @param excludedSessionIds A set of session IDs to be excluded from revoking. Can be null or empty.
+     * @return {@code Set<String>} containing the revoked session IDs. Returns an empty set if no sessions are found.
      */
-    public void revokeWithExclusions(String userId, String note, Set<String> excludedSessionIds) {
+    public Set<String> revokeWithExclusions(String userId, String note, Set<String> excludedSessionIds) {
         if (userId == null || userId.isBlank()) {
             log.warn("Attempt to revoke with exclusions for null or blank userId. Skipping.");
-            return;
+            return Collections.emptySet();
         }
 
         var filteredSessions = vaultiqSessionManager.getActiveSessionsByUser(userId).stream()
                 .filter(session -> !excludedSessionIds.contains(session.getSessionId()))
                 .toList();
 
-        revokeSessionSet(userId, note, filteredSessions, RevocationType.LOGOUT_WITH_EXCLUSION);
+        var sessionIdSet = revokeSessionSet(userId, note, filteredSessions, RevocationType.LOGOUT_WITH_EXCLUSION);
         log.info("Successfully initiated revoke with exclusions for user '{}', affecting {} sessions.", userId, filteredSessions.size());
+
+        return sessionIdSet;
     }
 
     /**
@@ -252,21 +258,24 @@ public class SessionRevocationCacheService {
     /**
      * Helper method to revoke all active sessions for a user. This method iterates through all active sessions
      * and marks them as revoked.
-     * @param userId The user whose sessions should be revoked. Cannot be null or blank.
-     * @param note The note/reason for revoking. Can be null.
-     * @param sessions A list of active sessions to be revoked. Cannot be null.
+     *
+     * @param userId         The user whose sessions should be revoked. Cannot be null or blank.
+     * @param note           The note/reason for revoking. Can be null.
+     * @param sessions       A list of active sessions to be revoked. Cannot be null.
      * @param revocationType The type of revocation (e.g., LOGOUT, LOGOUT_ALL, LOGOUT_WITH_EXCLUSION). Cannot be null.
      */
-    private void revokeSessionSet(String userId, String note, List<VaultiqSession> sessions, RevocationType revocationType) {
+    private Set<String> revokeSessionSet(String userId, String note, List<VaultiqSession> sessions, RevocationType revocationType) {
         if (sessions.isEmpty()) {
             log.info("No active sessions found for user '{}' to revoke all. Skipping.", userId);
-            return;
+            return Collections.emptySet();
         }
 
         sessions.forEach(session -> {
             var entry = this.createRevokedSessionCacheEntry(session, note, revocationType);
             putRevokedSessionEntry(entry);
         });
+
+        return sessions.stream().map(VaultiqSession::getSessionId).collect(Collectors.toSet());
     }
 
     /**

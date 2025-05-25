@@ -7,10 +7,16 @@ import org.springframework.stereotype.Service;
 import vaultiq.session.cache.util.CacheHelper;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
+import vaultiq.session.core.VaultiqSessionManager;
 import vaultiq.session.core.model.ModelType;
+import vaultiq.session.core.model.RevocationRequest;
+import vaultiq.session.core.model.VaultiqSession;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * <p>Service for managing revoked session IDs within the application's cache layer.</p>
@@ -19,11 +25,18 @@ import java.util.Set;
  * explicitly marked as revoked, ensuring they cannot be used for active sessions.
  * It caches a simple boolean flag ({@code true}) for each revoked session ID.</p>
  *
+ * <p>Crucially, this service can independently resolve which session IDs to revoke
+ * based on a {@link RevocationRequest} by interacting directly with the
+ * {@link VaultiqSessionManager} to get active session data. This makes it a robust
+ * component even if other cache layers are not fully operational or available.</p>
+ *
  * <p>The service is conditionally active: it will only be instantiated by Spring
  * if the application's persistence method is {@link VaultiqPersistenceMethod#USE_CACHE}
  * for {@link ModelType#REVOKE} data.</p>
  *
  * @see CacheHelper
+ * @see VaultiqSessionManager
+ * @see RevocationRequest
  * @see ModelType
  */
 @Service
@@ -32,32 +45,113 @@ public class RevokedSIdCacheService {
     private static final Logger log = LoggerFactory.getLogger(RevokedSIdCacheService.class);
 
     private final CacheHelper revokedSIdsCache;
+    private final VaultiqSessionManager sessionManager;
 
     /**
      * Constructs the {@code RevokedSIdCacheService}.
-     * Spring automatically injects the {@link CacheHelper} bean qualified for revoked SIDs.
+     * Spring automatically injects the {@link CacheHelper} bean qualified for revoked SIDs
+     * and the {@link VaultiqSessionManager} for resolving active session IDs.
      *
      * @param revokedSIdsCache The {@link CacheHelper} instance specifically configured
      * for managing revoked session IDs in the cache. Cannot be null.
+     * @param sessionManager   The {@link VaultiqSessionManager} to retrieve active session data
+     * when resolving session IDs for revocation requests. Cannot be null.
      */
     public RevokedSIdCacheService(
             @Qualifier(CacheHelper.BeanNames.REVOKED_SIDS_CACHE_HELPER)
-            CacheHelper revokedSIdsCache
+            CacheHelper revokedSIdsCache,
+            VaultiqSessionManager sessionManager
     ) {
         this.revokedSIdsCache = Objects.requireNonNull(revokedSIdsCache,
                 "RevokedSIdsCacheHelper bean not found or is null.");
+        this.sessionManager = Objects.requireNonNull(sessionManager, "VaultiqSessionManager bean not found or is null.");
     }
 
     /**
-     * Marks a session ID as revoked by caching it.
+     * Marks a single session ID as revoked by caching it.
      * A boolean {@code true} value is stored to indicate its revoked status.
+     * No action is taken if the session ID is null or blank.
      *
      * @param sessionId The unique ID of the session to revoke. Cannot be null or blank.
      */
-    public void revokeSId(String sessionId) {
-        if(isSessionIdNotValid(sessionId)) return;
-        log.debug("Revoking session ID: {}", sessionId);
+    public void revoke(String sessionId) {
+        if (isSessionIdNotValid(sessionId)) return;
+        log.debug("Revoking single session ID: {}", sessionId);
         revokedSIdsCache.cache(sessionId, true);
+    }
+
+    /**
+     * Marks multiple session IDs as revoked by caching them individually.
+     * A boolean {@code true} value is stored for each session ID to indicate its revoked status.
+     * No action is taken if the provided set of session IDs is null or empty.
+     *
+     * @param sessionIdSet The set of session IDs to mark as revoked. Cannot be null or empty.
+     */
+    public void revoke(Set<String> sessionIdSet) {
+        if (sessionIdSet == null || sessionIdSet.isEmpty()) {
+            log.warn("Attempt to revoke multiple session IDs with null or empty set. No action will be taken.");
+            return;
+        }
+        log.debug("Revoking {} session IDs in batch.", sessionIdSet.size());
+        sessionIdSet.forEach(this::revoke);
+    }
+
+    /**
+     * Initiates a revocation operation based on a {@link RevocationRequest}.
+     * This method resolves the target session IDs from the request (e.g., all sessions for a user,
+     * or specific sessions with exclusions) by querying the {@link VaultiqSessionManager},
+     * and then marks those resolved session IDs as revoked in the cache.
+     *
+     * @param revocationRequest The {@link RevocationRequest} describing the revoke operation. Cannot be null.
+     * @throws NullPointerException if the {@code revocationRequest} is null or its identifier is null when required.
+     */
+    public void revoke(RevocationRequest revocationRequest) {
+        Objects.requireNonNull(revocationRequest, "RevocationRequest cannot be null.");
+        log.debug("Processing revocation request of type: {}", revocationRequest.getRevocationType());
+        Set<String> sessionIdSet = resolveSessionIdsToRevoke(revocationRequest);
+        revoke(sessionIdSet); // Delegate to the batch revoke method
+    }
+
+    /**
+     * Internal helper method to resolve the set of session IDs to revoke based on the {@link RevocationRequest}.
+     * It uses the {@link VaultiqSessionManager} to get active session data when needed (e.g., for LOGOUT_ALL).
+     *
+     * @param request The {@link RevocationRequest}.
+     * @return A {@link Set} of session IDs to be revoked.
+     * @throws NullPointerException if the request's identifier is null for LOGOUT or LOGOUT_ALL types.
+     */
+    private Set<String> resolveSessionIdsToRevoke(RevocationRequest request) {
+        return switch (request.getRevocationType()) {
+            case LOGOUT -> {
+                Objects.requireNonNull(request.getIdentifier(), "Session ID for LOGOUT revocation cannot be null.");
+                yield Set.of(request.getIdentifier());
+            }
+            case LOGOUT_ALL -> getActiveSessionIdsForUser(request);
+            case LOGOUT_WITH_EXCLUSION -> {
+                Set<String> allActiveUserSessions = getActiveSessionIdsForUser(request);
+                Set<String> excludedIds = Objects.requireNonNullElse(request.getExcludedSessionIds(), Collections.emptySet());
+                yield allActiveUserSessions.stream()
+                        .filter(id -> !excludedIds.contains(id))
+                        .collect(Collectors.toSet());
+            }
+        };
+    }
+
+    /**
+     * Internal helper method to retrieve all active session IDs for a user from the {@link VaultiqSessionManager}.
+     *
+     * @param request The {@link RevocationRequest} containing the user identifier.
+     * @return A {@link Set} of active session IDs for the user.
+     * @throws NullPointerException if the request's identifier (user ID) is null.
+     */
+    private Set<String> getActiveSessionIdsForUser(RevocationRequest request) {
+        String userId = Objects.requireNonNull(request.getIdentifier(), "User ID for revocation request cannot be null.");
+        List<VaultiqSession> activeSessions = sessionManager.getActiveSessionsByUser(userId);
+        if (activeSessions == null || activeSessions.isEmpty()) {
+            log.debug("No active sessions found for user '{}' during revocation request.", userId);
+            return Collections.emptySet();
+        }
+        return activeSessions.stream().map(VaultiqSession::getSessionId).collect(Collectors.toSet());
     }
 
     /**
@@ -67,19 +161,19 @@ public class RevokedSIdCacheService {
      * @return {@code true} if the session ID is found in the revoked cache, {@code false} otherwise.
      */
     public boolean isSessionRevoked(String sessionId) {
-        if(isSessionIdNotValid(sessionId)) return false;
+        if (isSessionIdNotValid(sessionId)) return false;
         log.debug("Checking if session ID {} is revoked.", sessionId);
         return Boolean.TRUE.equals(revokedSIdsCache.get(sessionId, Boolean.class));
     }
 
     /**
      * Removes a specific revoked session ID from the cache, effectively un-revoking it.
-     * No action is taken if the session ID is not found in the cache.
+     * No action is taken if the session ID is not found in the cache or is invalid.
      *
      * @param sessionId The unique ID of the session to evict from the revoked list. Cannot be null or blank.
      */
     public void evictRevokedSId(String sessionId) {
-        if(isSessionIdNotValid(sessionId)) return;
+        if (isSessionIdNotValid(sessionId)) return;
         log.debug("Evicting session ID: {}", sessionId);
         revokedSIdsCache.evict(sessionId);
     }
@@ -91,12 +185,12 @@ public class RevokedSIdCacheService {
      * @param sessionIds A {@link Set} of session IDs to evict from the revoked list. Can be null or empty.
      */
     public void evictRevokedSids(Set<String> sessionIds) {
-        if(sessionIds == null || sessionIds.isEmpty()) {
-            log.warn("The SessionId set is null or empty; No action will be taken.");
+        if (sessionIds == null || sessionIds.isEmpty()) {
+            log.warn("The SessionId set is null or empty for eviction; No action will be taken.");
             return;
         }
-        log.debug("Evicting multiple revoked session IDs: {}", sessionIds);
-        revokedSIdsCache.evictAll(sessionIds);
+        log.debug("Evicting multiple revoked session IDs: {}", sessionIds.size());
+        sessionIds.forEach(this::evictRevokedSId); // Delegate to single eviction method
     }
 
     /**
