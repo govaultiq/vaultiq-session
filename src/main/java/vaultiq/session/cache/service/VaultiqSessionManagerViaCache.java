@@ -57,7 +57,10 @@ public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
      */
     @Override
     public VaultiqSession createSession(String userId, HttpServletRequest request) {
-        return vaultiqSessionCacheService.createSession(userId, request);
+        // both of these Services use CacheHelper, who fail silently if Cache doesn't exist.
+        var session = vaultiqSessionCacheService.createSession(userId, request);
+        sessionFingerprintCacheService.cacheSessionFingerPrint(session);
+        return session;
     }
 
     /**
@@ -88,7 +91,9 @@ public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
      */
     @Override
     public void deleteSession(String sessionId) {
+        // both of these Services use CacheHelper, who fail silently if Cache doesn't exist.
         vaultiqSessionCacheService.deleteSession(sessionId);
+        sessionFingerprintCacheService.evictSessionFingerPrint(sessionId);
     }
 
     /**
@@ -99,7 +104,10 @@ public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
     @Override
     public void deleteAllSessions(Set<String> sessionIds) {
         log.debug("Attempting to delete list of sessions via cache.");
+
+        // both of these Services use CacheHelper, who fail silently if Cache doesn't exist.
         vaultiqSessionCacheService.deleteAllSessions(sessionIds);
+        sessionFingerprintCacheService.evictAllSessions(sessionIds);
     }
 
     /**
