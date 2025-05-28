@@ -12,6 +12,7 @@ import vaultiq.session.core.VaultiqSessionManager;
 import vaultiq.session.jpa.session.service.internal.VaultiqSessionEntityService;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -21,7 +22,7 @@ import java.util.Set;
  * delete, list, count) by delegating all calls to an underlying JPA-based
  * {@link VaultiqSessionEntityService}. It is designed to be active specifically
  * when the Vaultiq session library is configured to use JPA as the *only*
- * persistence method for {@link ModelType#SESSION} and {@link ModelType#USER_SESSION_MAPPING}
+ * persistence method for {@link ModelType#SESSION}
  * data models.
  * </p>
  * <p>
@@ -36,10 +37,9 @@ import java.util.Set;
  * @see ConditionalOnVaultiqPersistence
  * @see VaultiqPersistenceMode#JPA_ONLY
  * @see ModelType#SESSION
- * @see ModelType#USER_SESSION_MAPPING
  */
 @Service
-@ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_ONLY, type = {ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
+@ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_ONLY, type = ModelType.SESSION)
 public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionManagerViaJpa.class);
 
@@ -75,6 +75,17 @@ public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
     }
 
     /**
+     * @param sessionId The unique identifier of the session.
+     * @return Optional String representing the device fingerprint. Returns {@code null} if no session exists with the given ID in the database.
+     * @inheritDoc <p>Delegates session fingerprint retrieval by ID to the underlying JPA service.</p>
+     */
+    @Override
+    public Optional<String> getSessionFingerprint(String sessionId) {
+        log.debug("Retrieving session fingerprint for session '{}' via JPA.", sessionId);
+        return sessionService.getSessionFingerprint(sessionId);
+    }
+
+    /**
      * @inheritDoc <p>Delegates session deletion by ID to the underlying JPA service.</p>
      */
     @Override
@@ -103,9 +114,9 @@ public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
     }
 
     /**
-     * @inheritDoc <p>Delegates counting active sessions by user ID to the underlying JPA service.</p>
      * @param userId The unique identifier of the user whose sessions are to be retrieved.
      * @return the active sessions for user.
+     * @inheritDoc <p>Delegates counting active sessions by user ID to the underlying JPA service.</p>
      */
     @Override
     public List<VaultiqSession> getActiveSessionsByUser(String userId) {

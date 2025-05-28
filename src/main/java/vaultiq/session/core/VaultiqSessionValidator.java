@@ -36,7 +36,7 @@ public class VaultiqSessionValidator {
             SessionRevocationManager revocationManager,
             DeviceFingerprintValidator deviceFingerprintValidator
     ) {
-        this.revocationManager = VaultiqSessionValidator.this.revocationManager;
+        this.revocationManager = revocationManager;
         this.deviceFingerprintValidator = deviceFingerprintValidator;
     }
 

@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
+import vaultiq.session.cache.service.internal.SessionFingerprintCacheService;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.cache.service.internal.VaultiqSessionCacheService;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
@@ -14,6 +15,7 @@ import vaultiq.session.core.model.VaultiqSession;
 import vaultiq.session.core.VaultiqSessionManager;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -29,19 +31,21 @@ import java.util.Set;
  */
 @Service
 @ConditionalOnBean(VaultiqSessionCacheService.class)
-@ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.CACHE_ONLY, type = {ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
+@ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.CACHE_ONLY, type = ModelType.SESSION)
 public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
 
     private final static Logger log = LoggerFactory.getLogger(VaultiqSessionManagerViaCache.class);
     private final VaultiqSessionCacheService vaultiqSessionCacheService;
+    private final SessionFingerprintCacheService sessionFingerprintCacheService;
 
     /**
      * Instantiates the manager with its required cache-backed service dependency.
      *
      * @param vaultiqSessionCacheService the service providing cache-based CRUD for sessions
      */
-    public VaultiqSessionManagerViaCache(VaultiqSessionCacheService vaultiqSessionCacheService) {
+    public VaultiqSessionManagerViaCache(VaultiqSessionCacheService vaultiqSessionCacheService, SessionFingerprintCacheService sessionFingerprintCacheService) {
         this.vaultiqSessionCacheService = vaultiqSessionCacheService;
+        this.sessionFingerprintCacheService = sessionFingerprintCacheService;
     }
 
     /**
@@ -53,7 +57,10 @@ public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
      */
     @Override
     public VaultiqSession createSession(String userId, HttpServletRequest request) {
-        return vaultiqSessionCacheService.createSession(userId, request);
+        // both of these Services use CacheHelper, who fail silently if Cache doesn't exist.
+        var session = vaultiqSessionCacheService.createSession(userId, request);
+        sessionFingerprintCacheService.cacheSessionFingerPrint(session);
+        return session;
     }
 
     /**
@@ -68,13 +75,25 @@ public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
     }
 
     /**
+     * Retrieves the device fingerprint associated with a session by sessionId.
+     * @param sessionId The unique identifier of the session.
+     * @return Optional instance of the device fingerprint, or empty if not found.
+     */
+    @Override
+    public Optional<String> getSessionFingerprint(String sessionId) {
+        return Optional.ofNullable(sessionFingerprintCacheService.getSessionFingerPrint(sessionId));
+    }
+
+    /**
      * Deletes a session by sessionId from the cache and mapping.
      *
      * @param sessionId the session identifier to delete
      */
     @Override
     public void deleteSession(String sessionId) {
+        // both of these Services use CacheHelper, who fail silently if Cache doesn't exist.
         vaultiqSessionCacheService.deleteSession(sessionId);
+        sessionFingerprintCacheService.evictSessionFingerPrint(sessionId);
     }
 
     /**
@@ -85,7 +104,10 @@ public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
     @Override
     public void deleteAllSessions(Set<String> sessionIds) {
         log.debug("Attempting to delete list of sessions via cache.");
+
+        // both of these Services use CacheHelper, who fail silently if Cache doesn't exist.
         vaultiqSessionCacheService.deleteAllSessions(sessionIds);
+        sessionFingerprintCacheService.evictAllSessions(sessionIds);
     }
 
     /**

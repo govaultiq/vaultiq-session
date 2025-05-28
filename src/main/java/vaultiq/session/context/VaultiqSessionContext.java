@@ -2,6 +2,7 @@ package vaultiq.session.context;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import vaultiq.session.cache.util.CacheType;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.config.VaultiqSessionProperties;
 import vaultiq.session.core.model.VaultiqModelConfig;
@@ -24,7 +25,7 @@ public class VaultiqSessionContext {
 
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionContext.class);
     private final String cacheManagerName;
-    private final Map<ModelType, VaultiqModelConfig> modelConfigs;
+    private final Map<CacheType, VaultiqModelConfig> modelConfigs;
     private final boolean isUsingCache;
     private final boolean isUsingJpa;
 
@@ -40,7 +41,7 @@ public class VaultiqSessionContext {
      */
     public VaultiqSessionContext(VaultiqSessionProperties props) {
         log.debug("Initializing VaultiqSessionContext with properties.");
-        this.cacheManagerName = props.getPersistence().getCacheConfig().getManager();
+        this.cacheManagerName = props.getPersistence().getManager();
         this.modelConfigs = VaultiqModelConfigEnhancer.enhance(props);
         this.isUsingCache = checkIfUsingCache();
         this.isUsingJpa = checkIfUsingJpa();
@@ -53,7 +54,7 @@ public class VaultiqSessionContext {
         else
             log.debug("Vaultiq Session Context initialized; is-using-jpa: {}. is-using-cache: {}", isUsingJpa, false);
 
-        var configs = Arrays.stream(ModelType.values())
+        var configs = Arrays.stream(CacheType.values())
                 .map(this::getModelConfig)
                 .map(VaultiqModelConfig::toString)
                 .toList();
@@ -101,12 +102,12 @@ public class VaultiqSessionContext {
      * overrides from {@link VaultiqSessionProperties}.
      * </p>
      *
-     * @param type the {@link ModelType} of the session/data model.
+     * @param type the {@link CacheType} of the session/data model.
      * @return the resolved {@link VaultiqModelConfig} for the specified type. This is
-     * never {@code null} for a valid {@link ModelType} as {@link VaultiqModelConfigEnhancer}
+     * never {@code null} for a valid {@link CacheType} as {@link VaultiqModelConfigEnhancer}
      * ensures all types have a configuration entry.
      */
-    public VaultiqModelConfig getModelConfig(ModelType type) {
+    public VaultiqModelConfig getModelConfig(CacheType type) {
         return modelConfigs.get(type);
     }
 

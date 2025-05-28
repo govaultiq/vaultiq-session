@@ -1,33 +1,28 @@
 package vaultiq.session.config;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.context.VaultiqModelConfigEnhancer;
 import vaultiq.session.context.VaultiqSessionContext;
 
-import java.time.Duration;
 import java.util.List;
 
 /**
  * Configuration properties for the Vaultiq Session Tracking Library.
  * <p>
- * These properties allow configuring of {@code vaultiq-session}, particularly
+ * These properties allow for the configuration of {@code vaultiq-session}, particularly
  * concerning persistence strategies for different session data models. Properties
  * are bound from application configuration files (e.g., {@code application.properties},
  * {@code application.yml}) using the prefix {@code "vaultiq.session"}.
  * </p>
  * <p>
  * The configured properties are processed internally by the library (e.g.,
- * {@link VaultiqModelConfigEnhancer}) to determine the effective persistence
+ * by {@link VaultiqModelConfigEnhancer}) to determine the effective persistence
  * settings used by components like {@link VaultiqSessionContext}.
  * </p>
  */
 @ConfigurationProperties("vaultiq.session")
 public class VaultiqSessionProperties {
-    private static final Logger log = LoggerFactory.getLogger(VaultiqSessionProperties.class);
-
     /**
      * Configures "zen mode" for session persistence.
      * <p>
@@ -42,8 +37,18 @@ public class VaultiqSessionProperties {
      * </p>
      */
     private boolean zenMode = false;
+
+    /**
+     * Holds the detailed persistence configurations, including global defaults
+     * and model-specific overrides.
+     */
     private Persistence persistence;
 
+    /**
+     * Checks if Zen Mode is enabled.
+     *
+     * @return {@code true} if Zen Mode is enabled, {@code false} otherwise.
+     */
     public boolean isZenMode() {
         return zenMode;
     }
@@ -54,8 +59,9 @@ public class VaultiqSessionProperties {
 
     /**
      * Returns the persistence configuration settings.
+     * These settings define how session data is stored and managed.
      *
-     * @return the persistence configuration.
+     * @return the {@link Persistence} configuration object.
      */
     public Persistence getPersistence() {
         return persistence;
@@ -68,32 +74,88 @@ public class VaultiqSessionProperties {
     /**
      * Configures persistence settings for the Vaultiq Session Tracking Library.
      * <p>
-     * This includes global cache settings and specific configurations per model type.
+     * This includes global cache settings (like enabling/disabling JPA and caching by default)
+     * and allows for a list of specific configurations per model type via {@link ModelPersistenceConfig}.
      * </p>
      */
     public static class Persistence {
-        private CacheConfig cacheConfig;
+        /**
+         * Global default setting to enable or disable JPA-based persistence for all models.
+         * <p>
+         * This can be overridden by {@link VaultiqSessionProperties#zenMode} or
+         * model-specific settings in {@link ModelPersistenceConfig#useJpa}.
+         * </p>
+         */
+        private Boolean useJpa;
+
+        /**
+         * Global default setting to enable or disable cache-based persistence for all models.
+         * <p>
+         * This can be overridden by {@link VaultiqSessionProperties#zenMode} or
+         * model-specific settings in {@link ModelPersistenceConfig#useCache}.
+         * </p>
+         */
+        private Boolean useCache;
+
+        /**
+         * The name of the Spring {@link org.springframework.cache.CacheManager} bean
+         * that the library should use for caching operations.
+         * <p>
+         * Defaults to "cacheManager".
+         * </p>
+         */
+        private String manager = "cacheManager";
+
+        /**
+         * A list of specific persistence configurations for individual model types ({@link ModelType}).
+         * These configurations can override the global settings defined in this {@link Persistence} class.
+         */
         private List<ModelPersistenceConfig> models;
 
         /**
-         * Returns the global cache configuration settings.
-         * These settings apply unless overridden by {@link ModelPersistenceConfig}.
+         * Checks if JPA persistence is globally enabled by default.
          *
-         * @return the global cache configuration.
+         * @return {@code true} if JPA is globally enabled, {@code false} otherwise.
          */
-        public CacheConfig getCacheConfig() {
-            return cacheConfig == null ? new CacheConfig() : cacheConfig;
+        public Boolean isUseJpa() {
+            return useJpa;
         }
 
-        public void setCacheConfig(CacheConfig cacheConfig) {
-            this.cacheConfig = cacheConfig;
+        public void setUseJpa(Boolean useJpa) {
+            this.useJpa = useJpa;
+        }
+
+        /**
+         * Checks if caching is globally enabled by default.
+         *
+         * @return {@code true} if caching is globally enabled, {@code false} otherwise.
+         */
+        public Boolean isUseCache() {
+            return useCache;
+        }
+
+        public void setUseCache(Boolean useCache) {
+            this.useCache = useCache;
+        }
+
+        /**
+         * Gets the configured name of the Spring CacheManager bean.
+         *
+         * @return the cache manager bean name.
+         */
+        public String getManager() {
+            return manager;
+        }
+
+        public void setManager(String manager) {
+            this.manager = manager;
         }
 
         /**
          * Returns the list of specific persistence configurations per model type.
-         * These configurations override the global {@link CacheConfig}.
+         * These configurations override the global persistence settings.
          *
-         * @return a list of model-specific persistence configurations.
+         * @return a list of {@link ModelPersistenceConfig} instances.
          */
         public List<ModelPersistenceConfig> getModels() {
             return models;
@@ -105,104 +167,39 @@ public class VaultiqSessionProperties {
     }
 
     /**
-     * Global cache-specific configuration properties.
-     * <p>
-     * These settings apply to all model types unless overridden by a specific
-     * {@link ModelPersistenceConfig}.
-     * </p>
-     */
-    public static class CacheConfig {
-        // These fields represent global default settings for using JPA and Cache.
-        // The effective setting for a model type depends on zenMode, global config,
-        // and model-specific overrides.
-        private boolean useJpa = false;
-        private boolean useCache = false;
-        /**
-         * The name of the Spring {@link org.springframework.cache.CacheManager} bean
-         * that the library should use for caching operations.
-         * <p>
-         * Defaults to "cacheManager".
-         * </p>
-         */
-        private String manager = "cacheManager";
-        /**
-         * The interval for cache synchronization operations, if supported and
-         * applicable to the configured cache implementation.
-         * <p>
-         * Defaults to 5 minutes.
-         * </p>
-         */
-        private Duration syncInterval = Duration.ofMinutes(5);
-
-        public boolean isUseJpa() {
-            return useJpa;
-        }
-
-        public void setUseJpa(boolean useJpa) {
-            this.useJpa = useJpa;
-        }
-
-        public boolean isUseCache() {
-            return useCache;
-        }
-
-        public void setUseCache(boolean useCache) {
-            this.useCache = useCache;
-        }
-
-        public String getManager() {
-            return manager;
-        }
-
-        public void setManager(String manager) {
-            this.manager = manager;
-        }
-
-        public Duration getSyncInterval() {
-            return syncInterval;
-        }
-
-        public void setSyncInterval(Duration syncInterval) {
-            this.syncInterval = syncInterval;
-        }
-    }
-
-    /**
      * Persistence configuration for a specific {@link ModelType}.
      * <p>
-     * Properties defined here override the global settings in {@link CacheConfig}
-     * for the specified {@link #type}.
+     * Properties defined here override the global settings in {@link Persistence}
+     * for the specified {@link #type model type}. If a property (e.g., {@code useJpa}, {@code useCache},
+     * {@code syncInterval}) is {@code null} in this configuration, the corresponding
+     * global setting from {@link Persistence} or the {@link VaultiqSessionProperties#zenMode}
+     * default will apply.
      * </p>
      */
     public static class ModelPersistenceConfig {
         /**
-         * The {@link ModelType} to which this specific configuration applies.
+         * The {@link ModelType} to which this specific configuration applies. This field is mandatory
+         * for a model-specific configuration to be valid.
          */
         private ModelType type;
         /**
-         * The specific cache name to use for this model type.
-         * If not specified, the library might fall back to a default name
-         * based on the {@link ModelType}'s alias.
-         */
-        private String cacheName;
-        /**
          * Explicitly enable or disable JPA usage for this model type.
-         * If {@code null}, the global {@link CacheConfig#isUseJpa()} or
-         * {@link VaultiqSessionProperties#isZenMode()} setting is used.
+         * If {@code null}, the effective setting is determined by {@link Persistence#isUseJpa()}
+         * or the {@link VaultiqSessionProperties#isZenMode()} default.
          */
         private Boolean useJpa;
         /**
          * Explicitly enable or disable Cache usage for this model type.
-         * If {@code null}, the global {@link CacheConfig#isUseCache()} or
-         * {@link VaultiqSessionProperties#isZenMode()} setting is used.
+         * If {@code null}, the effective setting is determined by {@link Persistence#isUseCache()}
+         * or the {@link VaultiqSessionProperties#isZenMode()} default.
          */
         private Boolean useCache;
-        /**
-         * The sync interval specifically for this model type.
-         * If {@code null}, the global {@link CacheConfig#getSyncInterval()} is used.
-         */
-        private Duration syncInterval;
 
+        /**
+         * Gets the {@link ModelType} this configuration applies to.
+         *
+         * @return the {@link ModelType}.
+         */
         public ModelType getType() {
             return type;
         }
@@ -211,14 +208,12 @@ public class VaultiqSessionProperties {
             this.type = type;
         }
 
-        public String getCacheName() {
-            return cacheName;
-        }
-
-        public void setCacheName(String cacheName) {
-            this.cacheName = cacheName;
-        }
-
+        /**
+         * Gets the explicit JPA usage setting for this model type.
+         *
+         * @return {@link Boolean#TRUE} to enable JPA, {@link Boolean#FALSE} to disable,
+         * or {@code null} to use the global/zen-mode default.
+         */
         public Boolean getUseJpa() {
             return useJpa;
         }
@@ -227,20 +222,18 @@ public class VaultiqSessionProperties {
             this.useJpa = useJpa;
         }
 
+        /**
+         * Gets the explicit Cache usage setting for this model type.
+         *
+         * @return {@link Boolean#TRUE} to enable caching, {@link Boolean#FALSE} to disable,
+         * or {@code null} to use the global/zen-mode default.
+         */
         public Boolean getUseCache() {
             return useCache;
         }
 
         public void setUseCache(Boolean useCache) {
             this.useCache = useCache;
-        }
-
-        public Duration getSyncInterval() {
-            return syncInterval;
-        }
-
-        public void setSyncInterval(Duration syncInterval) {
-            this.syncInterval = syncInterval;
         }
     }
 }

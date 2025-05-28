@@ -67,6 +67,17 @@ public final class CacheKeyResolver {
     }
 
     /**
+     * Returns the cache key for storing/retrieving the last updated timestamp of a revoke entry.
+     * Format: {@code last-updated-{sessionId}}
+     *
+     * @param sessionId the session identifier
+     * @return the key for use in revoked-sids
+     */
+    public static String keyForRevokedSId(String sessionId) {
+        return "revoked-sid-" + sessionId;
+    }
+
+    /**
      * Returns the cache key for a revoke entry by session id.
      * Format: {@code revocation-{sessionId}}
      *

@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
+import vaultiq.session.cache.service.internal.RevokedSIdCacheService;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.cache.model.RevokedSessionCacheEntry;
 import vaultiq.session.cache.service.internal.SessionRevocationCacheService;
@@ -13,7 +14,6 @@ import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
 import vaultiq.session.core.SessionRevocationManager;
 import vaultiq.session.core.model.RevokedSession;
 import vaultiq.session.core.model.RevocationRequest;
-import vaultiq.session.context.VaultiqSessionContext;
 
 import java.util.List;
 
@@ -27,19 +27,24 @@ import java.util.List;
  * @see SessionRevocationCacheService
  */
 @Service
-@ConditionalOnBean(VaultiqSessionContext.class)
+@ConditionalOnBean(SessionRevocationCacheService.class)
 @ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.CACHE_ONLY, type = ModelType.REVOKE)
 public class SessionRevocationManagerViaCache implements SessionRevocationManager {
     private static final Logger log = LoggerFactory.getLogger(SessionRevocationManagerViaCache.class);
     private final SessionRevocationCacheService cacheService;
+    private final RevokedSIdCacheService revokedSIdCacheService;
 
     /**
      * Constructs the manager with the required cache-based revoke service.
      *
      * @param cacheService Cache-backed revoke handler (must not be null)
      */
-    public SessionRevocationManagerViaCache(SessionRevocationCacheService cacheService) {
+    public SessionRevocationManagerViaCache(
+            SessionRevocationCacheService cacheService,
+            RevokedSIdCacheService revokedSIdCacheService
+    ) {
         this.cacheService = cacheService;
+        this.revokedSIdCacheService = revokedSIdCacheService;
     }
 
     /**
@@ -50,7 +55,14 @@ public class SessionRevocationManagerViaCache implements SessionRevocationManage
     @Override
     public void revoke(RevocationRequest revocationRequest) {
         log.debug("Revoking sessions with Revocation type/mode: {}", revocationRequest.getRevocationType().name());
-        cacheService.revoke(revocationRequest);
+        var sessionIdSet = cacheService.revoke(revocationRequest);
+        if (sessionIdSet != null && !sessionIdSet.isEmpty()) {
+            // Updating the same revoked sessionId list to the revoked-sids cache
+            revokedSIdCacheService.revoke(sessionIdSet);
+        } else {
+            // else revoke independently in revoke-sids cache
+            revokedSIdCacheService.revoke(revocationRequest);
+        }
     }
 
     /**
@@ -63,7 +75,12 @@ public class SessionRevocationManagerViaCache implements SessionRevocationManage
     @Override
     public boolean isSessionRevoked(String sessionId) {
         log.debug("Checking if session is revoked: {}", sessionId);
-        return cacheService.isSessionRevoked(sessionId);
+        if (revokedSIdCacheService.isSessionRevoked(sessionId)) return true;
+        else if (cacheService.isSessionRevoked(sessionId)) {
+            // auto-healing
+            revokedSIdCacheService.revoke(sessionId);
+            return true;
+        } else return false;
     }
 
     /**
@@ -81,18 +98,6 @@ public class SessionRevocationManagerViaCache implements SessionRevocationManage
                 .stream()
                 .map(this::toSessionRevoke)
                 .toList();
-    }
-
-    /**
-     * Clear the revoke for a specific session or multiple sessions.
-     * Delegates to the cache service.
-     *
-     * @param sessionIds an array of unique sessions identifiers to clear. Can be empty. It Can be blank.
-     */
-    @Override
-    public void clearRevocation(String... sessionIds) {
-        log.debug("Attempting to clear revoke for {} sessions", sessionIds.length);
-        cacheService.clearRevocation(sessionIds);
     }
 
     /**

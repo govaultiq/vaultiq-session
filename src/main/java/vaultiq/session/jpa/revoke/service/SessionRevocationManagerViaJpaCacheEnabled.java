@@ -31,7 +31,7 @@ import java.util.*;
  * </p>
  */
 @Service
-@ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_AND_CACHE, type = {ModelType.REVOKE, ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
+@ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_AND_CACHE, type = {ModelType.REVOKE, ModelType.SESSION})
 public class SessionRevocationManagerViaJpaCacheEnabled implements SessionRevocationManager {
     private static final Logger log = LoggerFactory.getLogger(SessionRevocationManagerViaJpaCacheEnabled.class);
 
@@ -155,19 +155,6 @@ public class SessionRevocationManagerViaJpaCacheEnabled implements SessionRevoca
         for (RevokedSession bl : cacheRevoked) merged.put(bl.getSessionId(), bl); // override with cache
 
         return new ArrayList<>(merged.values());
-    }
-
-    /**
-     * Clears the revoke for a specific session or multiple sessions.
-     * <p>
-     *
-     * @param sessionIds an array of unique sessions identifiers to clear. Can be empty. It Can be blank.
-     */
-    @Override
-    public void clearRevocation(String... sessionIds) {
-        log.debug("Attempting to clear revoke for {} sessions.", sessionIds.length);
-        revokedSessionEntityService.clearRevocation(sessionIds);
-        sessionRevocationCacheService.clearRevocation(sessionIds);
     }
 
     /**

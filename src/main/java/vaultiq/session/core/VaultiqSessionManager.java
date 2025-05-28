@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import vaultiq.session.core.model.VaultiqSession;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -46,6 +47,15 @@ public interface VaultiqSessionManager {
      * @return The {@link VaultiqSession} object if found, or {@code null} if no session exists with the given ID.
      */
     VaultiqSession getSession(String sessionId);
+
+    /**
+     * Retrieves the device fingerprint associated with a specific session ID.
+     * <p>
+     *
+     * @param sessionId The unique identifier of the session.
+     * @return The device fingerprint associated with the session. Returns {@code null} if no session exists with the given ID.
+     */
+    Optional<String> getSessionFingerprint(String sessionId);
 
     /**
      * Deletes a Vaultiq session based on its unique session ID.

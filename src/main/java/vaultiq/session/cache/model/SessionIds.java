@@ -75,4 +75,12 @@ public class SessionIds {
     private void updatedNow() {
         this.lastUpdated = Instant.now().toEpochMilli();
     }
+
+    public boolean removeSessionId(String sessionId) {
+        return sessionIds.remove(sessionId);
+    }
+
+    public boolean removeSessionIds(Set<String> sessionIdSet) {
+        return sessionIds.removeAll(sessionIdSet);
+    }
 }

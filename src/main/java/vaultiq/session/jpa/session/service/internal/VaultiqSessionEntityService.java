@@ -15,6 +15,7 @@ import vaultiq.session.jpa.session.repository.VaultiqSessionEntityRepository;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -40,10 +41,9 @@ import java.util.Set;
  * @see ConditionalOnVaultiqModelConfig
  * @see VaultiqPersistenceMethod#USE_JPA
  * @see ModelType#SESSION
- * @see ModelType#USER_SESSION_MAPPING
  */
 @Service
-@ConditionalOnVaultiqModelConfig(method = VaultiqPersistenceMethod.USE_JPA, type = {ModelType.SESSION, ModelType.USER_SESSION_MAPPING})
+@ConditionalOnVaultiqModelConfig(method = VaultiqPersistenceMethod.USE_JPA, type = ModelType.SESSION)
 // Activate only when JPA is configured for sessions
 public class VaultiqSessionEntityService {
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionEntityService.class);
@@ -117,6 +117,16 @@ public class VaultiqSessionEntityService {
         }
 
         return session;
+    }
+
+    /**
+     * Retrieves the device fingerprint for a specific session from the database.
+     *
+     * @param sessionId The unique identifier of the session to retrieve the fingerprint for.
+     * @return Optional String representing the device fingerprint. Returns {@code null} if no session exists with the given ID in the database.
+     */
+    public Optional<String> getSessionFingerprint(String sessionId) {
+        return Optional.ofNullable(get(sessionId)).map(VaultiqSession::getDeviceFingerPrint);
     }
 
     /**
