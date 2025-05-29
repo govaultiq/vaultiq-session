@@ -21,7 +21,7 @@ import java.util.Set;
  * mechanisms (e.g., {@link vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence}).
  * </p>
  */
-public interface VaultiqSessionManager {
+public interface SessionManager {
 
     /**
      * Creates a new Vaultiq session for the specified user.

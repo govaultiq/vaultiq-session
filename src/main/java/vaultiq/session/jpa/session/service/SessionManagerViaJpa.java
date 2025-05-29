@@ -4,56 +4,56 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import vaultiq.session.core.SessionManager;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
 import vaultiq.session.core.model.VaultiqSession;
-import vaultiq.session.core.VaultiqSessionManager;
-import vaultiq.session.jpa.session.service.internal.VaultiqSessionEntityService;
+import vaultiq.session.jpa.session.service.internal.ClientSessionEntityService;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 /**
- * JPA-only implementation of the {@link VaultiqSessionManager} interface.
+ * JPA-only implementation of the {@link SessionManager} interface.
  * <p>
  * This service provides the core session management operations (create, get,
  * delete, list, count) by delegating all calls to an underlying JPA-based
- * {@link VaultiqSessionEntityService}. It is designed to be active specifically
+ * {@link ClientSessionEntityService}. It is designed to be active specifically
  * when the Vaultiq session library is configured to use JPA as the *only*
  * persistence method for {@link ModelType#SESSION}
  * data models.
  * </p>
  * <p>
- * This bean is automatically configured by Spring when a {@link VaultiqSessionEntityService}
+ * This bean is automatically configured by Spring when a {@link ClientSessionEntityService}
  * bean is available and the persistence configuration matches
  * {@link VaultiqPersistenceMode#JPA_ONLY} for the relevant model types,
  * as defined by {@link ConditionalOnVaultiqPersistence}.
  * </p>
  *
- * @see VaultiqSessionManager
- * @see VaultiqSessionEntityService
+ * @see SessionManager
+ * @see ClientSessionEntityService
  * @see ConditionalOnVaultiqPersistence
  * @see VaultiqPersistenceMode#JPA_ONLY
  * @see ModelType#SESSION
  */
 @Service
 @ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.JPA_ONLY, type = ModelType.SESSION)
-public class VaultiqSessionManagerViaJpa implements VaultiqSessionManager {
-    private static final Logger log = LoggerFactory.getLogger(VaultiqSessionManagerViaJpa.class);
+public class SessionManagerViaJpa implements SessionManager {
+    private static final Logger log = LoggerFactory.getLogger(SessionManagerViaJpa.class);
 
-    private final VaultiqSessionEntityService sessionService;
+    private final ClientSessionEntityService sessionService;
 
     /**
-     * Constructs a new {@code VaultiqSessionManagerViaJpa} with the required
+     * Constructs a new {@code SessionManagerViaJpa} with the required
      * JPA-based session service dependency.
      *
      * @param sessionService The underlying service that performs the actual JPA operations.
      */
-    public VaultiqSessionManagerViaJpa(VaultiqSessionEntityService sessionService) {
+    public SessionManagerViaJpa(ClientSessionEntityService sessionService) {
         this.sessionService = sessionService;
-        log.info("VaultiqSessionManager initialized; Persistence via - JPA_ONLY.");
+        log.info("SessionManager initialized; Persistence via - JPA_ONLY.");
     }
 
     /**

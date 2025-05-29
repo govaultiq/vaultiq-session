@@ -25,7 +25,6 @@ import java.time.Duration;
  * @param cacheName    The effective name of the cache to be used for this model type.
  * @param useJpa       {@code true} if JPA persistence is enabled for this model type, {@code false} otherwise.
  * @param useCache     {@code true} if cache persistence is enabled for this model type, {@code false} otherwise.
- * @param syncInterval The effective synchronization interval for this model type, if applicable.
  * @see CacheType
  * @see VaultiqSessionContext
  * @see VaultiqModelConfigEnhancer

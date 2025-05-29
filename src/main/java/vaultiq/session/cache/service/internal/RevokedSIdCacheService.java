@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import vaultiq.session.cache.util.CacheHelper;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
-import vaultiq.session.core.VaultiqSessionManager;
+import vaultiq.session.core.SessionManager;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.core.model.RevocationRequest;
 import vaultiq.session.core.model.VaultiqSession;
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  *
  * <p>Crucially, this service can independently resolve which session IDs to revoke
  * based on a {@link RevocationRequest} by interacting directly with the
- * {@link VaultiqSessionManager} to get active session data. This makes it a robust
+ * {@link SessionManager} to get active session data. This makes it a robust
  * component even if other cache layers are not fully operational or available.</p>
  *
  * <p>The service is conditionally active: it will only be instantiated by Spring
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  * for {@link ModelType#REVOKE} data.</p>
  *
  * @see CacheHelper
- * @see VaultiqSessionManager
+ * @see SessionManager
  * @see RevocationRequest
  * @see ModelType
  */
@@ -45,26 +45,26 @@ public class RevokedSIdCacheService {
     private static final Logger log = LoggerFactory.getLogger(RevokedSIdCacheService.class);
 
     private final CacheHelper revokedSIdsCache;
-    private final VaultiqSessionManager sessionManager;
+    private final SessionManager sessionManager;
 
     /**
      * Constructs the {@code RevokedSIdCacheService}.
      * Spring automatically injects the {@link CacheHelper} bean qualified for revoked SIDs
-     * and the {@link VaultiqSessionManager} for resolving active session IDs.
+     * and the {@link SessionManager} for resolving active session IDs.
      *
      * @param revokedSIdsCache The {@link CacheHelper} instance specifically configured
      * for managing revoked session IDs in the cache. Cannot be null.
-     * @param sessionManager   The {@link VaultiqSessionManager} to retrieve active session data
+     * @param sessionManager   The {@link SessionManager} to retrieve active session data
      * when resolving session IDs for revocation requests. Cannot be null.
      */
     public RevokedSIdCacheService(
             @Qualifier(CacheHelper.BeanNames.REVOKED_SIDS_CACHE_HELPER)
             CacheHelper revokedSIdsCache,
-            VaultiqSessionManager sessionManager
+            SessionManager sessionManager
     ) {
         this.revokedSIdsCache = Objects.requireNonNull(revokedSIdsCache,
                 "RevokedSIdsCacheHelper bean not found or is null.");
-        this.sessionManager = Objects.requireNonNull(sessionManager, "VaultiqSessionManager bean not found or is null.");
+        this.sessionManager = Objects.requireNonNull(sessionManager, "SessionManager bean not found or is null.");
     }
 
     /**
@@ -99,7 +99,7 @@ public class RevokedSIdCacheService {
     /**
      * Initiates a revocation operation based on a {@link RevocationRequest}.
      * This method resolves the target session IDs from the request (e.g., all sessions for a user,
-     * or specific sessions with exclusions) by querying the {@link VaultiqSessionManager},
+     * or specific sessions with exclusions) by querying the {@link SessionManager},
      * and then marks those resolved session IDs as revoked in the cache.
      *
      * @param revocationRequest The {@link RevocationRequest} describing the revoke operation. Cannot be null.
@@ -114,7 +114,7 @@ public class RevokedSIdCacheService {
 
     /**
      * Internal helper method to resolve the set of session IDs to revoke based on the {@link RevocationRequest}.
-     * It uses the {@link VaultiqSessionManager} to get active session data when needed (e.g., for LOGOUT_ALL).
+     * It uses the {@link SessionManager} to get active session data when needed (e.g., for LOGOUT_ALL).
      *
      * @param request The {@link RevocationRequest}.
      * @return A {@link Set} of session IDs to be revoked.
@@ -138,7 +138,7 @@ public class RevokedSIdCacheService {
     }
 
     /**
-     * Internal helper method to retrieve all active session IDs for a user from the {@link VaultiqSessionManager}.
+     * Internal helper method to retrieve all active session IDs for a user from the {@link SessionManager}.
      *
      * @param request The {@link RevocationRequest} containing the user identifier.
      * @return A {@link Set} of active session IDs for the user.

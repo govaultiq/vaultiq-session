@@ -1,7 +1,7 @@
 package vaultiq.session.fingerprint;
 
 import jakarta.servlet.http.HttpServletRequest;
-import vaultiq.session.core.VaultiqSessionManager;
+import vaultiq.session.core.SessionManager;
 import vaultiq.session.core.model.VaultiqSession;
 
 /**
@@ -32,7 +32,7 @@ public interface DeviceFingerprintValidator {
      * The implementation should typically:
      * <ol>
      * <li>Identify the session associated with the {@link HttpServletRequest} (e.g., using a session ID cookie or header).</li>
-     * <li>Retrieve the corresponding {@link VaultiqSession} object (e.g., using {@link VaultiqSessionManager}).</li>
+     * <li>Retrieve the corresponding {@link VaultiqSession} object (e.g., using {@link SessionManager}).</li>
      * <li>Generate a fingerprint from the current {@link HttpServletRequest} (e.g., using {@link DeviceFingerprintGenerator}).</li>
      * <li>Compare the generated fingerprint with the fingerprint stored in the retrieved {@link VaultiqSession}.</li>
      * <li>Return {@code true} if the fingerprints match and the session is considered valid for the device, {@code false} otherwise.</li>
