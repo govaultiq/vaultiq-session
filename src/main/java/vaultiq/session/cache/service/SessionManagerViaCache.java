@@ -7,19 +7,19 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 import vaultiq.session.cache.service.internal.SessionFingerprintCacheService;
+import vaultiq.session.core.SessionManager;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.cache.service.internal.VaultiqSessionCacheService;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
 import vaultiq.session.core.model.VaultiqSession;
-import vaultiq.session.core.VaultiqSessionManager;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 /**
- * Cache-only implementation of {@link VaultiqSessionManager} for Vaultiq sessions.
+ * Cache-only implementation of {@link SessionManager} for Vaultiq sessions.
  * <p>
  * Delegates all session pool operations (creation, retrieval, deletion, listing, and counting) to the internal
  * {@link VaultiqSessionCacheService}. Used as the runtime manager when the system is configured for cache-only mode.
@@ -32,9 +32,9 @@ import java.util.Set;
 @Service
 @ConditionalOnBean(VaultiqSessionCacheService.class)
 @ConditionalOnVaultiqPersistence(mode = VaultiqPersistenceMode.CACHE_ONLY, type = ModelType.SESSION)
-public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
+public class SessionManagerViaCache implements SessionManager {
 
-    private final static Logger log = LoggerFactory.getLogger(VaultiqSessionManagerViaCache.class);
+    private final static Logger log = LoggerFactory.getLogger(SessionManagerViaCache.class);
     private final VaultiqSessionCacheService vaultiqSessionCacheService;
     private final SessionFingerprintCacheService sessionFingerprintCacheService;
 
@@ -43,7 +43,7 @@ public class VaultiqSessionManagerViaCache implements VaultiqSessionManager {
      *
      * @param vaultiqSessionCacheService the service providing cache-based CRUD for sessions
      */
-    public VaultiqSessionManagerViaCache(VaultiqSessionCacheService vaultiqSessionCacheService, SessionFingerprintCacheService sessionFingerprintCacheService) {
+    public SessionManagerViaCache(VaultiqSessionCacheService vaultiqSessionCacheService, SessionFingerprintCacheService sessionFingerprintCacheService) {
         this.vaultiqSessionCacheService = vaultiqSessionCacheService;
         this.sessionFingerprintCacheService = sessionFingerprintCacheService;
     }

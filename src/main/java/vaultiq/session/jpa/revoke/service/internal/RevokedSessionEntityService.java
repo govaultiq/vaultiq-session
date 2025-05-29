@@ -9,10 +9,10 @@ import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.core.contracts.UserIdentityAware;
 import vaultiq.session.core.model.RevocationType;
-import vaultiq.session.jpa.session.model.VaultiqSessionEntity;
+import vaultiq.session.jpa.session.model.ClientSessionEntity;
 import vaultiq.session.jpa.revoke.model.RevokedSessionEntity;
 import vaultiq.session.jpa.revoke.repository.RevokedSessionEntityRepository;
-import vaultiq.session.jpa.session.repository.VaultiqSessionEntityRepository;
+import vaultiq.session.jpa.session.repository.ClientSessionEntityRepository;
 import vaultiq.session.core.model.RevocationRequest;
 
 import java.time.Instant;
@@ -32,12 +32,12 @@ public class RevokedSessionEntityService {
     private static final Logger log = LoggerFactory.getLogger(RevokedSessionEntityService.class);
 
     private final RevokedSessionEntityRepository revokedSessionRepo;
-    private final VaultiqSessionEntityRepository sessionRepo;
+    private final ClientSessionEntityRepository sessionRepo;
     private final UserIdentityAware userIdentityAware;
 
     public RevokedSessionEntityService(
             RevokedSessionEntityRepository revokedSessionRepo,
-            VaultiqSessionEntityRepository sessionRepo,
+            ClientSessionEntityRepository sessionRepo,
             UserIdentityAware userIdentityAware
     ) {
         this.revokedSessionRepo = revokedSessionRepo;
@@ -191,9 +191,9 @@ public class RevokedSessionEntityService {
     }
 
     /**
-     * Helper to create a RevokedSessionEntity from a VaultiqSessionEntity.
+     * Helper to create a RevokedSessionEntity from a ClientSessionEntity.
      */
-    private RevokedSessionEntity toEntity(VaultiqSessionEntity s, String note, RevocationType type) {
+    private RevokedSessionEntity toEntity(ClientSessionEntity s, String note, RevocationType type) {
         var e = new RevokedSessionEntity();
         e.setSessionId(s.getSessionId());
         e.setUserId(s.getUserId());

@@ -10,8 +10,10 @@ import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.core.model.VaultiqSession;
 import vaultiq.session.fingerprint.DeviceFingerprintGenerator;
-import vaultiq.session.jpa.session.model.VaultiqSessionEntity;
-import vaultiq.session.jpa.session.repository.VaultiqSessionEntityRepository;
+import vaultiq.session.jpa.session.model.ClientSessionEntity;
+import vaultiq.session.jpa.session.repository.ClientSessionEntityRepository;
+import vaultiq.session.jpa.session.service.SessionManagerViaJpa;
+import vaultiq.session.jpa.session.service.SessionManagerViaJpaCacheEnabled;
 
 import java.time.Instant;
 import java.util.List;
@@ -22,22 +24,22 @@ import java.util.Set;
  * Internal service for managing Vaultiq sessions using JPA persistence.
  * <p>
  * This class provides the core database interaction logic for session operations.
- * It is typically used by {@link vaultiq.session.jpa.session.service.VaultiqSessionManagerViaJpa}
- * and {@link vaultiq.session.jpa.session.service.VaultiqSessionManagerViaJpaCacheEnabled}
+ * It is typically used by {@link SessionManagerViaJpa}
+ * and {@link SessionManagerViaJpaCacheEnabled}
  * to perform create, retrieve, delete, list, and count operations directly against the
  * configured JPA data store.
  * </p>
  * <p>
- * This bean is automatically configured by Spring when a {@link VaultiqSessionEntityRepository}
+ * This bean is automatically configured by Spring when a {@link ClientSessionEntityRepository}
  * is available and the persistence configuration matches {@link VaultiqPersistenceMethod#USE_JPA}
- * for {@link ModelType#SESSION} and {@link ModelType#USER_SESSION_MAPPING}, as defined
+ * for {@link ModelType#SESSION}, as defined
  * by {@link ConditionalOnVaultiqModelConfig}.
  * </p>
  *
- * @see VaultiqSessionEntityRepository
+ * @see ClientSessionEntityRepository
  * @see DeviceFingerprintGenerator
  * @see VaultiqSession
- * @see VaultiqSessionEntity
+ * @see ClientSessionEntity
  * @see ConditionalOnVaultiqModelConfig
  * @see VaultiqPersistenceMethod#USE_JPA
  * @see ModelType#SESSION
@@ -45,20 +47,20 @@ import java.util.Set;
 @Service
 @ConditionalOnVaultiqModelConfig(method = VaultiqPersistenceMethod.USE_JPA, type = ModelType.SESSION)
 // Activate only when JPA is configured for sessions
-public class VaultiqSessionEntityService {
-    private static final Logger log = LoggerFactory.getLogger(VaultiqSessionEntityService.class);
+public class ClientSessionEntityService {
+    private static final Logger log = LoggerFactory.getLogger(ClientSessionEntityService.class);
 
-    private final VaultiqSessionEntityRepository sessionRepository;
+    private final ClientSessionEntityRepository sessionRepository;
     private final DeviceFingerprintGenerator fingerprintGenerator;
 
     /**
-     * Constructs a new {@code VaultiqSessionEntityService} with the required dependencies.
+     * Constructs a new {@code ClientSessionEntityService} with the required dependencies.
      *
      * @param sessionRepository    The JPA repository for Vaultiq sessions.
      * @param fingerprintGenerator The generator for creating device fingerprints from requests.
      */
-    public VaultiqSessionEntityService(
-            VaultiqSessionEntityRepository sessionRepository,
+    public ClientSessionEntityService(
+            ClientSessionEntityRepository sessionRepository,
             DeviceFingerprintGenerator fingerprintGenerator) {
         this.sessionRepository = sessionRepository;
         this.fingerprintGenerator = fingerprintGenerator;
@@ -83,7 +85,7 @@ public class VaultiqSessionEntityService {
         Instant now = Instant.now();
 
         // Create a new JPA entity.
-        VaultiqSessionEntity entity = new VaultiqSessionEntity();
+        ClientSessionEntity entity = new ClientSessionEntity();
         entity.setUserId(userId);
         entity.setDeviceFingerPrint(deviceFingerPrint);
         entity.setCreatedAt(now);
@@ -199,12 +201,12 @@ public class VaultiqSessionEntityService {
     }
 
     /**
-     * Maps a JPA {@link VaultiqSessionEntity} entity to a client-facing {@link VaultiqSession} DTO.
+     * Maps a JPA {@link ClientSessionEntity} entity to a client-facing {@link VaultiqSession} DTO.
      *
      * @param entity The JPA entity to map.
      * @return The corresponding {@link VaultiqSession} DTO.
      */
-    private VaultiqSession mapToVaultiqSession(VaultiqSessionEntity entity) {
+    private VaultiqSession mapToVaultiqSession(ClientSessionEntity entity) {
         return VaultiqSession.builder()
                 .sessionId(entity.getSessionId())
                 .userId(entity.getUserId())

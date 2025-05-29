@@ -9,7 +9,7 @@ import vaultiq.session.cache.model.RevokedSessionCacheEntry;
 import vaultiq.session.cache.model.SessionIds;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
-import vaultiq.session.core.VaultiqSessionManager;
+import vaultiq.session.core.SessionManager;
 import vaultiq.session.core.contracts.UserIdentityAware;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.core.model.RevocationType;
@@ -29,7 +29,7 @@ import static vaultiq.session.cache.util.CacheKeyResolver.*;
  *
  * <p>This service leverages {@link CacheHelper} for conditional cache interactions,
  * ensuring operations silently skip if the underlying cache is not configured.
- * It interacts with {@link VaultiqSessionManager} to manage active sessions,
+ * It interacts with {@link SessionManager} to manage active sessions,
  * ensuring that revoked sessions are also removed from the active session store.</p>
  *
  * <p>This service is conditionally enabled by {@code @ConditionalOnVaultiqModelConfig},
@@ -42,7 +42,7 @@ public class SessionRevocationCacheService {
 
     private static final Logger log = LoggerFactory.getLogger(SessionRevocationCacheService.class);
 
-    private final VaultiqSessionManager vaultiqSessionManager;
+    private final SessionManager sessionManager;
     private final UserIdentityAware userIdentityAware;
     private final CacheHelper revocationPoolCache;
 
@@ -53,19 +53,19 @@ public class SessionRevocationCacheService {
     /**
      * Constructs a cache-backed revoke service for sessions.
      *
-     * @param vaultiqSessionManager The manager for active session operations, ensuring data consistency
+     * @param sessionManager The manager for active session operations, ensuring data consistency
      *                              across persistence strategies. Cannot be null.
      * @param userIdentityAware     Used for audit context (marking who triggers revokes). Cannot be null.
      * @param revocationPoolCache   The {@link CacheHelper} instance specifically for the revoked session pool cache.
      *                              This is autowired by Spring using its bean name. Cannot be null.
      */
     public SessionRevocationCacheService(
-            VaultiqSessionManager vaultiqSessionManager,
+            SessionManager sessionManager,
             UserIdentityAware userIdentityAware,
             @Qualifier(CacheHelper.BeanNames.REVOKED_SESSION_POOL_CACHE_HELPER)
             CacheHelper revocationPoolCache
     ) {
-        this.vaultiqSessionManager = Objects.requireNonNull(vaultiqSessionManager, "VaultiqSessionManager bean not found.");
+        this.sessionManager = Objects.requireNonNull(sessionManager, "SessionManager bean not found.");
         this.userIdentityAware = Objects.requireNonNull(userIdentityAware, "UserIdentityAware bean not found.");
         this.revocationPoolCache = Objects.requireNonNull(revocationPoolCache, "RevocationPoolCacheHelper bean not found.");
     }
@@ -122,7 +122,7 @@ public class SessionRevocationCacheService {
             return Collections.emptySet();
         }
 
-        VaultiqSession session = vaultiqSessionManager.getSession(sessionId);
+        VaultiqSession session = sessionManager.getSession(sessionId);
         if (session == null) {
             log.debug("Attempt to revoke non-existent active session: {}. Skipping.", sessionId);
             return Collections.emptySet();
@@ -151,7 +151,7 @@ public class SessionRevocationCacheService {
             log.warn("Attempt to revoke all sessions for null or blank userId. Skipping.");
             return Collections.emptySet();
         }
-        List<VaultiqSession> sessions = vaultiqSessionManager.getActiveSessionsByUser(userId);
+        List<VaultiqSession> sessions = sessionManager.getActiveSessionsByUser(userId);
         var sessionIdSet = revokeSessionSet(userId, note, sessions, RevocationType.LOGOUT_ALL);
         log.info("Successfully initiated revoke all for user '{}' affecting {} sessions.", userId, sessions.size());
         return sessionIdSet;
@@ -171,7 +171,7 @@ public class SessionRevocationCacheService {
             return Collections.emptySet();
         }
 
-        var filteredSessions = vaultiqSessionManager.getActiveSessionsByUser(userId).stream()
+        var filteredSessions = sessionManager.getActiveSessionsByUser(userId).stream()
                 .filter(session -> !excludedSessionIds.contains(session.getSessionId()))
                 .toList();
 
@@ -296,7 +296,7 @@ public class SessionRevocationCacheService {
         //  so updating session can be better Idea
         //  than deleting it from active session as it not only removes from cache,
         //  but also in the DB.
-        vaultiqSessionManager.deleteSession(sessionId);
+        sessionManager.deleteSession(sessionId);
 
         SessionIds userRevokedSessionIds = Optional.ofNullable(getRevokedSessionIds(userId))
                 .orElseGet(SessionIds::new);

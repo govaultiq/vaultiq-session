@@ -1,25 +1,24 @@
 package vaultiq.session.jpa.session.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import vaultiq.session.jpa.config.VaultiqSessionAutoConfigurationJpa;
-import vaultiq.session.jpa.session.model.VaultiqSessionEntity;
+import vaultiq.session.jpa.config.SessionAutoConfigurationJpa;
+import vaultiq.session.jpa.session.model.ClientSessionEntity;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
 /**
- * Spring Data JPA repository for managing {@link VaultiqSessionEntity} entities.
+ * Spring Data JPA repository for managing {@link ClientSessionEntity} entities.
  * <p>
  * Provides standard data access operations for Vaultiq session data when JPA
  * persistence is enabled.
  * </p>
  *
  * @see JpaRepository
- * @see VaultiqSessionEntity
- * @see VaultiqSessionAutoConfigurationJpa
+ * @see ClientSessionEntity
+ * @see SessionAutoConfigurationJpa
  */
-public interface VaultiqSessionEntityRepository extends JpaRepository<VaultiqSessionEntity, String> {
+public interface ClientSessionEntityRepository extends JpaRepository<ClientSessionEntity, String> {
 
     /**
      * Finds all session entities belonging to a specific user.
@@ -27,7 +26,7 @@ public interface VaultiqSessionEntityRepository extends JpaRepository<VaultiqSes
      * @param userId The unique identifier of the user.
      * @return A list of session entities for the user.
      */
-    List<VaultiqSessionEntity> findAllByUserId(String userId);
+    List<ClientSessionEntity> findAllByUserId(String userId);
 
     /**
      * Counts the number of session entities belonging to a specific user.
@@ -44,9 +43,9 @@ public interface VaultiqSessionEntityRepository extends JpaRepository<VaultiqSes
      * @param isRevoked The revoked status of the sessions.
      * @return A list of session entities for the user that are revoked.
      */
-    List<VaultiqSessionEntity> findAllByUserIdAndIsRevoked(String userId, boolean isRevoked);
+    List<ClientSessionEntity> findAllByUserIdAndIsRevoked(String userId, boolean isRevoked);
 
-    List<VaultiqSessionEntity> findAllByUserIdAndIsRevokedFalseAndSessionIdNotIn(
+    List<ClientSessionEntity> findAllByUserIdAndIsRevokedFalseAndSessionIdNotIn(
             String userId,
             Set<String> excludedIds
     );}

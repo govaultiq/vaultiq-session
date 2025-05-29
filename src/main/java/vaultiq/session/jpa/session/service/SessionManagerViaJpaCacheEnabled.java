@@ -9,20 +9,20 @@ import vaultiq.session.cache.model.SessionIds;
 import vaultiq.session.cache.service.internal.SessionFingerprintCacheService;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistenceRequirement;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
+import vaultiq.session.core.SessionManager;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.cache.service.internal.VaultiqSessionCacheService;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
 import vaultiq.session.core.model.VaultiqSession;
-import vaultiq.session.core.VaultiqSessionManager;
-import vaultiq.session.jpa.session.service.internal.VaultiqSessionEntityService;
+import vaultiq.session.jpa.session.service.internal.ClientSessionEntityService;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 /**
- * Implementation of the {@link VaultiqSessionManager} interface that utilizes
+ * Implementation of the {@link SessionManager} interface that utilizes
  * both JPA (database) and Cache persistence for managing Vaultiq sessions.
  * <p>
  * This service implements a read-through/write-through caching strategy for
@@ -33,15 +33,15 @@ import java.util.Set;
  * update both the JPA store and the cache to maintain consistency.
  * </p>
  * <p>
- * This bean is automatically configured by Spring when both a {@link VaultiqSessionEntityService}
+ * This bean is automatically configured by Spring when both a {@link ClientSessionEntityService}
  * (for JPA operations) and a {@link VaultiqSessionCacheService} (for cache operations)
  * are available, and the persistence configuration matches {@link VaultiqPersistenceMode#JPA_AND_CACHE}
  * for the relevant model type {@link ModelType#SESSION},
  * as defined by {@link ConditionalOnVaultiqPersistence}.
  * </p>
  *
- * @see VaultiqSessionManager
- * @see VaultiqSessionEntityService
+ * @see SessionManager
+ * @see ClientSessionEntityService
  * @see VaultiqSessionCacheService
  * @see ConditionalOnVaultiqPersistence
  * @see VaultiqPersistenceMode#JPA_AND_CACHE
@@ -49,30 +49,30 @@ import java.util.Set;
  */
 @Service
 @ConditionalOnVaultiqPersistenceRequirement(VaultiqPersistenceMethod.USE_CACHE)
-public class VaultiqSessionManagerViaJpaCacheEnabled implements VaultiqSessionManager {
+public class SessionManagerViaJpaCacheEnabled implements SessionManager {
 
-    private static final Logger log = LoggerFactory.getLogger(VaultiqSessionManagerViaJpaCacheEnabled.class);
+    private static final Logger log = LoggerFactory.getLogger(SessionManagerViaJpaCacheEnabled.class);
 
-    private final VaultiqSessionEntityService sessionService;
+    private final ClientSessionEntityService sessionService;
     private final VaultiqSessionCacheService sessionCacheService;
     private final SessionFingerprintCacheService fingerprintCacheService;
 
     /**
-     * Constructs a new {@code VaultiqSessionManagerViaJpaCacheEnabled} with the required
+     * Constructs a new {@code SessionManagerViaJpaCacheEnabled} with the required
      * JPA and Cache session service dependencies.
      *
      * @param sessionService      The underlying service for JPA-based session operations.
      * @param sessionCacheService The underlying service for cache-based session operations.
      */
-    public VaultiqSessionManagerViaJpaCacheEnabled(
-            VaultiqSessionEntityService sessionService,
+    public SessionManagerViaJpaCacheEnabled(
+            ClientSessionEntityService sessionService,
             VaultiqSessionCacheService sessionCacheService,
             SessionFingerprintCacheService fingerprintCacheService
     ) {
         this.sessionService = sessionService;
         this.sessionCacheService = sessionCacheService;
         this.fingerprintCacheService = fingerprintCacheService;
-        log.info("VaultiqSessionManager initialized; Persistence via - JPA_AND_CACHE.");
+        log.info("SessionManager initialized; Persistence via - JPA_AND_CACHE.");
     }
 
     /**

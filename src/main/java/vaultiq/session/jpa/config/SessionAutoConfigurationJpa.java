@@ -35,5 +35,5 @@ import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 @EntityScan("vaultiq.session.jpa.session.model")
 @EnableJpaRepositories("vaultiq.session.jpa.session.repository")
 @ComponentScan(basePackages = "vaultiq.session.jpa.session")
-public final class VaultiqSessionAutoConfigurationJpa {
+public final class SessionAutoConfigurationJpa {
 }

@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-import vaultiq.session.core.VaultiqSessionManager;
+import vaultiq.session.core.SessionManager;
 import vaultiq.session.cache.util.SessionIdRequestMapper;
 import vaultiq.session.core.model.VaultiqSession;
 
@@ -35,7 +35,7 @@ import vaultiq.session.core.model.VaultiqSession;
  * </p>
  */
 @Component
-@ConditionalOnBean(VaultiqSessionManager.class)
+@ConditionalOnBean(SessionManager.class)
 public class DeviceFingerprintBeanConfigFallback {
 
     private static final Logger log = LoggerFactory.getLogger(DeviceFingerprintBeanConfigFallback.class);
@@ -91,17 +91,17 @@ public class DeviceFingerprintBeanConfigFallback {
      * </p>
      * <p>
      * Requires a {@link DeviceFingerprintGenerator} (to generate the current
-     * request's fingerprint) and a {@link VaultiqSessionManager} (to retrieve
+     * request's fingerprint) and a {@link SessionManager} (to retrieve
      * the stored session) to be available as Spring beans.
      * </p>
      *
      * @param fingerprintGenerator The {@link DeviceFingerprintGenerator} bean.
-     * @param sessionManager       The {@link VaultiqSessionManager} bean.
+     * @param sessionManager       The {@link SessionManager} bean.
      * @return A default implementation of {@link DeviceFingerprintValidator}.
      */
     @Bean
     @ConditionalOnMissingBean
-    DeviceFingerprintValidator deviceFingerprintValidator(DeviceFingerprintGenerator fingerprintGenerator, VaultiqSessionManager sessionManager) {
+    DeviceFingerprintValidator deviceFingerprintValidator(DeviceFingerprintGenerator fingerprintGenerator, SessionManager sessionManager) {
         return (request) -> {
             var sessionId = SessionIdRequestMapper.getSessionId(request);
 

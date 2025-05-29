@@ -1,7 +1,8 @@
 package vaultiq.session.core.model;
 
 import java.time.Instant;
-import vaultiq.session.core.VaultiqSessionManager;
+
+import vaultiq.session.core.SessionManager;
 
 /**
  * Represents a single Vaultiq session.
@@ -13,7 +14,7 @@ import vaultiq.session.core.VaultiqSessionManager;
  * </p>
  * <p>
  * {@code VaultiqSession} objects are typically returned by methods in
- * {@link VaultiqSessionManager} and are intended for use in application logic,
+ * {@link SessionManager} and are intended for use in application logic,
  * APIs, and UI layers that need to display or process session information.
  * </p>
  * <p>
@@ -21,7 +22,7 @@ import vaultiq.session.core.VaultiqSessionManager;
  * provided {@link #builder()}.
  * </p>
  *
- * @see VaultiqSessionManager
+ * @see SessionManager
  * @see RevokedSession
  */
 public final class VaultiqSession {
