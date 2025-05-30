@@ -8,10 +8,10 @@ import vaultiq.session.context.VaultiqSessionContext;
  * Represents the final, resolved configuration for a specific Vaultiq session data model type.
  * <p>
  * This record holds the effective persistence settings (whether JPA and/or Cache are used),
- * the specific cache name, and the synchronization interval for a given {@link CacheType}.
+ * for a given {@link CacheType}.
  * The values in this record are the result of the configuration enhancement process
- * performed by {@link VaultiqModelConfigEnhancer}, which
- * consolidates settings from global properties, model-specific overrides, and zen mode.
+ * performed by {@link VaultiqModelConfigEnhancer}, which consolidates settings from global
+ * properties, model-specific overrides, and zen mode.
  * </p>
  * <p>
  * Instances of this record are stored and provided by {@link VaultiqSessionContext}
@@ -20,7 +20,6 @@ import vaultiq.session.context.VaultiqSessionContext;
  * </p>
  *
  * @param type    The {@link CacheType} this configuration applies to.
- * @param cacheName    The effective name of the cache to be used for this model type.
  * @param useJpa       {@code true} if JPA persistence is enabled for this model type, {@code false} otherwise.
  * @param useCache     {@code true} if cache persistence is enabled for this model type, {@code false} otherwise.
  * @see CacheType
@@ -29,15 +28,14 @@ import vaultiq.session.context.VaultiqSessionContext;
  */
 public record VaultiqModelConfig(
         CacheType type,
-        String cacheName,
         boolean useJpa,
         boolean useCache
 ) {
     @Override
     public String toString() {
         return String.format(
-                "{ \"CacheType\": \"%s\", \"cacheName\": \"%s\", \"useJpa\": %b, \"useCache\": %b }",
-                type, cacheName, useJpa, useCache
+                "{ \"CacheType\": \"%s\", \"useJpa\": %b, \"useCache\": %b }",
+                type, useJpa, useCache
         );
     }
 
