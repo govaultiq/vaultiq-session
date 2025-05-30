@@ -1,6 +1,7 @@
 package vaultiq.session.jpa.session.model;
 
 import jakarta.persistence.*;
+import vaultiq.session.core.model.ClientSession;
 import vaultiq.session.jpa.session.repository.ClientSessionEntityRepository;
 
 import java.time.Instant;
@@ -15,10 +16,10 @@ import java.time.Instant;
  * </p>
  * <p>
  * This class is not intended for direct use by consuming applications;
- * the client-facing model is {@link vaultiq.session.core.model.VaultiqSession}.
+ * the client-facing model is {@link ClientSession}.
  * </p>
  *
- * @see vaultiq.session.core.model.VaultiqSession
+ * @see ClientSession
  * @see ClientSessionEntityRepository
  */
 @Entity

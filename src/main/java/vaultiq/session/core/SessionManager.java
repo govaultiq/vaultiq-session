@@ -1,7 +1,7 @@
 package vaultiq.session.core;
 
 import jakarta.servlet.http.HttpServletRequest;
-import vaultiq.session.core.model.VaultiqSession;
+import vaultiq.session.core.model.ClientSession;
 
 import java.util.List;
 import java.util.Optional;
@@ -11,7 +11,7 @@ import java.util.Set;
  * Core interface for managing Vaultiq sessions.
  * <p>
  * This interface defines the standard operations for creating, retrieving,
- * deleting, and querying {@link VaultiqSession} objects within the Vaultiq
+ * deleting, and querying {@link ClientSession} objects within the Vaultiq
  * session tracking library. Implementations of this interface provide the
  * underlying persistence logic (e.g., cache-based, JPA-based, or a combination).
  * </p>
@@ -33,9 +33,9 @@ public interface SessionManager {
      *
      * @param userId  The unique identifier of the user for whom the session is created.
      * @param request The incoming {@link HttpServletRequest} containing client details.
-     * @return The newly created {@link VaultiqSession} object.
+     * @return The newly created {@link ClientSession} object.
      */
-    VaultiqSession createSession(String userId, HttpServletRequest request);
+    ClientSession createSession(String userId, HttpServletRequest request);
 
     /**
      * Retrieves an existing Vaultiq session by its unique session ID.
@@ -44,9 +44,9 @@ public interface SessionManager {
      * </p>
      *
      * @param sessionId The unique identifier of the session to retrieve.
-     * @return The {@link VaultiqSession} object if found, or {@code null} if no session exists with the given ID.
+     * @return The {@link ClientSession} object if found, or {@code null} if no session exists with the given ID.
      */
-    VaultiqSession getSession(String sessionId);
+    ClientSession getSession(String sessionId);
 
     /**
      * Retrieves the device fingerprint associated with a specific session ID.
@@ -82,9 +82,9 @@ public interface SessionManager {
      * </p>
      *
      * @param userId The unique identifier of the user whose sessions are to be retrieved.
-     * @return A {@link List} of {@link VaultiqSession} objects for the user. Returns an empty list if no sessions are found.
+     * @return A {@link List} of {@link ClientSession} objects for the user. Returns an empty list if no sessions are found.
      */
-    List<VaultiqSession> getSessionsByUser(String userId);
+    List<ClientSession> getSessionsByUser(String userId);
 
     /**
      * Retrieves all active Vaultiq sessions for a user.
@@ -93,7 +93,7 @@ public interface SessionManager {
      * @param userId The unique identifier of the user whose sessions are to be retrieved.
      * @return A count of active sessions for the user. Returns 0 if no sessions are found.
      */
-    List<VaultiqSession> getActiveSessionsByUser(String userId);
+    List<ClientSession> getActiveSessionsByUser(String userId);
 
     /**
      * Counts the total number of active Vaultiq sessions associated with a specific user ID.

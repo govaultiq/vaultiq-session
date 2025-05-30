@@ -1,7 +1,7 @@
 
 package vaultiq.session.cache.model;
 
-import vaultiq.session.core.model.VaultiqSession;
+import vaultiq.session.core.model.ClientSession;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -27,7 +27,7 @@ import java.util.UUID;
  * </ol>
  * </p>
  */
-public final class VaultiqSessionCacheEntry implements Serializable {
+public final class ClientSessionCacheEntry implements Serializable {
     /**
      * The unique session ID for this cached session.
      */
@@ -56,7 +56,7 @@ public final class VaultiqSessionCacheEntry implements Serializable {
     /**
      * No-arg constructor for serialization/deserialization only.
      */
-    private VaultiqSessionCacheEntry() {
+    private ClientSessionCacheEntry() {
         // Avoiding Direct Instantiation
     }
 
@@ -68,8 +68,8 @@ public final class VaultiqSessionCacheEntry implements Serializable {
      * @param deviceFingerPrint fingerprint from {@code DeviceFingerprintGenerator}
      * @return a new session cache entry (not blocklisted)
      */
-    public static VaultiqSessionCacheEntry create(String userId, String deviceFingerPrint) {
-        VaultiqSessionCacheEntry vaultiqSession = new VaultiqSessionCacheEntry();
+    public static ClientSessionCacheEntry create(String userId, String deviceFingerPrint) {
+        ClientSessionCacheEntry vaultiqSession = new ClientSessionCacheEntry();
         vaultiqSession.sessionId = UUID.randomUUID().toString();
         vaultiqSession.userId = userId;
         vaultiqSession.deviceFingerPrint = deviceFingerPrint;
@@ -78,14 +78,14 @@ public final class VaultiqSessionCacheEntry implements Serializable {
     }
 
     /**
-     * Creates a cache entry by copying data from an existing {@link VaultiqSession} model.
+     * Creates a cache entry by copying data from an existing {@link ClientSession} model.
      * Used for copying/restoring sessions into the cache.
      *
      * @param source the model session
      * @return cache entry with same IDs, fingerprint, and created time
      */
-    public static VaultiqSessionCacheEntry copy(VaultiqSession source) {
-        VaultiqSessionCacheEntry cacheEntry = new VaultiqSessionCacheEntry();
+    public static ClientSessionCacheEntry copy(ClientSession source) {
+        ClientSessionCacheEntry cacheEntry = new ClientSessionCacheEntry();
         cacheEntry.sessionId = source.getSessionId();
         cacheEntry.userId = source.getUserId();
         cacheEntry.deviceFingerPrint = source.getDeviceFingerPrint();
@@ -150,7 +150,7 @@ public final class VaultiqSessionCacheEntry implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        VaultiqSessionCacheEntry that = (VaultiqSessionCacheEntry) o;
+        ClientSessionCacheEntry that = (ClientSessionCacheEntry) o;
 
         return sessionId.equals(that.sessionId);
     }
@@ -162,7 +162,7 @@ public final class VaultiqSessionCacheEntry implements Serializable {
 
     @Override
     public String toString() {
-        return "VaultiqSession{" +
+        return "ClientSession{" +
                 "sessionId='" + sessionId + '\'' +
                 ", userId='" + userId + '\'' +
                 ", createdAt=" + createdAt +

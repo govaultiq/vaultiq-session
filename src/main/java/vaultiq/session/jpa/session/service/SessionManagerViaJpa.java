@@ -5,10 +5,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import vaultiq.session.core.SessionManager;
+import vaultiq.session.core.model.ClientSession;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
-import vaultiq.session.core.model.VaultiqSession;
 import vaultiq.session.jpa.session.service.internal.ClientSessionEntityService;
 
 import java.util.List;
@@ -60,7 +60,7 @@ public class SessionManagerViaJpa implements SessionManager {
      * @inheritDoc <p>Delegates session creation to the underlying JPA service.</p>
      */
     @Override
-    public VaultiqSession createSession(String userId, HttpServletRequest request) {
+    public ClientSession createSession(String userId, HttpServletRequest request) {
         log.debug("Creating session for user '{}' via JPA.", userId);
         return sessionService.create(userId, request);
     }
@@ -69,7 +69,7 @@ public class SessionManagerViaJpa implements SessionManager {
      * @inheritDoc <p>Delegates session retrieval by ID to the underlying JPA service.</p>
      */
     @Override
-    public VaultiqSession getSession(String sessionId) {
+    public ClientSession getSession(String sessionId) {
         log.debug("Retrieving session '{}' via JPA.", sessionId);
         return sessionService.get(sessionId);
     }
@@ -108,7 +108,7 @@ public class SessionManagerViaJpa implements SessionManager {
      * @inheritDoc <p>Delegates listing sessions by user ID to the underlying JPA service.</p>
      */
     @Override
-    public List<VaultiqSession> getSessionsByUser(String userId) {
+    public List<ClientSession> getSessionsByUser(String userId) {
         log.debug("Listing sessions for user '{}' via JPA.", userId);
         return sessionService.list(userId);
     }
@@ -119,7 +119,7 @@ public class SessionManagerViaJpa implements SessionManager {
      * @inheritDoc <p>Delegates counting active sessions by user ID to the underlying JPA service.</p>
      */
     @Override
-    public List<VaultiqSession> getActiveSessionsByUser(String userId) {
+    public List<ClientSession> getActiveSessionsByUser(String userId) {
         log.debug("Getting all active sessions for user '{}' via JPA.", userId);
         return sessionService.getActiveSessionsByUser(userId);
     }

@@ -5,14 +5,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import vaultiq.session.cache.model.ClientSessionCacheEntry;
 import vaultiq.session.cache.model.SessionIds;
-import vaultiq.session.cache.model.VaultiqSessionCacheEntry;
 import vaultiq.session.cache.util.CacheHelper;
 import vaultiq.session.cache.util.CacheKeyResolver;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
+import vaultiq.session.core.model.ClientSession;
 import vaultiq.session.core.model.ModelType;
-import vaultiq.session.core.model.VaultiqSession;
 import vaultiq.session.fingerprint.DeviceFingerprintGenerator;
 
 import java.util.*;
@@ -22,7 +22,7 @@ import static vaultiq.session.cache.util.CacheKeyResolver.keyForSession;
 import static vaultiq.session.cache.util.CacheKeyResolver.keyForUserSessionMapping;
 
 /**
- * <p>Service for managing {@link VaultiqSession} objects within the application's cache layer.</p>
+ * <p>Service for managing {@link ClientSession} objects within the application's cache layer.</p>
  *
  * <p>This service provides core functionalities for caching session data, including
  * creating new sessions, retrieving individual or user-specific sessions, and deleting sessions.
@@ -72,16 +72,16 @@ public class VaultiqSessionCacheService {
      *
      * @param userId  The identifier of the user for whom the session is created. Cannot be null or blank.
      * @param request The {@link HttpServletRequest} used to generate a device fingerprint for the session. Cannot be null.
-     * @return The newly created {@link VaultiqSession}.
+     * @return The newly created {@link ClientSession}.
      * @throws NullPointerException     if {@code request} is null.
      * @throws IllegalArgumentException if {@code userId} is null or blank.
      */
-    public VaultiqSession createSession(String userId, HttpServletRequest request) {
+    public ClientSession createSession(String userId, HttpServletRequest request) {
         validateUserId(userId); // Handles null/blank userId validation and throws
         Objects.requireNonNull(request, "HttpServletRequest cannot be null when creating session.");
 
         String fingerprint = fingerprintGenerator.generateFingerprint(request);
-        VaultiqSessionCacheEntry entry = VaultiqSessionCacheEntry.create(userId, fingerprint);
+        ClientSessionCacheEntry entry = ClientSessionCacheEntry.create(userId, fingerprint);
 
         log.info("Creating session for userId='{}', deviceFingerprint='{}', sessionId='{}'", userId, fingerprint, entry.getSessionId());
         sessionPoolCache.cache(keyForSession(entry.getSessionId()), entry);
@@ -91,12 +91,12 @@ public class VaultiqSessionCacheService {
     }
 
     /**
-     * Caches or updates an existing {@link VaultiqSession} in the session pool.
+     * Caches or updates an existing {@link ClientSession} in the session pool.
      *
-     * @param session The {@link VaultiqSession} object to cache. Cannot be null and must have a non-null sessionId.
+     * @param session The {@link ClientSession} object to cache. Cannot be null and must have a non-null sessionId.
      * @throws NullPointerException if {@code session} or its sessionId is null.
      */
-    public void cacheSession(VaultiqSession session) {
+    public void cacheSession(ClientSession session) {
         var entry = cacheSessionEntry(session);
         mapNewSessionIdToUser(entry);
     }
@@ -106,11 +106,11 @@ public class VaultiqSessionCacheService {
      * Each individual session is cached, and then the user's session ID list is updated.
      *
      * @param userId   The identifier of the user. Cannot be null or blank.
-     * @param sessions A {@link List} of {@link VaultiqSession} objects to cache. Cannot be null or empty.
+     * @param sessions A {@link List} of {@link ClientSession} objects to cache. Cannot be null or empty.
      * @throws NullPointerException     if {@code sessions} is null.
      * @throws IllegalArgumentException if {@code userId} is null or blank.
      */
-    public void cacheUserSessions(String userId, List<VaultiqSession> sessions) {
+    public void cacheUserSessions(String userId, List<ClientSession> sessions) {
         validateUserId(userId); // Handles null/blank userId validation
         Objects.requireNonNull(sessions, "List of sessions cannot be null for caching user sessions.");
         if (sessions.isEmpty()) {
@@ -122,7 +122,7 @@ public class VaultiqSessionCacheService {
         sessions.forEach(this::cacheSessionEntry); // Cache individual sessions
 
         // Update the user-to-session mapping with all provided session IDs
-        Set<String> newSessionIds = sessions.stream().map(VaultiqSession::getSessionId).collect(Collectors.toSet());
+        Set<String> newSessionIds = sessions.stream().map(ClientSession::getSessionId).collect(Collectors.toSet());
         SessionIds currentSessionIds = getUserSessionIds(userId).orElseGet(SessionIds::new);
 
         // Add all new IDs to the existing set
@@ -137,18 +137,18 @@ public class VaultiqSessionCacheService {
     // -------------------------------------------------------------------------
 
     /**
-     * Retrieves a {@link VaultiqSession} from the cache by its ID.
+     * Retrieves a {@link ClientSession} from the cache by its ID.
      *
      * @param sessionId The unique ID of the session to retrieve. Cannot be null or blank.
-     * @return The {@link VaultiqSession} object if found, otherwise {@code null}.
+     * @return The {@link ClientSession} object if found, otherwise {@code null}.
      */
-    public VaultiqSession getSession(String sessionId) {
+    public ClientSession getSession(String sessionId) {
         if (sessionId == null || sessionId.isBlank()) {
             log.warn("Attempt to retrieve session with null or blank sessionId. Returning null.");
             return null;
         }
         log.debug("Retrieving sessionId='{}' from session pool cache.", sessionId);
-        var entry = sessionPoolCache.get(keyForSession(sessionId), VaultiqSessionCacheEntry.class);
+        var entry = sessionPoolCache.get(keyForSession(sessionId), ClientSessionCacheEntry.class);
         return entry == null ? null : toVaultiqSession(entry);
     }
 
@@ -157,9 +157,9 @@ public class VaultiqSessionCacheService {
      * This method efficiently fetches all session entries using a batch operation.
      *
      * @param userId The identifier of the user. Cannot be null or blank.
-     * @return A {@link List} of {@link VaultiqSession} objects for the user. Returns an empty list if no sessions are found.
+     * @return A {@link List} of {@link ClientSession} objects for the user. Returns an empty list if no sessions are found.
      */
-    public List<VaultiqSession> getSessionsByUser(String userId) {
+    public List<ClientSession> getSessionsByUser(String userId) {
         if (userId == null || userId.isBlank()) {
             log.warn("Attempt to get sessions for null or blank userId. Returning empty list.");
             return Collections.emptyList();
@@ -175,9 +175,9 @@ public class VaultiqSessionCacheService {
         }
 
         // Efficiently fetch all session entries in a single batch
-        Set<VaultiqSessionCacheEntry> sessionEntries = sessionPoolCache.getAll(userSessionIds, VaultiqSessionCacheEntry.class);
+        Set<ClientSessionCacheEntry> sessionEntries = sessionPoolCache.getAll(userSessionIds, ClientSessionCacheEntry.class);
 
-        List<VaultiqSession> sessions = sessionEntries.stream()
+        List<ClientSession> sessions = sessionEntries.stream()
                 .filter(Objects::nonNull) // Filter out any null entries if exists
                 .map(this::toVaultiqSession)
                 .collect(Collectors.toList());
@@ -191,9 +191,9 @@ public class VaultiqSessionCacheService {
      * This method filters the user's sessions by checking their revocation status.
      *
      * @param userId The identifier of the user. Cannot be null or blank.
-     * @return A {@link List} of active {@link VaultiqSession} objects. Returns an empty list if no active sessions are found.
+     * @return A {@link List} of active {@link ClientSession} objects. Returns an empty list if no active sessions are found.
      */
-    public List<VaultiqSession> getActiveSessionsByUser(String userId) {
+    public List<ClientSession> getActiveSessionsByUser(String userId) {
         if (userId == null || userId.isBlank()) {
             log.warn("Attempt to get active sessions for null or blank userId. Returning empty list.");
             return Collections.emptyList();
@@ -233,7 +233,7 @@ public class VaultiqSessionCacheService {
             return;
         }
 
-        VaultiqSession session = getSession(sessionId);
+        ClientSession session = getSession(sessionId);
         if (session == null) {
             log.debug("Session with sessionId='{}' not found in cache for deletion. Skipping.", sessionId);
             return;
@@ -274,7 +274,7 @@ public class VaultiqSessionCacheService {
                 .map(CacheKeyResolver::keyForSession).collect(Collectors.toSet());
 
         // Get all session entries to be deleted *before* eviction, to get their user IDs
-        var deletableSessionEntries = sessionPoolCache.getAll(cacheKeysToDelete, VaultiqSessionCacheEntry.class);
+        var deletableSessionEntries = sessionPoolCache.getAll(cacheKeysToDelete, ClientSessionCacheEntry.class);
 
         log.info("Attempting to delete {} sessions via cache in batch.", cacheKeysToDelete.size());
 
@@ -289,18 +289,18 @@ public class VaultiqSessionCacheService {
     // -------------------------------------------------------------------------
 
     /**
-     * Caches a session entry for a given {@link VaultiqSession} object. This method is used internally
+     * Caches a session entry for a given {@link ClientSession} object. This method is used internally
      *
-     * @param session The {@link VaultiqSession} object to cache. Cannot be null and must have a non-null sessionId.
-     * @return The cached {@link VaultiqSessionCacheEntry}.
+     * @param session The {@link ClientSession} object to cache. Cannot be null and must have a non-null sessionId.
+     * @return The cached {@link ClientSessionCacheEntry}.
      * @throws NullPointerException if the {@code session} is null.
      */
-    private VaultiqSessionCacheEntry cacheSessionEntry(VaultiqSession session) {
-        Objects.requireNonNull(session, "VaultiqSession cannot be null for caching.");
-        Objects.requireNonNull(session.getSessionId(), "Session ID cannot be null for caching VaultiqSession.");
+    private ClientSessionCacheEntry cacheSessionEntry(ClientSession session) {
+        Objects.requireNonNull(session, "ClientSession cannot be null for caching.");
+        Objects.requireNonNull(session.getSessionId(), "Session ID cannot be null for caching ClientSession.");
 
         log.debug("Caching session with sessionId='{}'", session.getSessionId());
-        VaultiqSessionCacheEntry entry = VaultiqSessionCacheEntry.copy(session);
+        ClientSessionCacheEntry entry = ClientSessionCacheEntry.copy(session);
         sessionPoolCache.cache(keyForSession(session.getSessionId()), entry);
         return entry;
     }
@@ -320,16 +320,16 @@ public class VaultiqSessionCacheService {
     }
 
     /**
-     * Converts a {@link VaultiqSessionCacheEntry} (internal cache representation)
-     * into a {@link VaultiqSession} model object (public domain model).
+     * Converts a {@link ClientSessionCacheEntry} (internal cache representation)
+     * into a {@link ClientSession} model object (public domain model).
      *
-     * @param entry The {@link VaultiqSessionCacheEntry} to convert. Cannot be null.
-     * @return The corresponding {@link VaultiqSession} model.
+     * @param entry The {@link ClientSessionCacheEntry} to convert. Cannot be null.
+     * @return The corresponding {@link ClientSession} model.
      * @throws NullPointerException if the {@code entry} is null.
      */
-    private VaultiqSession toVaultiqSession(VaultiqSessionCacheEntry entry) {
-        Objects.requireNonNull(entry, "VaultiqSessionCacheEntry cannot be null for conversion.");
-        return VaultiqSession.builder()
+    private ClientSession toVaultiqSession(ClientSessionCacheEntry entry) {
+        Objects.requireNonNull(entry, "ClientSessionCacheEntry cannot be null for conversion.");
+        return ClientSession.builder()
                 .sessionId(entry.getSessionId())
                 .userId(entry.getUserId())
                 .deviceFingerPrint(entry.getDeviceFingerPrint())
@@ -343,9 +343,9 @@ public class VaultiqSessionCacheService {
      * Updates or creates the user-to-session mapping in the cache after a new session is added.
      * This helper ensures that a user's set of session IDs is kept current.
      *
-     * @param entry The {@link VaultiqSessionCacheEntry} to associate with the user.
+     * @param entry The {@link ClientSessionCacheEntry} to associate with the user.
      */
-    private void mapNewSessionIdToUser(VaultiqSessionCacheEntry entry) {
+    private void mapNewSessionIdToUser(ClientSessionCacheEntry entry) {
         var userId = entry.getUserId();
         SessionIds sessionIds = getUserSessionIds(userId).orElseGet(SessionIds::new);
         sessionIds.addSessionId(entry.getSessionId()); // SessionIds wrapper manages lastUpdated automatically
@@ -359,7 +359,7 @@ public class VaultiqSessionCacheService {
      *
      * @param sessions The set of sessions to be removed. Cannot be null or empty.
      */
-    private void removeSessionIdsFromUserSessionMapping(Set<VaultiqSessionCacheEntry> sessions) {
+    private void removeSessionIdsFromUserSessionMapping(Set<ClientSessionCacheEntry> sessions) {
         if (sessions == null || sessions.isEmpty()) { // Add null/empty check for robustness
             log.debug("No sessions provided to remove from user session mapping. Skipping.");
             return;
@@ -369,8 +369,8 @@ public class VaultiqSessionCacheService {
         Map<String, Set<String>> sessionIdsByUser = sessions.stream()
                 .filter(Objects::nonNull)
                 .collect(Collectors.groupingBy(
-                        VaultiqSessionCacheEntry::getUserId,
-                        Collectors.mapping(VaultiqSessionCacheEntry::getSessionId, Collectors.toSet())
+                        ClientSessionCacheEntry::getUserId,
+                        Collectors.mapping(ClientSessionCacheEntry::getSessionId, Collectors.toSet())
                 ));
 
         // For each user, update their SessionIds wrapper

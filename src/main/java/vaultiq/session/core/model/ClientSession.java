@@ -13,7 +13,7 @@ import vaultiq.session.core.SessionManager;
  * user, device details, creation time, and its current blocklisted status.
  * </p>
  * <p>
- * {@code VaultiqSession} objects are typically returned by methods in
+ * {@code ClientSession} objects are typically returned by methods in
  * {@link SessionManager} and are intended for use in application logic,
  * APIs, and UI layers that need to display or process session information.
  * </p>
@@ -25,7 +25,7 @@ import vaultiq.session.core.SessionManager;
  * @see SessionManager
  * @see RevokedSession
  */
-public final class VaultiqSession {
+public final class ClientSession {
     /**
      * The unique identifier for this session.
      */
@@ -56,12 +56,12 @@ public final class VaultiqSession {
      * Private constructor to prevent direct instantiation.
      * Instances should be created using the {@link #builder()}.
      */
-    private VaultiqSession() {
+    private ClientSession() {
         // avoiding external instantiation
     }
 
     /**
-     * Constructs a new VaultiqSession with all properties.
+     * Constructs a new ClientSession with all properties.
      * <p>
      * This constructor is intended for internal use by the {@link VaultiqSessionBuilder}.
      * Consuming applications should use the builder pattern via {@link #builder()}.
@@ -74,7 +74,7 @@ public final class VaultiqSession {
      * @param isRevoked         Whether the session is blocked.
      * @param revokedAt         The timestamp when the session was blocked (can be null).
      */
-    private VaultiqSession(
+    private ClientSession(
             String sessionId,
             String userId,
             String deviceFingerPrint,
@@ -91,10 +91,10 @@ public final class VaultiqSession {
     }
 
     /**
-     * Returns a new builder for creating {@link VaultiqSession} instances.
+     * Returns a new builder for creating {@link ClientSession} instances.
      * <p>
      * Using the builder pattern is the recommended way to construct
-     * {@code VaultiqSession} objects.
+     * {@code ClientSession} objects.
      * </p>
      *
      * @return a new {@link VaultiqSessionBuilder}.
@@ -158,9 +158,9 @@ public final class VaultiqSession {
     }
 
     /**
-     * Builder class for creating immutable {@link VaultiqSession} instances.
+     * Builder class for creating immutable {@link ClientSession} instances.
      * <p>
-     * Provides a fluent API for setting the properties of a {@code VaultiqSession}
+     * Provides a fluent API for setting the properties of a {@code ClientSession}
      * before building the final object.
      * </p>
      */
@@ -233,12 +233,12 @@ public final class VaultiqSession {
         }
 
         /**
-         * Builds the final immutable {@link VaultiqSession} instance with the configured properties.
+         * Builds the final immutable {@link ClientSession} instance with the configured properties.
          *
-         * @return the constructed {@link VaultiqSession}.
+         * @return the constructed {@link ClientSession}.
          */
-        public VaultiqSession build() {
-            return new VaultiqSession(
+        public ClientSession build() {
+            return new ClientSession(
                     sessionId,
                     userId,
                     deviceFingerPrint,

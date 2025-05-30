@@ -2,7 +2,7 @@ package vaultiq.session.fingerprint;
 
 import jakarta.servlet.http.HttpServletRequest;
 import vaultiq.session.core.SessionManager;
-import vaultiq.session.core.model.VaultiqSession;
+import vaultiq.session.core.model.ClientSession;
 
 /**
  * Functional interface for validating a session based on the device fingerprint.
@@ -10,7 +10,7 @@ import vaultiq.session.core.model.VaultiqSession;
  * This interface provides a contract that allows consuming applications to
  * customize how session authenticity is validated using device fingerprints.
  * The primary use case is to compare the fingerprint generated from the
- * current request with the fingerprint stored in the {@link VaultiqSession}
+ * current request with the fingerprint stored in the {@link ClientSession}
  * associated with the request.
  * </p>
  * <p>
@@ -22,7 +22,7 @@ import vaultiq.session.core.model.VaultiqSession;
  *
  * @see DeviceFingerprintBeanConfigFallback
  * @see DeviceFingerprintGenerator
- * @see VaultiqSession#getDeviceFingerPrint()
+ * @see ClientSession#getDeviceFingerPrint()
  */
 @FunctionalInterface
 public interface DeviceFingerprintValidator {
@@ -32,9 +32,9 @@ public interface DeviceFingerprintValidator {
      * The implementation should typically:
      * <ol>
      * <li>Identify the session associated with the {@link HttpServletRequest} (e.g., using a session ID cookie or header).</li>
-     * <li>Retrieve the corresponding {@link VaultiqSession} object (e.g., using {@link SessionManager}).</li>
+     * <li>Retrieve the corresponding {@link ClientSession} object (e.g., using {@link SessionManager}).</li>
      * <li>Generate a fingerprint from the current {@link HttpServletRequest} (e.g., using {@link DeviceFingerprintGenerator}).</li>
-     * <li>Compare the generated fingerprint with the fingerprint stored in the retrieved {@link VaultiqSession}.</li>
+     * <li>Compare the generated fingerprint with the fingerprint stored in the retrieved {@link ClientSession}.</li>
      * <li>Return {@code true} if the fingerprints match and the session is considered valid for the device, {@code false} otherwise.</li>
      * </ol>
      * </p>

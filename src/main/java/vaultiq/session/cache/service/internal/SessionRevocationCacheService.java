@@ -11,10 +11,10 @@ import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.core.SessionManager;
 import vaultiq.session.core.contracts.UserIdentityAware;
+import vaultiq.session.core.model.ClientSession;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.core.model.RevocationType;
 import vaultiq.session.core.model.RevocationRequest;
-import vaultiq.session.core.model.VaultiqSession;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -122,7 +122,7 @@ public class SessionRevocationCacheService {
             return Collections.emptySet();
         }
 
-        VaultiqSession session = sessionManager.getSession(sessionId);
+        ClientSession session = sessionManager.getSession(sessionId);
         if (session == null) {
             log.debug("Attempt to revoke non-existent active session: {}. Skipping.", sessionId);
             return Collections.emptySet();
@@ -151,7 +151,7 @@ public class SessionRevocationCacheService {
             log.warn("Attempt to revoke all sessions for null or blank userId. Skipping.");
             return Collections.emptySet();
         }
-        List<VaultiqSession> sessions = sessionManager.getActiveSessionsByUser(userId);
+        List<ClientSession> sessions = sessionManager.getActiveSessionsByUser(userId);
         var sessionIdSet = revokeSessionSet(userId, note, sessions, RevocationType.LOGOUT_ALL);
         log.info("Successfully initiated revoke all for user '{}' affecting {} sessions.", userId, sessions.size());
         return sessionIdSet;
@@ -264,7 +264,7 @@ public class SessionRevocationCacheService {
      * @param sessions       A list of active sessions to be revoked. Cannot be null.
      * @param revocationType The type of revocation (e.g., LOGOUT, LOGOUT_ALL, LOGOUT_WITH_EXCLUSION). Cannot be null.
      */
-    private Set<String> revokeSessionSet(String userId, String note, List<VaultiqSession> sessions, RevocationType revocationType) {
+    private Set<String> revokeSessionSet(String userId, String note, List<ClientSession> sessions, RevocationType revocationType) {
         if (sessions.isEmpty()) {
             log.info("No active sessions found for user '{}' to revoke all. Skipping.", userId);
             return Collections.emptySet();
@@ -275,7 +275,7 @@ public class SessionRevocationCacheService {
             putRevokedSessionEntry(entry);
         });
 
-        return sessions.stream().map(VaultiqSession::getSessionId).collect(Collectors.toSet());
+        return sessions.stream().map(ClientSession::getSessionId).collect(Collectors.toSet());
     }
 
     /**
@@ -313,7 +313,7 @@ public class SessionRevocationCacheService {
      * @param note    The note/reason for revoking the session. Can be null.
      * @return A new {@link RevokedSessionCacheEntry} object. Cannot be null.
      */
-    private RevokedSessionCacheEntry createRevokedSessionCacheEntry(VaultiqSession session, String note, RevocationType revocationType) {
+    private RevokedSessionCacheEntry createRevokedSessionCacheEntry(ClientSession session, String note, RevocationType revocationType) {
         return RevokedSessionCacheEntry.create(
                 session.getSessionId(),
                 session.getUserId(), // Use the userId from the retrieved active session

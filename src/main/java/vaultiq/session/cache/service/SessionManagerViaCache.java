@@ -8,11 +8,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 import vaultiq.session.cache.service.internal.SessionFingerprintCacheService;
 import vaultiq.session.core.SessionManager;
+import vaultiq.session.core.model.ClientSession;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.cache.service.internal.VaultiqSessionCacheService;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
-import vaultiq.session.core.model.VaultiqSession;
 
 import java.util.List;
 import java.util.Optional;
@@ -56,7 +56,7 @@ public class SessionManagerViaCache implements SessionManager {
      * @return the created session
      */
     @Override
-    public VaultiqSession createSession(String userId, HttpServletRequest request) {
+    public ClientSession createSession(String userId, HttpServletRequest request) {
         // both of these Services use CacheHelper, who fail silently if Cache doesn't exist.
         var session = vaultiqSessionCacheService.createSession(userId, request);
         sessionFingerprintCacheService.cacheSessionFingerPrint(session);
@@ -70,7 +70,7 @@ public class SessionManagerViaCache implements SessionManager {
      * @return the session if found; otherwise null
      */
     @Override
-    public VaultiqSession getSession(String sessionId) {
+    public ClientSession getSession(String sessionId) {
         return vaultiqSessionCacheService.getSession(sessionId);
     }
 
@@ -117,7 +117,7 @@ public class SessionManagerViaCache implements SessionManager {
      * @return the list of sessions may be empty if none
      */
     @Override
-    public List<VaultiqSession> getSessionsByUser(String userId) {
+    public List<ClientSession> getSessionsByUser(String userId) {
         return vaultiqSessionCacheService.getSessionsByUser(userId);
     }
 
@@ -128,7 +128,7 @@ public class SessionManagerViaCache implements SessionManager {
      * @return the list of sessions may be empty if none
      */
     @Override
-    public List<VaultiqSession> getActiveSessionsByUser(String userId) {
+    public List<ClientSession> getActiveSessionsByUser(String userId) {
         return vaultiqSessionCacheService.getActiveSessionsByUser(userId);
     }
 

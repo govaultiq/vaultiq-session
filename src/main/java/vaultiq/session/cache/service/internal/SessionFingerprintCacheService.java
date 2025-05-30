@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 import vaultiq.session.cache.util.CacheHelper;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
+import vaultiq.session.core.model.ClientSession;
 import vaultiq.session.core.model.ModelType;
-import vaultiq.session.core.model.VaultiqSession;
 
 import java.util.Objects; // Added for Objects.requireNonNull
 import java.util.Set;
@@ -25,7 +25,7 @@ import java.util.Set;
  * {@link VaultiqPersistenceMethod#USE_CACHE} for {@link ModelType#SESSION}).</p>
  *
  * @see CacheHelper
- * @see VaultiqSession
+ * @see ClientSession
  * @see ConditionalOnVaultiqModelConfig
  */
 @Service
@@ -54,13 +54,13 @@ public class SessionFingerprintCacheService {
      * Caches a session's device fingerprint, using the session ID as the unique key.
      * If a fingerprint for the given session ID already exists, it will be overwritten.
      *
-     * @param session The {@link VaultiqSession} object which must contain a non-null
+     * @param session The {@link ClientSession} object which must contain a non-null
      * session ID and device fingerprint.
      * @throws NullPointerException if the provided {@code session} is {@code null},
      * or if {@code session.getSessionId()} or {@code session.getDeviceFingerPrint()} are {@code null}.
      */
-    public void cacheSessionFingerPrint(VaultiqSession session) {
-        Objects.requireNonNull(session, "VaultiqSession cannot be null when caching fingerprint.");
+    public void cacheSessionFingerPrint(ClientSession session) {
+        Objects.requireNonNull(session, "ClientSession cannot be null when caching fingerprint.");
         Objects.requireNonNull(session.getSessionId(), "Session ID cannot be null when caching fingerprint.");
         Objects.requireNonNull(session.getDeviceFingerPrint(), "Device fingerprint cannot be null when caching.");
 

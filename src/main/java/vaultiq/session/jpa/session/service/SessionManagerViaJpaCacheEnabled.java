@@ -10,11 +10,11 @@ import vaultiq.session.cache.service.internal.SessionFingerprintCacheService;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistenceRequirement;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.core.SessionManager;
+import vaultiq.session.core.model.ClientSession;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.cache.service.internal.VaultiqSessionCacheService;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
-import vaultiq.session.core.model.VaultiqSession;
 import vaultiq.session.jpa.session.service.internal.ClientSessionEntityService;
 
 import java.util.List;
@@ -81,9 +81,9 @@ public class SessionManagerViaJpaCacheEnabled implements SessionManager {
      * </p>
      */
     @Override
-    public VaultiqSession createSession(String userId, HttpServletRequest request) {
+    public ClientSession createSession(String userId, HttpServletRequest request) {
         // Create the session in the database via the JPA service.
-        VaultiqSession session = sessionService.create(userId, request);
+        ClientSession session = sessionService.create(userId, request);
         log.debug("Storing newly created session '{}' in cache.", session.getSessionId());
 
         sessionCacheService.cacheSession(session);
@@ -101,7 +101,7 @@ public class SessionManagerViaJpaCacheEnabled implements SessionManager {
     @Override
     public void deleteSession(String sessionId) {
         log.debug("Deleting session '{}' from DB and cache.", sessionId);
-        VaultiqSession session = sessionService.get(sessionId);
+        ClientSession session = sessionService.get(sessionId);
         if (session != null) {
             sessionService.delete(sessionId);
             sessionCacheService.deleteSession(sessionId);
@@ -131,7 +131,7 @@ public class SessionManagerViaJpaCacheEnabled implements SessionManager {
      * </p>
      */
     @Override
-    public VaultiqSession getSession(String sessionId) {
+    public ClientSession getSession(String sessionId) {
         var session = sessionCacheService.getSession(sessionId);
 
         if (session == null) {
@@ -164,7 +164,7 @@ public class SessionManagerViaJpaCacheEnabled implements SessionManager {
      * </p>
      */
     @Override
-    public List<VaultiqSession> getSessionsByUser(String userId) {
+    public List<ClientSession> getSessionsByUser(String userId) {
         var sessions = sessionCacheService.getSessionsByUser(userId);
         if (sessions == null || sessions.isEmpty()) {
             log.debug("No sessions found for user '{}'.", userId);
@@ -182,7 +182,7 @@ public class SessionManagerViaJpaCacheEnabled implements SessionManager {
      * </p>
      */
     @Override
-    public List<VaultiqSession> getActiveSessionsByUser(String userId) {
+    public List<ClientSession> getActiveSessionsByUser(String userId) {
         var sessions = sessionCacheService.getActiveSessionsByUser(userId);
         if (sessions == null || sessions.isEmpty()) {
             log.debug("No active sessions found for user '{}'.", userId);

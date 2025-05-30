@@ -10,7 +10,7 @@ import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.core.SessionManager;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.core.model.RevocationRequest;
-import vaultiq.session.core.model.VaultiqSession;
+import vaultiq.session.core.model.ClientSession;
 
 import java.util.Collections;
 import java.util.List;
@@ -146,12 +146,12 @@ public class RevokedSIdCacheService {
      */
     private Set<String> getActiveSessionIdsForUser(RevocationRequest request) {
         String userId = Objects.requireNonNull(request.getIdentifier(), "User ID for revocation request cannot be null.");
-        List<VaultiqSession> activeSessions = sessionManager.getActiveSessionsByUser(userId);
+        List<ClientSession> activeSessions = sessionManager.getActiveSessionsByUser(userId);
         if (activeSessions == null || activeSessions.isEmpty()) {
             log.debug("No active sessions found for user '{}' during revocation request.", userId);
             return Collections.emptySet();
         }
-        return activeSessions.stream().map(VaultiqSession::getSessionId).collect(Collectors.toSet());
+        return activeSessions.stream().map(ClientSession::getSessionId).collect(Collectors.toSet());
     }
 
     /**

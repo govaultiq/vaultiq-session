@@ -1,6 +1,7 @@
 package vaultiq.session.fingerprint;
 
 import jakarta.servlet.http.HttpServletRequest;
+import vaultiq.session.core.model.ClientSession;
 
 /**
  * Functional interface for generating a unique device fingerprint from an HTTP request.
@@ -18,7 +19,7 @@ import jakarta.servlet.http.HttpServletRequest;
  * </p>
  *
  * @see DeviceFingerprintBeanConfigFallback
- * @see vaultiq.session.core.model.VaultiqSession#getDeviceFingerPrint()
+ * @see ClientSession#getDeviceFingerPrint()
  */
 @FunctionalInterface
 public interface DeviceFingerprintGenerator {

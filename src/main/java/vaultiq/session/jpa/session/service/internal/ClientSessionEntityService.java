@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
-import vaultiq.session.core.model.VaultiqSession;
+import vaultiq.session.core.model.ClientSession;
 import vaultiq.session.fingerprint.DeviceFingerprintGenerator;
 import vaultiq.session.jpa.session.model.ClientSessionEntity;
 import vaultiq.session.jpa.session.repository.ClientSessionEntityRepository;
@@ -38,7 +38,7 @@ import java.util.Set;
  *
  * @see ClientSessionEntityRepository
  * @see DeviceFingerprintGenerator
- * @see VaultiqSession
+ * @see ClientSession
  * @see ClientSessionEntity
  * @see ConditionalOnVaultiqModelConfig
  * @see VaultiqPersistenceMethod#USE_JPA
@@ -70,14 +70,14 @@ public class ClientSessionEntityService {
      * Creates and persists a new Vaultiq session in the database.
      * <p>
      * Generates a device fingerprint from the request, creates a new JPA entity,
-     * saves it using the repository, and maps the saved entity to a {@link VaultiqSession} DTO.
+     * saves it using the repository, and maps the saved entity to a {@link ClientSession} DTO.
      * </p>
      *
      * @param userId  The unique identifier of the user for the new session.
      * @param request The incoming {@link HttpServletRequest} to generate the device fingerprint from.
-     * @return The newly created and persisted {@link VaultiqSession} DTO.
+     * @return The newly created and persisted {@link ClientSession} DTO.
      */
-    public VaultiqSession create(String userId, HttpServletRequest request) {
+    public ClientSession create(String userId, HttpServletRequest request) {
         log.debug("Creating session for user '{}'.", userId);
 
         // Generate device fingerprint from the request.
@@ -103,13 +103,13 @@ public class ClientSessionEntityService {
      * Retrieves a Vaultiq session from the database by its session ID.
      *
      * @param sessionId The unique identifier of the session to retrieve.
-     * @return The {@link VaultiqSession} DTO if found, or {@code null} if no session exists with the given ID in the database.
+     * @return The {@link ClientSession} DTO if found, or {@code null} if no session exists with the given ID in the database.
      */
-    public VaultiqSession get(String sessionId) {
+    public ClientSession get(String sessionId) {
         log.debug("Retrieving session '{}'.", sessionId);
 
-        // Find the entity by ID and map it to a VaultiqSession DTO if found.
-        VaultiqSession session = sessionRepository.findById(sessionId)
+        // Find the entity by ID and map it to a ClientSession DTO if found.
+        ClientSession session = sessionRepository.findById(sessionId)
                 .map(this::mapToVaultiqSession).orElse(null);
 
         if (session == null) {
@@ -128,7 +128,7 @@ public class ClientSessionEntityService {
      * @return Optional String representing the device fingerprint. Returns {@code null} if no session exists with the given ID in the database.
      */
     public Optional<String> getSessionFingerprint(String sessionId) {
-        return Optional.ofNullable(get(sessionId)).map(VaultiqSession::getDeviceFingerPrint);
+        return Optional.ofNullable(get(sessionId)).map(ClientSession::getDeviceFingerPrint);
     }
 
     /**
@@ -165,12 +165,12 @@ public class ClientSessionEntityService {
      * Retrieves all Vaultiq sessions for a specific user from the database.
      *
      * @param userId The unique identifier of the user whose sessions are to be retrieved.
-     * @return A {@link List} of {@link VaultiqSession} DTOs for the user. Returns an empty list if no sessions are found.
+     * @return A {@link List} of {@link ClientSession} DTOs for the user. Returns an empty list if no sessions are found.
      */
-    public List<VaultiqSession> list(String userId) {
+    public List<ClientSession> list(String userId) {
         log.debug("Fetching sessions for user '{}'.", userId);
 
-        // Find all entities by user ID and map them to VaultiqSession DTOs.
+        // Find all entities by user ID and map them to ClientSession DTOs.
         return sessionRepository.findAllByUserId(userId).stream()
                 .map(this::mapToVaultiqSession)
                 .toList();
@@ -180,9 +180,9 @@ public class ClientSessionEntityService {
      * Retrieves all active Vaultiq sessions for a specific user from the database.
      *
      * @param userId The unique identifier of the user whose sessions are to be retrieved.
-     * @return A {@link List} of {@link VaultiqSession} DTOs for the user. Returns an empty list if no sessions are found.
+     * @return A {@link List} of {@link ClientSession} DTOs for the user. Returns an empty list if no sessions are found.
      */
-    public List<VaultiqSession> getActiveSessionsByUser(String userId) {
+    public List<ClientSession> getActiveSessionsByUser(String userId) {
         log.debug("Fetching active sessions for user '{}'.", userId);
 
         return sessionRepository.findAllByUserIdAndIsRevoked(userId, false).stream()
@@ -201,13 +201,13 @@ public class ClientSessionEntityService {
     }
 
     /**
-     * Maps a JPA {@link ClientSessionEntity} entity to a client-facing {@link VaultiqSession} DTO.
+     * Maps a JPA {@link ClientSessionEntity} entity to a client-facing {@link ClientSession} DTO.
      *
      * @param entity The JPA entity to map.
-     * @return The corresponding {@link VaultiqSession} DTO.
+     * @return The corresponding {@link ClientSession} DTO.
      */
-    private VaultiqSession mapToVaultiqSession(ClientSessionEntity entity) {
-        return VaultiqSession.builder()
+    private ClientSession mapToVaultiqSession(ClientSessionEntity entity) {
+        return ClientSession.builder()
                 .sessionId(entity.getSessionId())
                 .userId(entity.getUserId())
                 .deviceFingerPrint(entity.getDeviceFingerPrint())

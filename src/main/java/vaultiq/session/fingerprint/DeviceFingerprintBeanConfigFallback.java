@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import vaultiq.session.core.SessionManager;
 import vaultiq.session.cache.util.SessionIdRequestMapper;
-import vaultiq.session.core.model.VaultiqSession;
+import vaultiq.session.core.model.ClientSession;
 
 /**
  * Provides default bean configurations for {@link DeviceFingerprintGenerator}
@@ -85,7 +85,7 @@ public class DeviceFingerprintBeanConfigFallback {
      * bean of this type is found in the Spring application context.
      * <p>
      * The default validator checks if the fingerprint generated from the current
-     * request matches the fingerprint stored in the {@link VaultiqSession}
+     * request matches the fingerprint stored in the {@link ClientSession}
      * associated with the request's session ID. This helps verify that the
      * session is being used from the same device it was created on.
      * </p>
