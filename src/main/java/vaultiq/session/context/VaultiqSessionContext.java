@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import vaultiq.session.cache.util.CacheType;
 import vaultiq.session.core.model.ModelType;
 import vaultiq.session.config.VaultiqSessionProperties;
-import vaultiq.session.core.model.VaultiqModelConfig;
+import vaultiq.session.config.model.VaultiqModelConfig;
 
 import java.util.Arrays;
 import java.util.Map;

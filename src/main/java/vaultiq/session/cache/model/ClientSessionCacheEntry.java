@@ -23,7 +23,7 @@ import java.util.UUID;
  * Usage:
  * <ol>
  *   <li>Created via the static {@link #create} factory for new sessions or {@link #copy} for copying an existing model.</li>
- *   <li>States are toggled as needed (e.g., {@link #block()}) during invalidation workflows.</li>
+ *   <li>States are toggled as needed (e.g., {@link #revoke()} ) during invalidation workflows.</li>
  * </ol>
  * </p>
  */

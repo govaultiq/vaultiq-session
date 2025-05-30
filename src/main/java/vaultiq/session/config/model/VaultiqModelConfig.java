@@ -1,10 +1,8 @@
-package vaultiq.session.core.model;
+package vaultiq.session.config.model;
 
 import vaultiq.session.cache.util.CacheType;
 import vaultiq.session.context.VaultiqModelConfigEnhancer;
 import vaultiq.session.context.VaultiqSessionContext;
-
-import java.time.Duration;
 
 /**
  * Represents the final, resolved configuration for a specific Vaultiq session data model type.
