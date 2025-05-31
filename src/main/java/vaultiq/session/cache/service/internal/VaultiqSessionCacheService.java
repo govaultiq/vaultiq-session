@@ -11,6 +11,7 @@ import vaultiq.session.cache.util.CacheHelper;
 import vaultiq.session.cache.util.CacheKeyResolver;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
+import vaultiq.session.core.util.SessionAttributor;
 import vaultiq.session.model.ClientSession;
 import vaultiq.session.model.ModelType;
 import vaultiq.session.fingerprint.DeviceFingerprintGenerator;
@@ -81,7 +82,8 @@ public class VaultiqSessionCacheService {
         Objects.requireNonNull(request, "HttpServletRequest cannot be null when creating session.");
 
         String fingerprint = fingerprintGenerator.generateFingerprint(request);
-        ClientSessionCacheEntry entry = ClientSessionCacheEntry.create(userId, fingerprint);
+        var sessionAttributes = SessionAttributor.forRequest(request);
+        ClientSessionCacheEntry entry = ClientSessionCacheEntry.create(userId, fingerprint, sessionAttributes.getOs(), sessionAttributes.getDeviceType(), sessionAttributes.getDeviceName());
 
         log.info("Creating session for userId='{}', deviceFingerprint='{}', sessionId='{}'", userId, fingerprint, entry.getSessionId());
         sessionPoolCache.cache(keyForSession(entry.getSessionId()), entry);

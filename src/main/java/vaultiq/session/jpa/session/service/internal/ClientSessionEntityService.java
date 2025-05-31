@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vaultiq.session.core.util.SessionAttributor;
 import vaultiq.session.model.ModelType;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
@@ -82,14 +83,10 @@ public class ClientSessionEntityService {
 
         // Generate device fingerprint from the request.
         String deviceFingerPrint = fingerprintGenerator.generateFingerprint(request);
-        Instant now = Instant.now();
 
         // Create a new JPA entity.
-        ClientSessionEntity entity = new ClientSessionEntity();
-        entity.setUserId(userId);
-        entity.setDeviceFingerPrint(deviceFingerPrint);
-        entity.setCreatedAt(now);
-        // isRevoked and blockedAt will default to false/null in the entity.
+        var sessionAttributes = SessionAttributor.forRequest(request);
+        ClientSessionEntity entity = ClientSessionEntity.create(userId, deviceFingerPrint, sessionAttributes.getDeviceName(), sessionAttributes.getOs(), sessionAttributes.getDeviceType());
 
         // Save the entity to the database.
         entity = sessionRepository.save(entity);
