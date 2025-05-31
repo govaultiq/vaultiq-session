@@ -80,11 +80,14 @@ public final class ClientSessionCacheEntry implements Serializable {
      * @param deviceFingerPrint fingerprint from {@code DeviceFingerprintGenerator}
      * @return a new session cache entry (not blocklisted)
      */
-    public static ClientSessionCacheEntry create(String userId, String deviceFingerPrint) {
+    public static ClientSessionCacheEntry create(String userId, String deviceFingerPrint, String os, DeviceType deviceType, String deviceName) {
         ClientSessionCacheEntry vaultiqSession = new ClientSessionCacheEntry();
         vaultiqSession.sessionId = UUID.randomUUID().toString();
         vaultiqSession.userId = userId;
         vaultiqSession.deviceFingerPrint = deviceFingerPrint;
+        vaultiqSession.deviceName = deviceName;
+        vaultiqSession.os = os;
+        vaultiqSession.deviceType = deviceType;
         vaultiqSession.createdAt = Instant.now();
         return vaultiqSession;
     }

@@ -1,8 +1,10 @@
 package vaultiq.session.jpa.session.model;
 
 import jakarta.persistence.*;
+import vaultiq.session.cache.model.ClientSessionCacheEntry;
 import vaultiq.session.model.ClientSession;
 import vaultiq.session.jpa.session.repository.ClientSessionEntityRepository;
+import vaultiq.session.model.DeviceType;
 
 import java.time.Instant;
 
@@ -71,7 +73,8 @@ public final class ClientSessionEntity {
      * The type of device (e.g., MOBILE, TABLET, DESKTOP, OTHER).
      */
     @Column(name = "device_type", nullable = true)
-    private String deviceType;
+    @Enumerated(EnumType.STRING)
+    private DeviceType deviceType;
 
     /**
      * The timestamp (UTC) when this session was created.
@@ -101,27 +104,7 @@ public final class ClientSessionEntity {
      * @param deviceFingerPrint The device fingerprint.
      * @return A new {@link ClientSessionEntity} instance.
      */
-    public static ClientSessionEntity create(String userId, String deviceFingerPrint) {
-        ClientSessionEntity vaultiqSession = new ClientSessionEntity();
-        vaultiqSession.userId = userId;
-        vaultiqSession.deviceFingerPrint = deviceFingerPrint;
-        vaultiqSession.createdAt = Instant.now();
-        // isRevoked defaults to false, revokedAt defaults to null by JPA
-        return vaultiqSession;
-    }
-
-    /**
-     * Overloaded factory method to create a new {@link ClientSessionEntity} instance
-     * with all device details.
-     *
-     * @param userId            The unique identifier of the user.
-     * @param deviceFingerPrint The device fingerprint.
-     * @param deviceName        The device name.
-     * @param os                The operating system.
-     * @param deviceType        The device type.
-     * @return A new {@link ClientSessionEntity} instance.
-     */
-    public static ClientSessionEntity create(String userId, String deviceFingerPrint, String deviceName, String os, String deviceType) {
+    public static ClientSessionEntity create(String userId, String deviceFingerPrint, String deviceName, String os, DeviceType deviceType) {
         ClientSessionEntity vaultiqSession = new ClientSessionEntity();
         vaultiqSession.userId = userId;
         vaultiqSession.deviceFingerPrint = deviceFingerPrint;
@@ -130,6 +113,27 @@ public final class ClientSessionEntity {
         vaultiqSession.deviceType = deviceType;
         vaultiqSession.createdAt = Instant.now();
         return vaultiqSession;
+    }
+
+    /**
+     * Creates a cache entry by copying data from an existing {@link ClientSession} model.
+     * Used for copying/restoring sessions into the cache.
+     *
+     * @param source the model session
+     * @return cache entry with same IDs, fingerprint, and created time
+     */
+    public static ClientSessionEntity copy(ClientSession source) {
+        ClientSessionEntity entity = new ClientSessionEntity();
+        entity.sessionId = source.getSessionId();
+        entity.userId = source.getUserId();
+        entity.deviceFingerPrint = source.getDeviceFingerPrint();
+        entity.deviceName = source.getDeviceName();
+        entity.os = source.getOs();
+        entity.deviceType = source.getDeviceType();
+        entity.createdAt = source.getCreatedAt();
+        entity.revokedAt = source.getRevokedAt();
+        entity.isRevoked = source.isRevoked();
+        return entity;
     }
 
     // Getters and Setters for JPA access
@@ -174,11 +178,11 @@ public final class ClientSessionEntity {
         this.os = os;
     }
 
-    public String getDeviceType() {
+    public DeviceType getDeviceType() {
         return deviceType;
     }
 
-    public void setDeviceType(String deviceType) {
+    public void setDeviceType(DeviceType deviceType) {
         this.deviceType = deviceType;
     }
 
