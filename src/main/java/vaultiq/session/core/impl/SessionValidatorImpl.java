@@ -1,4 +1,4 @@
-package vaultiq.session.domain.contracts.impl;
+package vaultiq.session.core.impl;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -6,9 +6,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 import vaultiq.session.cache.util.SessionIdRequestMapper;
-import vaultiq.session.domain.contracts.internal.SessionManager;
-import vaultiq.session.domain.contracts.internal.SessionRevocationManager;
-import vaultiq.session.domain.contracts.internal.SessionValidator;
+import vaultiq.session.core.service.SessionManager;
+import vaultiq.session.core.service.SessionRevocationManager;
+import vaultiq.session.core.service.SessionValidator;
 import vaultiq.session.fingerprint.DeviceFingerprintValidator;
 
 /**

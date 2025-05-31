@@ -1,7 +1,7 @@
 package vaultiq.session.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import vaultiq.session.domain.model.ModelType;
+import vaultiq.session.model.ModelType;
 import vaultiq.session.context.VaultiqModelConfigEnhancer;
 import vaultiq.session.context.VaultiqSessionContext;
 

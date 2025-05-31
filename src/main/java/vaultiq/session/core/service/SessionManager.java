@@ -1,7 +1,7 @@
-package vaultiq.session.domain.contracts.internal;
+package vaultiq.session.core.service;
 
 import jakarta.servlet.http.HttpServletRequest;
-import vaultiq.session.domain.model.ClientSession;
+import vaultiq.session.model.ClientSession;
 
 import java.util.List;
 import java.util.Optional;

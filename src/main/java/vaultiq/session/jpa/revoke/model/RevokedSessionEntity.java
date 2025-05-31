@@ -1,7 +1,7 @@
 package vaultiq.session.jpa.revoke.model;
 
 import jakarta.persistence.*;
-import vaultiq.session.domain.model.RevocationType;
+import vaultiq.session.model.RevocationType;
 import java.time.Instant;
 
 /**

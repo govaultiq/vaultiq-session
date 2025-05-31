@@ -4,14 +4,14 @@ package vaultiq.session.jpa.revoke.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import vaultiq.session.domain.model.ModelType;
+import vaultiq.session.model.ModelType;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
-import vaultiq.session.domain.contracts.internal.SessionRevocationManager;
-import vaultiq.session.domain.model.RevokedSession;
+import vaultiq.session.core.service.SessionRevocationManager;
+import vaultiq.session.model.RevokedSession;
 import vaultiq.session.jpa.revoke.model.RevokedSessionEntity;
 import vaultiq.session.jpa.revoke.service.internal.RevokedSessionEntityService;
-import vaultiq.session.domain.model.RevocationRequest;
+import vaultiq.session.model.RevocationRequest;
 
 import java.util.*;
 

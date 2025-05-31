@@ -1,4 +1,4 @@
-package vaultiq.session.domain.model;
+package vaultiq.session.model;
 
 import java.time.Instant;
 

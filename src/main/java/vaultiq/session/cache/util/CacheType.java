@@ -1,6 +1,6 @@
 package vaultiq.session.cache.util;
 
-import vaultiq.session.domain.model.ModelType;
+import vaultiq.session.model.ModelType;
 
 import java.util.Arrays;
 import java.util.Collections;

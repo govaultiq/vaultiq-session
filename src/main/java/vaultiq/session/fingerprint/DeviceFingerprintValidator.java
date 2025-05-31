@@ -1,8 +1,8 @@
 package vaultiq.session.fingerprint;
 
 import jakarta.servlet.http.HttpServletRequest;
-import vaultiq.session.domain.contracts.internal.SessionManager;
-import vaultiq.session.domain.model.ClientSession;
+import vaultiq.session.core.service.SessionManager;
+import vaultiq.session.model.ClientSession;
 
 /**
  * Functional interface for validating a session based on the device fingerprint.

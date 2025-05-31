@@ -1,4 +1,4 @@
-package vaultiq.session.domain.contracts.internal;
+package vaultiq.session.core.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 

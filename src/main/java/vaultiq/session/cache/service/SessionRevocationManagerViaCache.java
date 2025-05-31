@@ -9,10 +9,10 @@ import vaultiq.session.cache.service.internal.RevokedSIdCacheService;
 import vaultiq.session.cache.service.internal.SessionRevocationCacheService;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
-import vaultiq.session.domain.contracts.internal.SessionRevocationManager;
-import vaultiq.session.domain.model.ModelType;
-import vaultiq.session.domain.model.RevocationRequest;
-import vaultiq.session.domain.model.RevokedSession;
+import vaultiq.session.core.service.SessionRevocationManager;
+import vaultiq.session.model.ModelType;
+import vaultiq.session.model.RevocationRequest;
+import vaultiq.session.model.RevokedSession;
 
 import java.util.List;
 

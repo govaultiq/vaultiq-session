@@ -1,8 +1,8 @@
-package vaultiq.session.domain.model;
+package vaultiq.session.model;
 
 import java.time.Instant;
 
-import vaultiq.session.domain.contracts.internal.SessionManager;
+import vaultiq.session.core.service.SessionManager;
 
 /**
  * Represents a single Vaultiq session.

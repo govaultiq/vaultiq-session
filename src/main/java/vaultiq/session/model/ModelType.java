@@ -1,4 +1,4 @@
-package vaultiq.session.domain.model;
+package vaultiq.session.model;
 
 /**
  * Enumeration of the session-related model types provided by the Vaultiq-session library.
