@@ -131,7 +131,7 @@ public final class VaultiqModelConfigEnhancer {
                             zenMode);
                     log.debug("Resolved Cache for Type: {}  -> useJpa={}, useCache={}", type, useJpa, useCache);
 
-                    return new VaultiqModelConfig(type, type.alias(), useJpa, useCache);
+                    return new VaultiqModelConfig(type, useJpa, useCache);
                 })
                 .collect(Collectors.toMap(
                         VaultiqModelConfig::type,
