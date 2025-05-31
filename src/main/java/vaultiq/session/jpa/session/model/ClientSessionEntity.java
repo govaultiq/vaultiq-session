@@ -56,6 +56,24 @@ public final class ClientSessionEntity {
     private String deviceFingerPrint;
 
     /**
+     * The name of the device from which the session originated.
+     */
+    @Column(name = "device_name", nullable = true)
+    private String deviceName;
+
+    /**
+     * The operating system of the device.
+     */
+    @Column(name = "os", nullable = true)
+    private String os;
+
+    /**
+     * The type of device (e.g., MOBILE, TABLET, DESKTOP, OTHER).
+     */
+    @Column(name = "device_type", nullable = true)
+    private String deviceType;
+
+    /**
      * The timestamp (UTC) when this session was created.
      * This field is mandatory and cannot be updated after creation.
      */
@@ -92,6 +110,28 @@ public final class ClientSessionEntity {
         return vaultiqSession;
     }
 
+    /**
+     * Overloaded factory method to create a new {@link ClientSessionEntity} instance
+     * with all device details.
+     *
+     * @param userId            The unique identifier of the user.
+     * @param deviceFingerPrint The device fingerprint.
+     * @param deviceName        The device name.
+     * @param os                The operating system.
+     * @param deviceType        The device type.
+     * @return A new {@link ClientSessionEntity} instance.
+     */
+    public static ClientSessionEntity create(String userId, String deviceFingerPrint, String deviceName, String os, String deviceType) {
+        ClientSessionEntity vaultiqSession = new ClientSessionEntity();
+        vaultiqSession.userId = userId;
+        vaultiqSession.deviceFingerPrint = deviceFingerPrint;
+        vaultiqSession.deviceName = deviceName;
+        vaultiqSession.os = os;
+        vaultiqSession.deviceType = deviceType;
+        vaultiqSession.createdAt = Instant.now();
+        return vaultiqSession;
+    }
+
     // Getters and Setters for JPA access
 
     public String getSessionId() {
@@ -116,6 +156,30 @@ public final class ClientSessionEntity {
 
     public void setDeviceFingerPrint(String deviceFingerPrint) {
         this.deviceFingerPrint = deviceFingerPrint;
+    }
+
+    public String getDeviceName() {
+        return deviceName;
+    }
+
+    public void setDeviceName(String deviceName) {
+        this.deviceName = deviceName;
+    }
+
+    public String getOs() {
+        return os;
+    }
+
+    public void setOs(String os) {
+        this.os = os;
+    }
+
+    public String getDeviceType() {
+        return deviceType;
+    }
+
+    public void setDeviceType(String deviceType) {
+        this.deviceType = deviceType;
     }
 
     public Instant getCreatedAt() {
