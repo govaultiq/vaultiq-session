@@ -1,4 +1,4 @@
-package vaultiq.session.core.model;
+package vaultiq.session.domain.model;
 
 /**
  * Enumeration defining the different types or strategies of session revocation (revoking).

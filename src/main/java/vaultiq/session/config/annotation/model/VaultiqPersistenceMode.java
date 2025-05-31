@@ -1,6 +1,6 @@
 package vaultiq.session.config.annotation.model;
 
-import vaultiq.session.core.model.ModelType;
+import vaultiq.session.domain.model.ModelType;
 
 /**
  * Enumeration defining the possible persistence modes for Vaultiq session data models.

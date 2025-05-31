@@ -7,10 +7,10 @@ import org.springframework.stereotype.Service;
 import vaultiq.session.cache.util.CacheHelper;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
-import vaultiq.session.core.SessionManager;
-import vaultiq.session.core.model.ModelType;
-import vaultiq.session.core.model.RevocationRequest;
-import vaultiq.session.core.model.ClientSession;
+import vaultiq.session.domain.contracts.internal.SessionManager;
+import vaultiq.session.domain.model.ModelType;
+import vaultiq.session.domain.model.RevocationRequest;
+import vaultiq.session.domain.model.ClientSession;
 
 import java.util.Collections;
 import java.util.List;

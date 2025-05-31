@@ -2,8 +2,8 @@ package vaultiq.session.cache.model;
 
 import vaultiq.session.cache.service.SessionRevocationManagerViaCache;
 import vaultiq.session.cache.service.internal.SessionRevocationCacheService;
-import vaultiq.session.core.model.RevocationType;
-import vaultiq.session.core.model.RevokedSession;
+import vaultiq.session.domain.model.RevocationType;
+import vaultiq.session.domain.model.RevokedSession;
 import java.time.Instant;
 
 /**

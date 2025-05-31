@@ -1,7 +1,7 @@
 package vaultiq.session.config.annotation;
 
 import org.springframework.context.annotation.Conditional;
-import vaultiq.session.core.model.ModelType;
+import vaultiq.session.domain.model.ModelType;
 import vaultiq.session.config.rules.VaultiqPersistenceModeCondition;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
 import vaultiq.session.context.VaultiqSessionContext;

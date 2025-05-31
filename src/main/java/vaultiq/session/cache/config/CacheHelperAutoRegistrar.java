@@ -10,7 +10,7 @@ import vaultiq.session.cache.util.CacheType;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistenceRequirement;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
-import vaultiq.session.core.model.ModelType;
+import vaultiq.session.domain.model.ModelType;
 
 /**
  * <p>

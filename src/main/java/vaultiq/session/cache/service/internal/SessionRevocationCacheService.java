@@ -9,12 +9,12 @@ import vaultiq.session.cache.model.RevokedSessionCacheEntry;
 import vaultiq.session.cache.model.SessionIds;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
-import vaultiq.session.core.SessionManager;
-import vaultiq.session.core.contracts.UserIdentityAware;
-import vaultiq.session.core.model.ClientSession;
-import vaultiq.session.core.model.ModelType;
-import vaultiq.session.core.model.RevocationType;
-import vaultiq.session.core.model.RevocationRequest;
+import vaultiq.session.domain.contracts.internal.SessionManager;
+import vaultiq.session.domain.contracts.spi.UserIdentityAware;
+import vaultiq.session.domain.model.ClientSession;
+import vaultiq.session.domain.model.ModelType;
+import vaultiq.session.domain.model.RevocationType;
+import vaultiq.session.domain.model.RevocationRequest;
 
 import java.util.*;
 import java.util.stream.Collectors;

@@ -1,4 +1,4 @@
-package vaultiq.session.core.contracts;
+package vaultiq.session.domain.contracts.spi;
 
 /**
  * A functional interface defining a contract for retrieving the unique identifier

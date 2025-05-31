@@ -8,9 +8,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-import vaultiq.session.core.SessionManager;
+import vaultiq.session.domain.contracts.internal.SessionManager;
 import vaultiq.session.cache.util.SessionIdRequestMapper;
-import vaultiq.session.core.model.ClientSession;
+import vaultiq.session.domain.model.ClientSession;
 
 /**
  * Provides default bean configurations for {@link DeviceFingerprintGenerator}

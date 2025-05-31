@@ -1,7 +1,7 @@
 package vaultiq.session.jpa.session.model;
 
 import jakarta.persistence.*;
-import vaultiq.session.core.model.ClientSession;
+import vaultiq.session.domain.model.ClientSession;
 import vaultiq.session.jpa.session.repository.ClientSessionEntityRepository;
 
 import java.time.Instant;

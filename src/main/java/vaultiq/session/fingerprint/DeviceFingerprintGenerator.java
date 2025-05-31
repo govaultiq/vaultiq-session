@@ -1,7 +1,7 @@
 package vaultiq.session.fingerprint;
 
 import jakarta.servlet.http.HttpServletRequest;
-import vaultiq.session.core.model.ClientSession;
+import vaultiq.session.domain.model.ClientSession;
 
 /**
  * Functional interface for generating a unique device fingerprint from an HTTP request.

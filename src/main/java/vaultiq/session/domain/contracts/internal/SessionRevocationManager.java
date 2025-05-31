@@ -1,7 +1,7 @@
-package vaultiq.session.core;
+package vaultiq.session.domain.contracts.internal;
 
-import vaultiq.session.core.model.RevokedSession;
-import vaultiq.session.core.model.RevocationRequest;
+import vaultiq.session.domain.model.RevokedSession;
+import vaultiq.session.domain.model.RevocationRequest;
 
 import java.util.List;
 

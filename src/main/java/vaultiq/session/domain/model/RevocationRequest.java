@@ -1,6 +1,6 @@
-package vaultiq.session.core.model;
+package vaultiq.session.domain.model;
 
-import vaultiq.session.core.SessionRevocationManager;
+import vaultiq.session.domain.contracts.internal.SessionRevocationManager;
 
 import java.util.*;
 import java.util.stream.Collectors;

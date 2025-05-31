@@ -1,4 +1,4 @@
-package vaultiq.session.core;
+package vaultiq.session.domain.contracts.impl;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -6,6 +6,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 import vaultiq.session.cache.util.SessionIdRequestMapper;
+import vaultiq.session.domain.contracts.internal.SessionManager;
+import vaultiq.session.domain.contracts.internal.SessionRevocationManager;
+import vaultiq.session.domain.contracts.internal.SessionValidator;
 import vaultiq.session.fingerprint.DeviceFingerprintValidator;
 
 /**
@@ -25,14 +28,14 @@ import vaultiq.session.fingerprint.DeviceFingerprintValidator;
  */
 @Component
 @ConditionalOnBean({SessionManager.class, SessionRevocationManager.class, DeviceFingerprintValidator.class})
-public class SessionValidator {
+public class SessionValidatorImpl implements SessionValidator {
 
-    private static final Logger log = LoggerFactory.getLogger(SessionValidator.class);
+    private static final Logger log = LoggerFactory.getLogger(SessionValidatorImpl.class);
 
     private final SessionRevocationManager revocationManager;
     private final DeviceFingerprintValidator deviceFingerprintValidator;
 
-    public SessionValidator(
+    public SessionValidatorImpl(
             SessionRevocationManager revocationManager,
             DeviceFingerprintValidator deviceFingerprintValidator
     ) {
@@ -41,7 +44,9 @@ public class SessionValidator {
     }
 
     /**
-     * Validates the session associated with the incoming HTTP request.
+     * @param request the HTTP servlet request to validate
+     * @return {@code true} if the session is legitimate and passes all checks; {@code false} otherwise
+     * @inheritedDoc Validates the session associated with the incoming HTTP request.
      * <p>
      * The method performs the following validations in sequence:
      * <ol>
@@ -52,10 +57,8 @@ public class SessionValidator {
      * </ol>
      * <p>
      * If all checks pass, the session is considered valid.
-     *
-     * @param request the HTTP servlet request to validate
-     * @return {@code true} if the session is legitimate and passes all checks; {@code false} otherwise
      */
+    @Override
     public boolean validateForSession(HttpServletRequest request) {
         String sessionId = SessionIdRequestMapper.getSessionId(request);
 
