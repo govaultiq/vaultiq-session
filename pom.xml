@@ -13,7 +13,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>vaultiq-session</name>
 	<description>vaultiq-session is a session management library for devices, that integrates with vaultiq token issuer and authenticator libraries.</description>
-	<url>https://vaultiq.co</url>
+	<url>https://govaultiq.com</url>
 
 	<licenses>
 		<license>
