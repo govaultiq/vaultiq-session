@@ -5,7 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 /**
  * Validates whether an incoming session request is legitimate.
  * <p>
- * This component performs two critical checks to determine the legitimacy
+ * This component performs critical checks to determine the legitimacy
  * of a session associated with an incoming HTTP request.
  * </p>
  */
