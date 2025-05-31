@@ -1,8 +1,7 @@
-
 package vaultiq.session.cache.model;
 
 import vaultiq.session.model.ClientSession;
-it import vaultiq.session.model.DeviceType;
+import vaultiq.session.model.DeviceType;
 
 import java.io.Serializable;
 import java.time.Instant;
