@@ -42,7 +42,7 @@ public class SessionApiAdaptor implements SessionApi {
 
     /**
      * @param userId  the ID of the user for whom the session is to be created
-     * @param request the HTTP servlet request containing session context
+     * @param request the HTTP servlet request for fingerprinting
      * @return the created {@link ClientSession}
      * @inheritedDoc initiates session creation via the {@link SessionManager}.
      */
