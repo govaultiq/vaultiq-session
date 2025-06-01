@@ -40,10 +40,10 @@ Soon to be available on Maven Central:
 ```yaml
 vaultiq:
   session:
-    zen-mode: true
+    production-mode: true
 ```
 
-> Zen mode enables both JPA and cache with sensible defaults.
+> Production mode enables both JPA and cache with sensible defaults.
 >
 > * `cache-manager` = "cacheManager"
 > * Cache names are derived from the `CacheType.alias()` method
@@ -54,7 +54,7 @@ vaultiq:
 ```yaml
 vaultiq:
   session:
-    zen-mode: true
+    production-mode: true
     persistence:
       models:
         - type: REVOKE

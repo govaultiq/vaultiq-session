@@ -24,7 +24,7 @@ import java.util.List;
 @ConfigurationProperties("vaultiq.session")
 public class VaultiqSessionProperties {
     /**
-     * Configures "zen mode" for session persistence.
+     * Configures "production mode" for session persistence.
      * <p>
      * When set to {@code true}, this enables a simplified configuration mode
      * where both Cache and JPA persistence methods are considered active by
@@ -36,7 +36,7 @@ public class VaultiqSessionProperties {
      * Default is {@code false}.
      * </p>
      */
-    private boolean zenMode = false;
+    private boolean productionMode = false;
 
     /**
      * Holds the detailed persistence configurations, including global defaults
@@ -45,16 +45,16 @@ public class VaultiqSessionProperties {
     private Persistence persistence;
 
     /**
-     * Checks if Zen Mode is enabled.
+     * Checks if Production Mode is enabled.
      *
-     * @return {@code true} if Zen Mode is enabled, {@code false} otherwise.
+     * @return {@code true} if Production Mode is enabled, {@code false} otherwise.
      */
-    public boolean isZenMode() {
-        return zenMode;
+    public boolean isProductionMode() {
+        return productionMode;
     }
 
-    public void setZenMode(boolean zenMode) {
-        this.zenMode = zenMode;
+    public void setProductionMode(boolean productionMode) {
+        this.productionMode = productionMode;
     }
 
     /**
@@ -82,7 +82,7 @@ public class VaultiqSessionProperties {
         /**
          * Global default setting to enable or disable JPA-based persistence for all models.
          * <p>
-         * This can be overridden by {@link VaultiqSessionProperties#zenMode} or
+         * This can be overridden by {@link VaultiqSessionProperties#productionMode} or
          * model-specific settings in {@link ModelPersistenceConfig#useJpa}.
          * </p>
          */
@@ -91,7 +91,7 @@ public class VaultiqSessionProperties {
         /**
          * Global default setting to enable or disable cache-based persistence for all models.
          * <p>
-         * This can be overridden by {@link VaultiqSessionProperties#zenMode} or
+         * This can be overridden by {@link VaultiqSessionProperties#productionMode} or
          * model-specific settings in {@link ModelPersistenceConfig#useCache}.
          * </p>
          */
@@ -172,7 +172,7 @@ public class VaultiqSessionProperties {
      * Properties defined here override the global settings in {@link Persistence}
      * for the specified {@link #type model type}. If a property (e.g., {@code useJpa}, {@code useCache},
      * {@code syncInterval}) is {@code null} in this configuration, the corresponding
-     * global setting from {@link Persistence} or the {@link VaultiqSessionProperties#zenMode}
+     * global setting from {@link Persistence} or the {@link VaultiqSessionProperties#productionMode}
      * default will apply.
      * </p>
      */
@@ -185,13 +185,13 @@ public class VaultiqSessionProperties {
         /**
          * Explicitly enable or disable JPA usage for this model type.
          * If {@code null}, the effective setting is determined by {@link Persistence#isUseJpa()}
-         * or the {@link VaultiqSessionProperties#isZenMode()} default.
+         * or the {@link VaultiqSessionProperties#isProductionMode()} default.
          */
         private Boolean useJpa;
         /**
          * Explicitly enable or disable Cache usage for this model type.
          * If {@code null}, the effective setting is determined by {@link Persistence#isUseCache()}
-         * or the {@link VaultiqSessionProperties#isZenMode()} default.
+         * or the {@link VaultiqSessionProperties#isProductionMode()} default.
          */
         private Boolean useCache;
 
@@ -212,7 +212,7 @@ public class VaultiqSessionProperties {
          * Gets the explicit JPA usage setting for this model type.
          *
          * @return {@link Boolean#TRUE} to enable JPA, {@link Boolean#FALSE} to disable,
-         * or {@code null} to use the global/zen-mode default.
+         * or {@code null} to use the global/production-mode default.
          */
         public Boolean getUseJpa() {
             return useJpa;
@@ -226,7 +226,7 @@ public class VaultiqSessionProperties {
          * Gets the explicit Cache usage setting for this model type.
          *
          * @return {@link Boolean#TRUE} to enable caching, {@link Boolean#FALSE} to disable,
-         * or {@code null} to use the global/zen-mode default.
+         * or {@code null} to use the global/production-mode default.
          */
         public Boolean getUseCache() {
             return useCache;

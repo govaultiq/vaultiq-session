@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  * and resolved {@link Map} of {@link CacheType} to {@link VaultiqModelConfig}.
  * It ensures that every {@link CacheType} defined in the system has an explicit
  * configuration entry, applying fallback logic based on per-model settings,
- * global settings, and the {@code zenMode} property where applicable.
+ * global settings, and the {@code productionMode} property where applicable.
  * </p>
  * <p>
  * The resulting configuration map represents the effective persistence settings
@@ -33,19 +33,19 @@ public final class VaultiqModelConfigEnhancer {
 
     /**
      * Builds a complete and normalized configuration map for all Vaultiq session cache types.
-     * Consolidates settings from global, individual model, and zen mode properties.
+     * Consolidates settings from global, individual model, and production mode properties.
      *
      * @param props The {@link VaultiqSessionProperties} holding the configured settings.
      * @return A map where each {@link CacheType} is mapped to its resolved {@link VaultiqModelConfig}.
      */
     public static Map<CacheType, VaultiqModelConfig> enhance(VaultiqSessionProperties props) {
         log.debug("Enhancing session model configs…");
-        var zenMode = props.isZenMode();
+        var prodMode = props.isProductionMode();
         var global = props.getPersistence();
 
         var modelMap = buildModelConfigMap(global);
         var perCache = buildPerCacheMap(modelMap);
-        return buildFinalConfigs(perCache, global, zenMode);
+        return buildFinalConfigs(perCache, global, prodMode);
     }
 
     /**
@@ -110,13 +110,13 @@ public final class VaultiqModelConfigEnhancer {
      *
      * @param perCache A map of {@link CacheType} to its base model configuration.
      * @param global   The global persistence properties.
-     * @param zenMode  The global zen mode flag.
+     * @param productionMode  The global production mode flag.
      * @return A map containing the fully resolved {@link VaultiqModelConfig} for each {@link CacheType}.
      */
     private static Map<CacheType, VaultiqModelConfig> buildFinalConfigs(
             Map<CacheType, VaultiqSessionProperties.ModelPersistenceConfig> perCache,
             VaultiqSessionProperties.Persistence global,
-            boolean zenMode) {
+            boolean productionMode) {
 
         return perCache.entrySet().stream()
                 .map(e -> {
@@ -125,10 +125,10 @@ public final class VaultiqModelConfigEnhancer {
 
                     var useJpa = resolve(modelCfg.getUseJpa(),
                             global != null ? global.isUseJpa() : null,
-                            zenMode);
+                            productionMode);
                     var useCache = resolve(modelCfg.getUseCache(),
                             global != null ? global.isUseCache() : null,
-                            zenMode);
+                            productionMode);
                     log.debug("Resolved Cache for Type: {}  -> useJpa={}, useCache={}", type, useJpa, useCache);
 
                     return new VaultiqModelConfig(type, useJpa, useCache);
@@ -142,16 +142,16 @@ public final class VaultiqModelConfigEnhancer {
     }
 
     /**
-     * Resolves a boolean config value using a specific > global > zenMode fallback.
+     * Resolves a boolean config value using a specific > global > productionMode fallback.
      *
      * @param specific Specific configuration boolean (can be null).
      * @param global   Global configuration boolean (can be null).
-     * @param zenMode  Default boolean if specific and global are null.
+     * @param productionMode  Default boolean if specific and global are null.
      * @return The resolved boolean value.
      */
-    private static boolean resolve(Boolean specific, Boolean global, boolean zenMode) {
-        // specific > global > zenMode
+    private static boolean resolve(Boolean specific, Boolean global, boolean productionMode) {
+        // specific > global > productionMode
         return Optional.ofNullable(specific)
-                .orElse(Optional.ofNullable(global).orElse(zenMode));
+                .orElse(Optional.ofNullable(global).orElse(productionMode));
     }
 }
