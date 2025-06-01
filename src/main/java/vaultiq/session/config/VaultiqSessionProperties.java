@@ -195,12 +195,12 @@ public class VaultiqSessionProperties {
          */
         private Boolean useCache;
         /**
-         * Specifies the cleanup strategy for this model type.
+         * Specifies the DB cleanup strategy for this model type.
          * <p>
-         * If set, this value overrides the global cleanup strategy for this specific model type.
+         * If set, this value overrides the global dbCleanup strategy for this specific model type.
          * </p>
          */
-        private String cleanup;
+        private String dbCleanup;
 
         /**
          * Gets the {@link ModelType} this configuration applies to.
@@ -244,16 +244,16 @@ public class VaultiqSessionProperties {
         }
 
         /**
-         * Gets the cleanup strategy for this model type.
+         * Gets the DB cleanup strategy for this model type.
          *
-         * @return the cleanup strategy as a String.
+         * @return the dbCleanup strategy as a String.
          */
-        public String getCleanup() {
-            return cleanup;
+        public String getDbCleanup() {
+            return dbCleanup;
         }
 
-        public void setCleanup(String cleanup) {
-            this.cleanup = cleanup;
+        public void setDbCleanup(String dbCleanup) {
+            this.dbCleanup = dbCleanup;
         }
     }
 }
