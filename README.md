@@ -2,24 +2,22 @@
 
 **`vaultiq-session`** is a lightweight, plug-and-play session management library for Spring Boot applications that supports device-aware tracking with flexible persistence options like **JPA**, **caching**, or both.
 
-### [What's the difference between `sid` and `jti`? Which is better?](https://github.com/govaultiq/vaultiq-session/blob/main/sid_vs_jti.md)
+### [What's the difference between ](https://github.com/govaultiq/vaultiq-session/blob/main/sid_vs_jti.md)[`sid`](https://github.com/govaultiq/vaultiq-session/blob/main/sid_vs_jti.md)[ and ](https://github.com/govaultiq/vaultiq-session/blob/main/sid_vs_jti.md)[`jti`](https://github.com/govaultiq/vaultiq-session/blob/main/sid_vs_jti.md)[? Which is better?](https://github.com/govaultiq/vaultiq-session/blob/main/sid_vs_jti.md)
 
-<br>
+---
 
-## 🚀 Features
+## ✨ Features
 
-* ✅ **Device-Aware Session Tracking** — Isolate sessions by browser/device
-* 📱 **Extended Device Metadata** — Captures device model and operating system
-* 🗄️ **JPA Support** — Persistent session storage for audit/compliance needs
-* ⚡ **Cache Support (Redis, etc.)** — Fast in-memory session lookups
-* 🔀 **Hybrid Mode** — Durability + Speed
-* 🧠 **Smart Fingerprinting** — Defaults built-in, easily overrideable
-* 🛡️ **Secure** — Built-in support for session blocklists with per-model overrides
-* 🪄 **Zen Mode** — One-line configuration with override capabilities
-* 🧩 **Fully Extensible** — Plug in your logic where needed
-* 🧰 **Device Metadata Available in Sessions** — Access OS & device model from `VaultiqSession`
+* **Device-aware session tracking** — isolate sessions by browser/device
+* **Extended device metadata** — capture device model, OS, and more
+* **JPA support** — durable session persistence
+* **Cache support** — fast lookups via Redis or other Spring-compatible caches
+* **Hybrid mode** — combine persistence and speed
+* **Smart fingerprinting** — built-in defaults with override capability
+* **Secure revocation** — fine-grained session invalidation
+* **Zen mode** — minimal configuration, maximum effect
 
-<br>
+---
 
 ## 📦 Installation
 
@@ -33,11 +31,11 @@ Soon to be available on Maven Central:
 </dependency>
 ```
 
-<br>
+---
 
 ## ⚙️ Configuration
 
-### ▶ Zen Mode (Minimal Config + Powerful Defaults)
+### Zen Mode (minimal config + powerful defaults)
 
 ```yaml
 vaultiq:
@@ -45,13 +43,13 @@ vaultiq:
     zen-mode: true
 ```
 
-> Defaults:
+> Zen mode enables both JPA and cache with sensible defaults.
 >
-> * `use-jpa` and `use-cache` = true
 > * `cache-manager` = "cacheManager"
-> * Default cache names per model
+> * Cache names are derived from the `CacheType.alias()` method
+> * Ensure caches are **registered in the Spring CacheManager** with matching names
 
-### ▶ Model-Level Override (for blocklist, mapping, etc.)
+### Model-Level Overrides
 
 ```yaml
 vaultiq:
@@ -63,7 +61,7 @@ vaultiq:
           use-jpa: false
 ```
 
-### ▶ Full Manual Mode (Complete Control)
+### Full Manual Mode
 
 ```yaml
 vaultiq:
@@ -74,68 +72,61 @@ vaultiq:
         use-jpa: true
         use-cache: true
       models:
+      
         - type: SESSION
-          cache-name: "session-pool"
           use-cache: false
           use-jpa: true
-
+          
         - type: USER_SESSION_MAPPING
-          cache-name: "user-session-mapping"
           use-jpa: false
-
+          
         - type: REVOKE
           use-jpa: false
 ```
 
-<br>
+---
 
 ## 🔐 User Identity
 
-> Required: Implement `UserIdentityAware` to enable session tracking per user context.
+Implement `UserIdentityAware` to enable user-context-based session tracking.
 
 ```java
 @Component
 public class SecurityContextUserIdentity implements UserIdentityAware {
     @Override
     public String getCurrentUserId() {
-        return SecurityContextHolder.getContext().getAuthentication().getName();
+        return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+            .map(Authentication::getName)
+            .orElse(null);
     }
 }
 ```
 
-<br>
-
-## 🧠 Custom Fingerprinting
-
-Override device fingerprinting logic:
-**Note:** Both the Generator and Validator must be implemented for successful custom fingerprint validation.
-
-```java
-@Component
-public class MyDeviceFingerprintGenerator implements DeviceFingerprintGenerator {
-    @Override
-    public String generateFingerprint(HttpServletRequest request) {
-        return request.getRemoteAddr() + "::" + request.getHeader("User-Agent");
-    }
-}
-```
-
-<br>
+---
 
 ## 📍 Usage
 
 ```java
 @Autowired
-private VaultiqSessionManager sessionManager;
+private SessionApi sessionApi;
 
-VaultiqSession session = sessionManager.createSession("user123", request);
-VaultiqSession fetched = sessionManager.getSession(session.getSessionId());
-sessionManager.deleteSession(session.getSessionId());
-List<VaultiqSession> sessions = sessionManager.getSessionsByUser("user123");
-int count = sessionManager.totalUserSessions("user123");
+// Creates a new session for the user and device
+ClientSession session = sessionApi.createSession("user123", httpRequest);
+
+// Validates the current session from request headers/cookies
+Boolean isValid = sessionApi.validate(httpRequest);
+
+// Revokes a specific session by ID
+sessionApi.revoke(RevocationRequest.revoke("sessionId").withNote("User logged out"));
+
+// Revokes all sessions for a specific user
+sessionApi.revoke(RevocationRequest.revokeAll("userId").withNote("Full logout"));
+
+// Revokes all sessions except the provided ones
+sessionApi.revoke(RevocationRequest.revokeAllExcept("sessionId1", "sessionId2").withNote("Keep some active"));
 ```
 
-### 📎 Login Integration Example
+### Login Integration Example
 
 ```java
 @PostMapping("/login")
@@ -145,27 +136,27 @@ public LoginResponse login(@RequestBody LoginRequest request, HttpServletRequest
 }
 ```
 
-<br>
+---
 
-## 📈 Performance Tips
+## 📊 Performance Tips
 
-| Mode      | Use Case                                 |
-| --------- | ---------------------------------------- |
-| JPA       | Durability-first, low traffic            |
-| Cache     | High throughput, short session lifespans |
-| Hybrid 🔥 | Best of both for most production apps    |
+| Mode      | Use Case                              |
+| --------- | ------------------------------------- |
+| JPA       | Durable, low-traffic apps             |
+| Cache     | High throughput, short-lived sessions |
+| Hybrid 🔥 | Best of both for real-world needs     |
 
-<br>
+---
 
 ## 🤝 Contributing
 
 1. Fork the repo
-2. Create a feature branch: `git checkout -b feature/amazing`
-3. Commit and push
-4. Open a pull request 🚀
+2. Create your feature branch
+3. Push your changes
+4. Open a pull request
 
-<br>
+---
 
-## 📝 License
+## 📍 License
 
 Licensed under the [MIT License](LICENSE)
