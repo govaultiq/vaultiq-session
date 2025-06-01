@@ -35,7 +35,7 @@ Soon to be available on Maven Central:
 
 ## ⚙️ Configuration
 
-### Zen Mode (minimal config + powerful defaults)
+### Production Mode (minimal config + powerful defaults—Production Ready)
 
 ```yaml
 vaultiq:
