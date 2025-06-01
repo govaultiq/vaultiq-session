@@ -4,7 +4,7 @@
 
 ### [What's the difference between ](https://github.com/govaultiq/vaultiq-session/blob/main/sid_vs_jti.md)[`sid`](https://github.com/govaultiq/vaultiq-session/blob/main/sid_vs_jti.md)[ and ](https://github.com/govaultiq/vaultiq-session/blob/main/sid_vs_jti.md)[`jti`](https://github.com/govaultiq/vaultiq-session/blob/main/sid_vs_jti.md)[? Which is better?](https://github.com/govaultiq/vaultiq-session/blob/main/sid_vs_jti.md)
 
----
+<br>
 
 ## ✨ Features
 
@@ -17,7 +17,7 @@
 * **Secure revocation** — fine-grained session invalidation
 * **Zen mode** — minimal configuration, maximum effect
 
----
+<br>
 
 ## 📦 Installation
 
@@ -31,7 +31,7 @@ Soon to be available on Maven Central:
 </dependency>
 ```
 
----
+<br>
 
 ## ⚙️ Configuration
 
@@ -84,7 +84,7 @@ vaultiq:
           use-jpa: false
 ```
 
----
+<br>
 
 ## 🔐 User Identity
 
@@ -102,7 +102,7 @@ public class SecurityContextUserIdentity implements UserIdentityAware {
 }
 ```
 
----
+<br>
 
 ## 📍 Usage
 
@@ -136,7 +136,7 @@ public LoginResponse login(@RequestBody LoginRequest request, HttpServletRequest
 }
 ```
 
----
+<br>
 
 ## 📊 Performance Tips
 
@@ -146,7 +146,7 @@ public LoginResponse login(@RequestBody LoginRequest request, HttpServletRequest
 | Cache     | High throughput, short-lived sessions |
 | Hybrid 🔥 | Best of both for real-world needs     |
 
----
+<br>
 
 ## 🤝 Contributing
 
@@ -155,7 +155,7 @@ public LoginResponse login(@RequestBody LoginRequest request, HttpServletRequest
 3. Push your changes
 4. Open a pull request
 
----
+<br>
 
 ## 📍 License
 
