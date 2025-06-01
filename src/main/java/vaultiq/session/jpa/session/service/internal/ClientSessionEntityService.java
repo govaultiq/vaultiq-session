@@ -16,7 +16,6 @@ import vaultiq.session.jpa.session.repository.ClientSessionEntityRepository;
 import vaultiq.session.jpa.session.service.SessionManagerViaJpa;
 import vaultiq.session.jpa.session.service.SessionManagerViaJpaCacheEnabled;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -86,7 +85,7 @@ public class ClientSessionEntityService {
 
         // Create a new JPA entity.
         var sessionAttributes = SessionAttributor.forRequest(request);
-        ClientSessionEntity entity = ClientSessionEntity.create(userId, deviceFingerPrint, sessionAttributes.getDeviceName(), sessionAttributes.getOs(), sessionAttributes.getDeviceType());
+        ClientSessionEntity entity = ClientSessionEntity.create(userId, deviceFingerPrint, sessionAttributes.deviceName(), sessionAttributes.os(), sessionAttributes.deviceType());
 
         // Save the entity to the database.
         entity = sessionRepository.save(entity);

@@ -83,7 +83,7 @@ public class VaultiqSessionCacheService {
 
         String fingerprint = fingerprintGenerator.generateFingerprint(request);
         var sessionAttributes = SessionAttributor.forRequest(request);
-        ClientSessionCacheEntry entry = ClientSessionCacheEntry.create(userId, fingerprint, sessionAttributes.getOs(), sessionAttributes.getDeviceType(), sessionAttributes.getDeviceName());
+        ClientSessionCacheEntry entry = ClientSessionCacheEntry.create(userId, fingerprint, sessionAttributes.os(), sessionAttributes.deviceType(), sessionAttributes.deviceName());
 
         log.info("Creating session for userId='{}', deviceFingerprint='{}', sessionId='{}'", userId, fingerprint, entry.getSessionId());
         sessionPoolCache.cache(keyForSession(entry.getSessionId()), entry);

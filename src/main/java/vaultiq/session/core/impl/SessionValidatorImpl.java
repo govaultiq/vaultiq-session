@@ -5,10 +5,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
-import vaultiq.session.core.util.SessionAttributeUtil;
 import vaultiq.session.core.service.SessionManager;
 import vaultiq.session.core.service.SessionRevocationManager;
 import vaultiq.session.core.service.SessionValidator;
+import vaultiq.session.core.util.SessionAttributor;
 import vaultiq.session.fingerprint.DeviceFingerprintValidator;
 
 /**
@@ -60,7 +60,7 @@ public class SessionValidatorImpl implements SessionValidator {
      */
     @Override
     public boolean validateForSession(HttpServletRequest request) {
-        String sessionId = SessionAttributeUtil.getSessionId(request);
+        String sessionId = SessionAttributor.forRequest(request).sessionId();
 
         if (sessionId == null) {
             log.warn("Session validation failed: No session ID found in the request.");

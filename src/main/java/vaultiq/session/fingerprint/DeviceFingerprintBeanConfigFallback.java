@@ -103,7 +103,7 @@ public class DeviceFingerprintBeanConfigFallback {
     @ConditionalOnMissingBean
     DeviceFingerprintValidator deviceFingerprintValidator(DeviceFingerprintGenerator fingerprintGenerator, SessionManager sessionManager) {
         return (request) -> {
-            var sessionId = SessionAttributor.forRequest(request).getSessionId();
+            var sessionId = SessionAttributor.forRequest(request).sessionId();
 
             if (sessionId == null) {
                 log.error("sessionId with key '"+ SessionAttributor.CLIENT_SESSION_ID_KEY + "' is missing in the request.");
