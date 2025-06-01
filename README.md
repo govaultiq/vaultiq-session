@@ -1,6 +1,6 @@
 # Vaultiq-Session
 
-**`vaultiq-session`** is a lightweight, plug-and-play session management library for Spring Boot applications that supports device-aware tracking with flexible persistence options like **JPA**, **caching**, or both.
+**`vaultiq-session`** is a lightweight, plug-and-play session management library for Spring Boot applications that supports device-aware tracking with flexible persistence options such as **JPA**, **caching**, or both.
 
 ### [What's the difference between ](https://github.com/govaultiq/vaultiq-session/blob/main/sid_vs_jti.md)[`sid`](https://github.com/govaultiq/vaultiq-session/blob/main/sid_vs_jti.md)[ and ](https://github.com/govaultiq/vaultiq-session/blob/main/sid_vs_jti.md)[`jti`](https://github.com/govaultiq/vaultiq-session/blob/main/sid_vs_jti.md)[? Which is better?](https://github.com/govaultiq/vaultiq-session/blob/main/sid_vs_jti.md)
 
@@ -15,7 +15,7 @@
 * **Hybrid mode** — combine persistence and speed
 * **Smart fingerprinting** — built-in defaults with override capability
 * **Secure revocation** — fine-grained session invalidation
-* **Zen mode** — minimal configuration, maximum effect
+* **Production mode** — minimal configuration, maximum effect
 
 <br>
 
@@ -46,7 +46,7 @@ vaultiq:
 > Production mode enables both JPA and cache with sensible defaults.
 >
 > * `cache-manager` = "cacheManager"
-> * Cache names are derived from the `CacheType.alias()` method
+> * Cache names are derived from the `CacheType.alias()` method (see CacheType here: [CacheType](https://github.com/govaultiq/vaultiq-session/blob/main/src/main/java/vaultiq/session/cache/util/CacheType.java))
 > * Ensure caches are **registered in the Spring CacheManager** with matching names
 
 ### Model-Level Overrides
@@ -60,6 +60,7 @@ vaultiq:
         - type: REVOKE
           use-jpa: false
 ```
+- Here, `type` takes a ModelType name as its value. See ModelType here: [ModelType](https://github.com/govaultiq/vaultiq-session/blob/main/src/main/java/vaultiq/session/model/ModelType.java)
 
 ### Full Manual Mode
 
@@ -72,14 +73,9 @@ vaultiq:
         use-jpa: true
         use-cache: true
       models:
-      
         - type: SESSION
           use-cache: false
           use-jpa: true
-          
-        - type: USER_SESSION_MAPPING
-          use-jpa: false
-          
         - type: REVOKE
           use-jpa: false
 ```
@@ -150,10 +146,10 @@ public LoginResponse login(@RequestBody LoginRequest request, HttpServletRequest
 
 ## 🤝 Contributing
 
-1. Fork the repo
-2. Create your feature branch
-3. Push your changes
-4. Open a pull request
+1. Fork the repo.
+2. Create your feature branch.
+3. Push your changes.
+4. Open a pull request.
 
 <br>
 
