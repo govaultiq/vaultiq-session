@@ -8,17 +8,17 @@
 		<version>3.4.5</version>
 		<relativePath/>
 	</parent>
-	<groupId>vaultiq</groupId>
+	<groupId>com.govaultiq</groupId>
 	<artifactId>vaultiq-session</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>vaultiq-session</name>
-	<description>vaultiq-session is a session management library for devices, that integrates with vaultiq token issuer and authenticator libraries.</description>
-	<url>https://vaultiq.co</url>
+	<name>Vaultiq Session</name>
+	<description>Session management library for devices, integrating with VaultIQ token issuer and authenticator libraries.</description>
+	<url>https://govaultiq.com</url>
 
 	<licenses>
 		<license>
 			<name>MIT License</name>
-			<url>https://opensource.org/licenses/MIT</url> <!-- Updated License URL -->
+			<url>https://opensource.org/licenses/MIT</url>
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
@@ -31,9 +31,9 @@
 	</developers>
 
 	<scm>
-		<connection>scm:git:git://github.com/vaultiq/vaultiq-session.git</connection>
-		<developerConnection>scm:git:ssh://git@github.com:vaultiq/vaultiq-session.git</developerConnection>
-		<url>https://github.com/vaultiq/vaultiq-session</url>
+		<connection>scm:git:git://github.com/govaultiq/vaultiq-session.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com:govaultiq/vaultiq-session.git</developerConnection>
+		<url>https://github.com/govaultiq/vaultiq-session</url>
 		<tag>HEAD</tag>
 	</scm>
 
@@ -44,45 +44,39 @@
 
 	<dependencies>
 
-		<!-- Cache -->
+		<!-- Optional libs -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-cache</artifactId>
 			<optional>true</optional>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-redis</artifactId>
-			<optional>true</optional>
-		</dependency>
 
-		<!-- JPA -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 			<optional>true</optional>
 		</dependency>
 
-		<!-- Web -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 			<optional>true</optional>
 		</dependency>
 
-		<!-- Encoding & Decoding Lib -->
+		<!-- Non-optional libs -->
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
 			<version>1.15</version>
 		</dependency>
 
-		<!-- Test -->
+		<!-- Test dependency -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
 	</dependencies>
 
 	<build>

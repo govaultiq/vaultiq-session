@@ -9,7 +9,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import vaultiq.session.core.service.SessionManager;
-import vaultiq.session.cache.util.SessionIdRequestMapper;
+import vaultiq.session.core.util.SessionAttributor;
 import vaultiq.session.model.ClientSession;
 
 /**
@@ -103,10 +103,10 @@ public class DeviceFingerprintBeanConfigFallback {
     @ConditionalOnMissingBean
     DeviceFingerprintValidator deviceFingerprintValidator(DeviceFingerprintGenerator fingerprintGenerator, SessionManager sessionManager) {
         return (request) -> {
-            var sessionId = SessionIdRequestMapper.getSessionId(request);
+            var sessionId = SessionAttributor.forRequest(request).sessionId();
 
             if (sessionId == null) {
-                log.error("sessionId with key '"+SessionIdRequestMapper.VAULTIQ_SID_KEY+"' is missing in the request.");
+                log.error("sessionId with key '"+ SessionAttributor.CLIENT_SESSION_ID_KEY + "' is missing in the request.");
                 return false;
             }
 

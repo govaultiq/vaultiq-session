@@ -3,6 +3,7 @@ package vaultiq.session.model;
 import java.time.Instant;
 
 import vaultiq.session.core.service.SessionManager;
+import vaultiq.session.model.DeviceType;
 
 /**
  * Represents a single Vaultiq session.
@@ -38,6 +39,18 @@ public final class ClientSession {
      * A fingerprint or identifier representing the device from which the session originated.
      */
     private String deviceFingerPrint;
+    /**
+     * The name of the device from which the session originated.
+     */
+    private String deviceName;
+    /**
+     * The operating system of the device.
+     */
+    private String os;
+    /**
+     * The type of device (e.g., MOBILE, TABLET, DESKTOP, OTHER).
+     */
+    private DeviceType deviceType;
     /**
      * The timestamp (UTC) when this session was created.
      */
@@ -78,6 +91,9 @@ public final class ClientSession {
             String sessionId,
             String userId,
             String deviceFingerPrint,
+            String deviceName,
+            String os,
+            DeviceType deviceType,
             Instant createdAt,
             boolean isRevoked,
             Instant revokedAt
@@ -85,6 +101,9 @@ public final class ClientSession {
         this.sessionId = sessionId;
         this.userId = userId;
         this.deviceFingerPrint = deviceFingerPrint;
+        this.deviceName = deviceName;
+        this.os = os;
+        this.deviceType = deviceType;
         this.createdAt = createdAt;
         this.isRevoked = isRevoked;
         this.revokedAt = revokedAt;
@@ -158,6 +177,33 @@ public final class ClientSession {
     }
 
     /**
+     * Returns the name of the device from which the session originated.
+     *
+     * @return the device name.
+     */
+    public String getDeviceName() {
+        return deviceName;
+    }
+
+    /**
+     * Returns the operating system of the device.
+     *
+     * @return the operating system.
+     */
+    public String getOs() {
+        return os;
+    }
+
+    /**
+     * Returns the type of device.
+     *
+     * @return the device type.
+     */
+    public DeviceType getDeviceType() {
+        return deviceType;
+    }
+
+    /**
      * Builder class for creating immutable {@link ClientSession} instances.
      * <p>
      * Provides a fluent API for setting the properties of a {@code ClientSession}
@@ -168,6 +214,9 @@ public final class ClientSession {
         private String sessionId;
         private String userId;
         private String deviceFingerPrint;
+        private String deviceName;
+        private String os;
+        private DeviceType deviceType;
         private Instant createdAt;
         private boolean isBlocked;
         private Instant blockedAt;
@@ -199,6 +248,36 @@ public final class ClientSession {
          */
         public VaultiqSessionBuilder deviceFingerPrint(String deviceFingerPrint) {
             this.deviceFingerPrint = deviceFingerPrint;
+            return this;
+        }
+
+        /**
+         * Sets the device name.
+         * @param deviceName the device name.
+         * @return the builder instance.
+         */
+        public VaultiqSessionBuilder deviceName(String deviceName) {
+            this.deviceName = deviceName;
+            return this;
+        }
+
+        /**
+         * Sets the operating system.
+         * @param os the operating system.
+         * @return the builder instance.
+         */
+        public VaultiqSessionBuilder os(String os) {
+            this.os = os;
+            return this;
+        }
+
+        /**
+         * Sets the device type.
+         * @param deviceType the device type.
+         * @return the builder instance.
+         */
+        public VaultiqSessionBuilder deviceType(DeviceType deviceType) {
+            this.deviceType = deviceType;
             return this;
         }
 
@@ -242,6 +321,9 @@ public final class ClientSession {
                     sessionId,
                     userId,
                     deviceFingerPrint,
+                    deviceName,
+                    os,
+                    deviceType,
                     createdAt,
                     isBlocked,
                     blockedAt

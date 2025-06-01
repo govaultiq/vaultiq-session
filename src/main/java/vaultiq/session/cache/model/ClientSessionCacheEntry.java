@@ -1,7 +1,7 @@
-
 package vaultiq.session.cache.model;
 
 import vaultiq.session.model.ClientSession;
+import vaultiq.session.model.DeviceType;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -41,6 +41,18 @@ public final class ClientSessionCacheEntry implements Serializable {
      */
     private String deviceFingerPrint;
     /**
+     * The name of the device from which the session originated.
+     */
+    private String deviceName;
+    /**
+     * The operating system of the device.
+     */
+    private String os;
+    /**
+     * The type of device (e.g., MOBILE, TABLET, DESKTOP, OTHER).
+     */
+    private DeviceType deviceType;
+    /**
      * Creation timestamp (UTC, cache server's time).
      */
     private Instant createdAt;
@@ -68,11 +80,14 @@ public final class ClientSessionCacheEntry implements Serializable {
      * @param deviceFingerPrint fingerprint from {@code DeviceFingerprintGenerator}
      * @return a new session cache entry (not blocklisted)
      */
-    public static ClientSessionCacheEntry create(String userId, String deviceFingerPrint) {
+    public static ClientSessionCacheEntry create(String userId, String deviceFingerPrint, String os, DeviceType deviceType, String deviceName) {
         ClientSessionCacheEntry vaultiqSession = new ClientSessionCacheEntry();
         vaultiqSession.sessionId = UUID.randomUUID().toString();
         vaultiqSession.userId = userId;
         vaultiqSession.deviceFingerPrint = deviceFingerPrint;
+        vaultiqSession.deviceName = deviceName;
+        vaultiqSession.os = os;
+        vaultiqSession.deviceType = deviceType;
         vaultiqSession.createdAt = Instant.now();
         return vaultiqSession;
     }
@@ -89,6 +104,9 @@ public final class ClientSessionCacheEntry implements Serializable {
         cacheEntry.sessionId = source.getSessionId();
         cacheEntry.userId = source.getUserId();
         cacheEntry.deviceFingerPrint = source.getDeviceFingerPrint();
+        cacheEntry.deviceName = source.getDeviceName();
+        cacheEntry.os = source.getOs();
+        cacheEntry.deviceType = source.getDeviceType();
         cacheEntry.createdAt = source.getCreatedAt();
         cacheEntry.revokedAt = source.getRevokedAt();
         cacheEntry.isRevoked = source.isRevoked();
@@ -122,6 +140,27 @@ public final class ClientSessionCacheEntry implements Serializable {
      */
     public String getDeviceFingerPrint() {
         return deviceFingerPrint;
+    }
+
+    /**
+     * @return the device name
+     */
+    public String getDeviceName() {
+        return deviceName;
+    }
+
+    /**
+     * @return the operating system
+     */
+    public String getOs() {
+        return os;
+    }
+
+    /**
+     * @return the device type
+     */
+    public DeviceType getDeviceType() {
+        return deviceType;
     }
 
     /**
@@ -162,9 +201,13 @@ public final class ClientSessionCacheEntry implements Serializable {
 
     @Override
     public String toString() {
-        return "ClientSession{" +
+        return "ClientSessionCacheEntry{" +
                 "sessionId='" + sessionId + '\'' +
                 ", userId='" + userId + '\'' +
+                ", deviceFingerPrint='" + deviceFingerPrint + '\'' +
+                ", deviceName='" + deviceName + '\'' +
+                ", os='" + os + '\'' +
+                ", deviceType=" + deviceType +
                 ", createdAt=" + createdAt +
                 ", isRevoked=" + isRevoked +
                 ", revokedAt=" + revokedAt +
