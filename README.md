@@ -134,6 +134,12 @@ public LoginResponse login(@RequestBody LoginRequest request, HttpServletRequest
 
 <br>
 
+## 🔄 Optional Cleanup
+
+You can configure automatic cleanup of expired or revoked sessions using the clean-up block in YAML. If omitted, the library won’t register any background jobs.
+
+Retention controls how long sessions are kept after being revoked. Jobs run only if configured.
+
 ## 📊 Performance Tips
 
 | Mode      | Use Case                              |
