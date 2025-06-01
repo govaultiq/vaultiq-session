@@ -60,7 +60,7 @@ vaultiq:
         - type: REVOKE
           use-jpa: false
 ```
-- Here, `type` takes a ModelType name as its value. See ModelType here: [ModelType](https://github.com/govaultiq/vaultiq-session/blob/main/src/main/java/vaultiq/session/model/ModelType.java)
+> Here, `type` takes a ModelType name as its value. See ModelType here: [ModelType](https://github.com/govaultiq/vaultiq-session/blob/main/src/main/java/vaultiq/session/model/ModelType.java)
 
 ### Full Manual Mode
 
