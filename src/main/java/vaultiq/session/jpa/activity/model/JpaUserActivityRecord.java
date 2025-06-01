@@ -8,7 +8,7 @@ import vaultiq.session.model.UserActivityRecord;
 
 import java.time.Instant;
 
-@Entity
+//@Entity
 @Table(name = "user_activity_records")
 public final class JpaUserActivityRecord {
 
