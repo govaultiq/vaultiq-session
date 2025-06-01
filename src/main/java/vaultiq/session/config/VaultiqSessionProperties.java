@@ -194,6 +194,13 @@ public class VaultiqSessionProperties {
          * or the {@link VaultiqSessionProperties#isProductionMode()} default.
          */
         private Boolean useCache;
+        /**
+         * Specifies the cleanup strategy for this model type.
+         * <p>
+         * If set, this value overrides the global cleanup strategy for this specific model type.
+         * </p>
+         */
+        private String cleanup;
 
         /**
          * Gets the {@link ModelType} this configuration applies to.
@@ -234,6 +241,19 @@ public class VaultiqSessionProperties {
 
         public void setUseCache(Boolean useCache) {
             this.useCache = useCache;
+        }
+
+        /**
+         * Gets the cleanup strategy for this model type.
+         *
+         * @return the cleanup strategy as a String.
+         */
+        public String getCleanup() {
+            return cleanup;
+        }
+
+        public void setCleanup(String cleanup) {
+            this.cleanup = cleanup;
         }
     }
 }
