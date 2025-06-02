@@ -1,6 +1,7 @@
 
 package vaultiq.session.jpa.revoke.repository;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import vaultiq.session.jpa.revoke.model.RevokedSessionEntity;
 
@@ -45,4 +46,13 @@ public interface RevokedSessionEntityRepository extends JpaRepository<RevokedSes
      * @param cutoffTime the cutoff timestamp (exclusive)
      */
     void deleteByRevokedAtBefore(Instant cutoffTime);
+    
+    /**
+     * Finds revoked sessions created before a specified time, with pagination.
+     *
+     * @param cutoffTime the cutoff time
+     * @param pageable the pagination information
+     * @return a list of revoked session entities
+     */
+    List<RevokedSessionEntity> findByRevokedAtBefore(Instant cutoffTime, Pageable pageable);
 }

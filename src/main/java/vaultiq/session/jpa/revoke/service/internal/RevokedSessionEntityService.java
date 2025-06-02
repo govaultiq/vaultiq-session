@@ -2,8 +2,10 @@ package vaultiq.session.jpa.revoke.service.internal;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vaultiq.session.core.util.BatchProcessingHelper;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.core.spi.UserIdentityAware;
@@ -193,13 +195,26 @@ public class RevokedSessionEntityService {
 
     /**
      * Deletes all revoked sessions older than a specified retention period.
+     * Uses batch processing to avoid memory issues with large datasets.
      *
      * @param retentionPeriod the retention period
+     * @return the number of records deleted
      */
     @Transactional
-    public void deleteAllRevokedSessions(Duration retentionPeriod) {
-        Instant cutoffTime = Instant.now().minus(retentionPeriod);
-        revokedSessionRepo.deleteByRevokedAtBefore(cutoffTime);
+    public int deleteAllRevokedSessions(Duration retentionPeriod) {
+        if (retentionPeriod == null || retentionPeriod.isNegative() || retentionPeriod.isZero()) {
+            log.warn("Invalid retention period for cleanup: {}", retentionPeriod);
+            return 0;
+        }
+        
+        Instant cutoffTime = BatchProcessingHelper.calculateCutoffTime(retentionPeriod);
+        log.debug("Starting batch deletion of revoked sessions older than {}", cutoffTime);
+        
+        return BatchProcessingHelper.batchDelete(
+                pageable -> revokedSessionRepo.findByRevokedAtBefore(cutoffTime, pageable),
+                revokedSessionRepo,
+                "revoked sessions"
+        );
     }
 
 

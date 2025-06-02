@@ -113,7 +113,15 @@ public class ModelCleanupScheduler {
             if (cron != null && !cron.isBlank()) {
                 log.info("Scheduling cron-based cleanup for model type: {} with cron: {}", type, cron);
                 taskScheduler.schedule(
-                        () -> cleanupTasks.cleanup(type, retention),
+                        () -> {
+                            try {
+                                int deletedCount = cleanupTasks.cleanup(type, retention);
+                                log.debug("Cron-based cleanup completed for model type: {}. Deleted {} records", 
+                                        type, deletedCount);
+                            } catch (Exception e) {
+                                log.error("Error during cron-based cleanup for model type: {}", type, e);
+                            }
+                        },
                         new CronTrigger(cron)
                 );
             }
@@ -121,7 +129,15 @@ public class ModelCleanupScheduler {
             else if (delay != null && !delay.isZero() && !delay.isNegative()) {
                 log.info("Scheduling fixed-delay cleanup for model type: {} with delay: {}", type, delay);
                 executorService.scheduleWithFixedDelay(
-                        () -> cleanupTasks.cleanup(type, retention),
+                        () -> {
+                            try {
+                                int deletedCount = cleanupTasks.cleanup(type, retention);
+                                log.debug("Fixed-delay cleanup completed for model type: {}. Deleted {} records", 
+                                        type, deletedCount);
+                            } catch (Exception e) {
+                                log.error("Error during fixed-delay cleanup for model type: {}", type, e);
+                            }
+                        },
                         0,
                         delay.toMillis(),
                         TimeUnit.MILLISECONDS
