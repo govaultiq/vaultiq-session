@@ -1,5 +1,6 @@
 package vaultiq.session.core.scheduler;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistenceRequirement;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
@@ -11,6 +12,7 @@ import java.time.Duration;
 
 @Component
 @ConditionalOnVaultiqPersistenceRequirement(VaultiqPersistenceMethod.USE_JPA)
+@ConditionalOnBean({RevokedSessionEntityService.class, ClientSessionEntityService.class})
 public final class CleanupTasks {
     private final RevokedSessionEntityService revokedSessionEntityService;
     private final ClientSessionEntityService clientSessionEntityService;

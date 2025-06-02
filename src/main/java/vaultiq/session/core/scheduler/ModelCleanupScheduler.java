@@ -4,11 +4,14 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import vaultiq.session.config.VaultiqSessionProperties;
+import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistenceRequirement;
+import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.model.ModelType;
 
 import java.time.Duration;
@@ -44,6 +47,8 @@ import java.util.concurrent.TimeUnit;
  * </pre>
  */
 @Component
+@ConditionalOnVaultiqPersistenceRequirement(VaultiqPersistenceMethod.USE_JPA)
+@ConditionalOnBean({TaskScheduler.class, CleanupTasks.class})
 public class ModelCleanupScheduler {
     private static final Logger log = LoggerFactory.getLogger(ModelCleanupScheduler.class);
 
