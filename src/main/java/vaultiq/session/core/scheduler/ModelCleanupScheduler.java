@@ -50,6 +50,7 @@ public class ModelCleanupScheduler {
     private final TaskScheduler taskScheduler;
     private final VaultiqSessionProperties sessionProperties;
     private final ScheduledExecutorService executorService;
+    private final CleanupTasks cleanupTasks;
 
     /**
      * Constructs the scheduler with the required dependencies.
@@ -57,33 +58,18 @@ public class ModelCleanupScheduler {
      * @param taskScheduler     the Spring TaskScheduler for cron-based scheduling
      * @param sessionProperties the session configuration properties
      */
-    public ModelCleanupScheduler(TaskScheduler taskScheduler, VaultiqSessionProperties sessionProperties) {
+    public ModelCleanupScheduler(
+            TaskScheduler taskScheduler,
+            VaultiqSessionProperties sessionProperties,
+            CleanupTasks cleanupTasks
+    ) {
         this.taskScheduler = taskScheduler;
         this.sessionProperties = sessionProperties;
+        this.cleanupTasks = cleanupTasks;
         var modelCount = sessionProperties.getPersistence().getModels().size();
         int threadPoolSize = Math.min(modelCount * 2, 10);
         this.executorService = Executors.newScheduledThreadPool(threadPoolSize);
         log.debug("Initialized cleanup scheduler with thread pool size: {}", threadPoolSize);
-    }
-
-    /**
-     * Shuts down the executor service when the bean is destroyed.
-     * <p>
-     */
-    @PreDestroy
-    public void shutdownExecutor() {
-        log.debug("Shutting down cleanup scheduler executor service");
-        executorService.shutdown();
-        try {
-            if (!executorService.awaitTermination(30, TimeUnit.SECONDS)) {
-                log.warn("Executor did not terminate in time, forcing shutdown");
-                executorService.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            log.warn("Executor shutdown interrupted", e);
-            executorService.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
     }
 
     /**
@@ -122,7 +108,7 @@ public class ModelCleanupScheduler {
             if (cron != null && !cron.isBlank()) {
                 log.info("Scheduling cron-based cleanup for model type: {} with cron: {}", type, cron);
                 taskScheduler.schedule(
-                        () -> clean(type, retention),
+                        () -> cleanupTasks.cleanup(type, retention),
                         new CronTrigger(cron)
                 );
             }
@@ -130,7 +116,7 @@ public class ModelCleanupScheduler {
             else if (delay != null && !delay.isZero() && !delay.isNegative()) {
                 log.info("Scheduling fixed-delay cleanup for model type: {} with delay: {}", type, delay);
                 executorService.scheduleWithFixedDelay(
-                        () -> clean(type, retention),
+                        () -> cleanupTasks.cleanup(type, retention),
                         0,
                         delay.toMillis(),
                         TimeUnit.MILLISECONDS
@@ -140,19 +126,22 @@ public class ModelCleanupScheduler {
     }
 
     /**
-     * Performs cleanup for the specified model type using the given retention policy.
-     *
-     * @param modelType the model type to clean up
-     * @param retention the retention period as a Duration (e.g., 30 days, 90 days)
+     * Shuts down the executor service when the bean is destroyed.
+     * <p>
      */
-    private void clean(ModelType modelType, Duration retention) {
+    @PreDestroy
+    public void shutdownExecutor() {
+        log.debug("Shutting down cleanup scheduler executor service");
+        executorService.shutdown();
         try {
-            log.debug("Running cleanup for model type: {} with retention: {}", modelType, retention);
-
-            // TODO: implement logic to clean up the specified model type using the retention value
-
-        } catch (Exception e) {
-            log.error("Error during cleanup for model type: {}", modelType, e);
+            if (!executorService.awaitTermination(30, TimeUnit.SECONDS)) {
+                log.warn("Executor did not terminate in time, forcing shutdown");
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            log.warn("Executor shutdown interrupted", e);
+            executorService.shutdownNow();
+            Thread.currentThread().interrupt();
         }
     }
 }

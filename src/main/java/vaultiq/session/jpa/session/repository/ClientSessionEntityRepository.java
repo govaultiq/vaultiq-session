@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import vaultiq.session.jpa.config.SessionAutoConfigurationJpa;
 import vaultiq.session.jpa.session.model.ClientSessionEntity;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
@@ -48,4 +49,12 @@ public interface ClientSessionEntityRepository extends JpaRepository<ClientSessi
     List<ClientSessionEntity> findAllByUserIdAndIsRevokedFalseAndSessionIdNotIn(
             String userId,
             Set<String> excludedIds
-    );}
+    );
+
+    /**
+     * Deletes all session entities that have been revoked before a specified timestamp.
+     *
+     * @param cutoffTime The timestamp (UTC) before which sessions are to be deleted.
+     */
+    void deleteByRevokedAtBefore(Instant cutoffTime);
+}

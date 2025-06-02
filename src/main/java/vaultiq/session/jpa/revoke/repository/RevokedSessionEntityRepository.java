@@ -38,4 +38,11 @@ public interface RevokedSessionEntityRepository extends JpaRepository<RevokedSes
      * @return true if at least one such session exists, false otherwise
      */
     boolean existsByUserIdAndRevokedAtGreaterThan(String userId, Instant timestamp);
+
+    /**
+     * Deletes all blocklisted session entities older than the specified retention period.
+     *
+     * @param cutoffTime the cutoff timestamp (exclusive)
+     */
+    void deleteByRevokedAtBefore(Instant cutoffTime);
 }

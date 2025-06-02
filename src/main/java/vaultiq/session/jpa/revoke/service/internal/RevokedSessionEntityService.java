@@ -4,17 +4,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import vaultiq.session.model.ModelType;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.core.spi.UserIdentityAware;
-import vaultiq.session.model.RevocationType;
-import vaultiq.session.jpa.session.model.ClientSessionEntity;
 import vaultiq.session.jpa.revoke.model.RevokedSessionEntity;
 import vaultiq.session.jpa.revoke.repository.RevokedSessionEntityRepository;
+import vaultiq.session.jpa.session.model.ClientSessionEntity;
 import vaultiq.session.jpa.session.repository.ClientSessionEntityRepository;
+import vaultiq.session.model.ModelType;
 import vaultiq.session.model.RevocationRequest;
+import vaultiq.session.model.RevocationType;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 
@@ -189,6 +190,18 @@ public class RevokedSessionEntityService {
         if (!ids.isEmpty()) revokedSessionRepo.deleteAllById(ids);
         log.info("Cleared revocation for sessions: {}", ids);
     }
+
+    /**
+     * Deletes all revoked sessions older than a specified retention period.
+     *
+     * @param retentionPeriod the retention period
+     */
+    @Transactional
+    public void deleteAllRevokedSessions(Duration retentionPeriod) {
+        Instant cutoffTime = Instant.now().minus(retentionPeriod);
+        revokedSessionRepo.deleteByRevokedAtBefore(cutoffTime);
+    }
+
 
     /**
      * Helper to create a RevokedSessionEntity from a ClientSessionEntity.

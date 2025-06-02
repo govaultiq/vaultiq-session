@@ -16,6 +16,8 @@ import vaultiq.session.jpa.session.repository.ClientSessionEntityRepository;
 import vaultiq.session.jpa.session.service.SessionManagerViaJpa;
 import vaultiq.session.jpa.session.service.SessionManagerViaJpaCacheEnabled;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -194,6 +196,17 @@ public class ClientSessionEntityService {
     public int count(String userId) {
         log.debug("Counting sessions for user '{}'.", userId);
         return sessionRepository.countByUserId(userId);
+    }
+
+    /**
+     * Deletes all revoked Vaultiq sessions from the database that have been revoked before a specified timestamp.
+     *
+     * @param retentionPeriod The duration (UTC) before which sessions are to be deleted.
+     */
+    @Transactional
+    public void deleteAllRevokedSessions(Duration retentionPeriod) {
+        Instant cutoffTime = Instant.now().minus(retentionPeriod);
+        sessionRepository.deleteByRevokedAtBefore(cutoffTime);
     }
 
     /**
