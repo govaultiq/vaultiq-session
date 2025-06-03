@@ -5,6 +5,7 @@ import vaultiq.session.model.ModelType;
 import vaultiq.session.context.VaultiqModelConfigEnhancer;
 import vaultiq.session.context.VaultiqSessionContext;
 
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -194,6 +195,13 @@ public class VaultiqSessionProperties {
          * or the {@link VaultiqSessionProperties#isProductionMode()} default.
          */
         private Boolean useCache;
+        /**
+         * Cleanup configuration for this model type.
+         * <p>
+         * Allows specifying schedule, delay, and retention for cleanup operations.
+         * </p>
+         */
+        private CleanupConfig cleanUp;
 
         /**
          * Gets the {@link ModelType} this configuration applies to.
@@ -234,6 +242,76 @@ public class VaultiqSessionProperties {
 
         public void setUseCache(Boolean useCache) {
             this.useCache = useCache;
+        }
+
+        /**
+         * Gets the cleanup configuration for this model type.
+         *
+         * @return the {@link CleanupConfig} instance.
+         */
+        public CleanupConfig getCleanUp() {
+            return cleanUp;
+        }
+
+        public void setCleanUp(CleanupConfig cleanUp) {
+            this.cleanUp = cleanUp;
+        }
+    }
+
+    /**
+     * Configuration for cleanup strategies, supporting schedule, delay, and retention.
+     */
+    public static class CleanupConfig {
+        /**
+         * Cron schedule for cleanup (e.g., "0 0 3 * * *").
+         */
+        private String schedule;
+        /**
+         * Delay before cleanup (e.g., "30m").
+         */
+        private Duration delay;
+        /**
+         * Retention period (e.g., "30d").
+         */
+        private Duration retention;
+
+        /**
+         * Gets the cron schedule for cleanup.
+         *
+         * @return the schedule string.
+         */
+        public String getSchedule() {
+            return schedule;
+        }
+
+        public void setSchedule(String schedule) {
+            this.schedule = schedule;
+        }
+
+        /**
+         * Gets the delay before cleanup.
+         *
+         * @return the delay as a Duration.
+         */
+        public Duration getDelay() {
+            return delay;
+        }
+
+        public void setDelay(Duration delay) {
+            this.delay = delay;
+        }
+
+        /**
+         * Gets the retention period.
+         *
+         * @return the retention as a Duration.
+         */
+        public Duration getRetention() {
+            return retention;
+        }
+
+        public void setRetention(Duration retention) {
+            this.retention = retention;
         }
     }
 }

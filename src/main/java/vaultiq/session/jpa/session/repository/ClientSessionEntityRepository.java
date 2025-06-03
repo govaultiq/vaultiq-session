@@ -1,9 +1,11 @@
 package vaultiq.session.jpa.session.repository;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import vaultiq.session.jpa.config.SessionAutoConfigurationJpa;
 import vaultiq.session.jpa.session.model.ClientSessionEntity;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
@@ -48,4 +50,21 @@ public interface ClientSessionEntityRepository extends JpaRepository<ClientSessi
     List<ClientSessionEntity> findAllByUserIdAndIsRevokedFalseAndSessionIdNotIn(
             String userId,
             Set<String> excludedIds
-    );}
+    );
+
+    /**
+     * Deletes all session entities that have been revoked before a specified timestamp.
+     *
+     * @param cutoffTime The timestamp (UTC) before which sessions are to be deleted.
+     */
+    void deleteByRevokedAtBefore(Instant cutoffTime);
+    
+    /**
+     * Finds revoked client sessions created before a specified time, with pagination.
+     *
+     * @param cutoffTime the cutoff time
+     * @param pageable the pagination information
+     * @return a list of client session entities
+     */
+    List<ClientSessionEntity> findByRevokedAtBeforeAndIsRevokedTrue(Instant cutoffTime, Pageable pageable);
+}

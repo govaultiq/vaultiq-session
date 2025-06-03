@@ -3,8 +3,10 @@ package vaultiq.session.jpa.session.service.internal;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vaultiq.session.core.util.BatchProcessingHelper;
 import vaultiq.session.core.util.SessionAttributor;
 import vaultiq.session.model.ModelType;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
@@ -16,6 +18,8 @@ import vaultiq.session.jpa.session.repository.ClientSessionEntityRepository;
 import vaultiq.session.jpa.session.service.SessionManagerViaJpa;
 import vaultiq.session.jpa.session.service.SessionManagerViaJpaCacheEnabled;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -194,6 +198,30 @@ public class ClientSessionEntityService {
     public int count(String userId) {
         log.debug("Counting sessions for user '{}'.", userId);
         return sessionRepository.countByUserId(userId);
+    }
+
+    /**
+     * Deletes all revoked Vaultiq sessions from the database that have been revoked before a specified timestamp.
+     * Uses batch processing to avoid memory issues with large datasets.
+     *
+     * @param retentionPeriod The duration (UTC) before which sessions are to be deleted.
+     * @return the number of records deleted
+     */
+    @Transactional
+    public int deleteAllRevokedSessions(Duration retentionPeriod) {
+        if (retentionPeriod == null || retentionPeriod.isNegative() || retentionPeriod.isZero()) {
+            log.warn("Invalid retention period for cleanup: {}", retentionPeriod);
+            return 0;
+        }
+        
+        Instant cutoffTime = BatchProcessingHelper.calculateCutoffTime(retentionPeriod);
+        log.debug("Starting batch deletion of client sessions older than {}", cutoffTime);
+        
+        return BatchProcessingHelper.batchDelete(
+                pageable -> sessionRepository.findByRevokedAtBeforeAndIsRevokedTrue(cutoffTime, pageable),
+                sessionRepository,
+                "client sessions"
+        );
     }
 
     /**
