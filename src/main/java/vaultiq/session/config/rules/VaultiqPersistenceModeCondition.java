@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
-import vaultiq.session.cache.util.CacheType;
 import vaultiq.session.model.ModelType;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
@@ -60,13 +59,13 @@ public class VaultiqPersistenceModeCondition implements Condition {
         if (attrs == null) return false;
 
         VaultiqPersistenceMode mode = (VaultiqPersistenceMode) attrs.get("mode");
-        CacheType[] cacheTypes = (CacheType[]) attrs.get("type");
+        ModelType[] modelTypes = (ModelType[]) attrs.get("type");
 
         VaultiqSessionContext sessionContext = VaultiqSessionContextHolder.getContext();
 
-        log.debug("validating condition for mode: {}, type: {}", mode, cacheTypes);
+        log.debug("validating condition for mode: {}, type: {}", mode, modelTypes);
 
-        for (CacheType type : cacheTypes) {
+        for (ModelType type : modelTypes) {
             var cfg = sessionContext.getModelConfig(type);
             if (cfg == null) continue;
             // Check persistence settings for the model type.

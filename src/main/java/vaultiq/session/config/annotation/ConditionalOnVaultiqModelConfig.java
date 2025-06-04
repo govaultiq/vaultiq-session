@@ -87,9 +87,7 @@ public @interface ConditionalOnVaultiqModelConfig {
      * Common model types include:
      * <ul>
      *   <li>{@link ModelType#SESSION} - Primary session objects (active sessions)</li>
-     *   <li>{@link ModelType#USER_SESSION_MAPPING} - Mapping between users and their session IDs</li>
      *   <li>{@link ModelType#REVOKE} - List of revoked/blocklisted sessions</li>
-     *   <li>{@link ModelType#USER_ACTIVITY_LOGS} - Activity logs for user sessions</li>
      * </ul>
      * </p>
      *

@@ -42,7 +42,7 @@ public class VaultiqSessionProperties {
      * Holds the detailed persistence configurations, including global defaults
      * and model-specific overrides.
      */
-    private Persistence persistence;
+    private Persistence persistence = new Persistence();
 
     /**
      * Checks if Production Mode is enabled.

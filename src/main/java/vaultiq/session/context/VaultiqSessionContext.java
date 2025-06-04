@@ -25,7 +25,7 @@ public class VaultiqSessionContext {
 
     private static final Logger log = LoggerFactory.getLogger(VaultiqSessionContext.class);
     private final String cacheManagerName;
-    private final Map<CacheType, VaultiqModelConfig> modelConfigs;
+    private final Map<ModelType, VaultiqModelConfig> modelConfigs;
     private final boolean isUsingCache;
     private final boolean isUsingJpa;
 
@@ -54,7 +54,7 @@ public class VaultiqSessionContext {
         else
             log.debug("Vaultiq Session Context initialized; is-using-jpa: {}. is-using-cache: {}", isUsingJpa, false);
 
-        var configs = Arrays.stream(CacheType.values())
+        var configs = Arrays.stream(ModelType.values())
                 .map(this::getModelConfig)
                 .map(VaultiqModelConfig::toString)
                 .toList();
@@ -102,12 +102,12 @@ public class VaultiqSessionContext {
      * overrides from {@link VaultiqSessionProperties}.
      * </p>
      *
-     * @param type the {@link CacheType} of the session/data model.
+     * @param type the {@link ModelType} of the session/data model.
      * @return the resolved {@link VaultiqModelConfig} for the specified type. This is
-     * never {@code null} for a valid {@link CacheType} as {@link VaultiqModelConfigEnhancer}
+     * never {@code null} for a valid {@link ModelType} as {@link VaultiqModelConfigEnhancer}
      * ensures all types have a configuration entry.
      */
-    public VaultiqModelConfig getModelConfig(CacheType type) {
+    public VaultiqModelConfig getModelConfig(ModelType type) {
         return modelConfigs.get(type);
     }
 

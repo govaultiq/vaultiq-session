@@ -6,12 +6,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
-import vaultiq.session.cache.util.CacheType;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.context.VaultiqSessionContextHolder;
 import vaultiq.session.config.model.VaultiqModelConfig;
 import vaultiq.session.context.VaultiqSessionContext;
+import vaultiq.session.model.ModelType;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -39,7 +39,7 @@ import java.util.Objects;
  * <pre>
  * &#64;ConditionalOnVaultiqModelConfig(
  *     method = VaultiqPersistenceMethod.USE_CACHE,
- *     type = {ModelType.SESSION, ModelType.USER_SESSION_MAPPING}
+ *     type = {ModelType.SESSION}
  * )
  * </pre>
  * This condition will only return true if both the SESSION and USER_SESSION_MAPPING models
@@ -83,14 +83,14 @@ public class VaultiqModelConfigShouldMatchCondition implements Condition {
 
         // Get the required persistence method and model types from the annotation
         VaultiqPersistenceMethod method = (VaultiqPersistenceMethod) attrs.get("method");
-        CacheType[] cacheTypes = (CacheType[]) attrs.get("type");
+        ModelType[] modelTypes = (ModelType[]) attrs.get("type");
 
-        log.debug("Validating condition for persistence method: {}, and cacheTypes: {}", method, cacheTypes);
+        log.debug("Validating condition for persistence method: {}, and modelTypes: {}", method, modelTypes);
         // Get the VaultiqSessionContext to access current configuration
         VaultiqSessionContext sessionContext = VaultiqSessionContextHolder.getContext();
 
         // Check if all specified model types match the required persistence method
-        var result = Arrays.stream(cacheTypes)
+        var result = Arrays.stream(modelTypes)
                 .map(sessionContext::getModelConfig)
                 .filter(Objects::nonNull)
                 .anyMatch(cfg -> switch (method) {
