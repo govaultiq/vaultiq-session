@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.core.type.ClassMetadata;
+import org.springframework.core.type.MethodMetadata;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistenceRequirement;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
@@ -60,10 +61,13 @@ public class VaultiqPersistenceRequirementByAny implements Condition {
         Map<String, Object> attrs = metadata.getAnnotationAttributes(
                 ConditionalOnVaultiqPersistenceRequirement.class.getName());
         if (attrs == null) return false;
+        String className = (metadata instanceof ClassMetadata cm) ? cm.getClassName()
+                : (metadata instanceof MethodMetadata mm) ? mm.getDeclaringClassName()
+                : "Unknown";
 
         var method = (VaultiqPersistenceMethod) attrs.get("value");
-        var className = ((ClassMetadata) metadata).getClassName();
-        log.debug("Validating Condition, if persistence method '{}' required; Triggered by: '{}'", method, className);
+
+        log.debug("Validating Condition - if persistence method '{}' required; Triggered by: '{}'", method, className);
 
         VaultiqSessionContext sessionContext = VaultiqSessionContextHolder.getContext();
 

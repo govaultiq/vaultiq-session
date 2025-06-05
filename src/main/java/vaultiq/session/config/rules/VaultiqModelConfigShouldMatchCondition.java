@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.core.type.ClassMetadata;
+import org.springframework.core.type.MethodMetadata;
+import org.springframework.core.type.StandardAnnotationMetadata;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.context.VaultiqSessionContextHolder;
@@ -81,7 +83,9 @@ public class VaultiqModelConfigShouldMatchCondition implements Condition {
         Map<String, Object> attrs = metadata.getAnnotationAttributes(
                 ConditionalOnVaultiqModelConfig.class.getName());
         if (attrs == null) return false;
-        var className = ((ClassMetadata) metadata).getClassName();
+        String className = (metadata instanceof ClassMetadata cm) ? cm.getClassName()
+                : (metadata instanceof MethodMetadata mm) ? mm.getDeclaringClassName()
+                : "Unknown";
 
         // Get the required persistence method and model types from the annotation
         VaultiqPersistenceMethod method = (VaultiqPersistenceMethod) attrs.get("method");
