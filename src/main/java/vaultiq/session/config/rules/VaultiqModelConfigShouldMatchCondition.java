@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
+import org.springframework.core.type.ClassMetadata;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
 import vaultiq.session.context.VaultiqSessionContextHolder;
@@ -80,12 +81,13 @@ public class VaultiqModelConfigShouldMatchCondition implements Condition {
         Map<String, Object> attrs = metadata.getAnnotationAttributes(
                 ConditionalOnVaultiqModelConfig.class.getName());
         if (attrs == null) return false;
+        var className = ((ClassMetadata) metadata).getClassName();
 
         // Get the required persistence method and model types from the annotation
         VaultiqPersistenceMethod method = (VaultiqPersistenceMethod) attrs.get("method");
         ModelType[] modelTypes = (ModelType[]) attrs.get("type");
 
-        log.debug("Validating condition for persistence method: {}, and modelTypes: {}", method, modelTypes);
+        log.debug("Validating condition - if any of the model type '{}', uses persistence method '{}'; Triggered by: '{}'", modelTypes, method, className);
         // Get the VaultiqSessionContext to access current configuration
         VaultiqSessionContext sessionContext = VaultiqSessionContextHolder.getContext();
 

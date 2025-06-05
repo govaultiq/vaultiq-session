@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
+import org.springframework.core.type.ClassMetadata;
 import vaultiq.session.model.ModelType;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
@@ -57,13 +58,14 @@ public class VaultiqPersistenceModeCondition implements Condition {
         Map<String, Object> attrs = metadata.getAnnotationAttributes(
                 ConditionalOnVaultiqPersistence.class.getName());
         if (attrs == null) return false;
+        var className = ((ClassMetadata) metadata).getClassName();
 
         VaultiqPersistenceMode mode = (VaultiqPersistenceMode) attrs.get("mode");
         ModelType[] modelTypes = (ModelType[]) attrs.get("type");
 
         VaultiqSessionContext sessionContext = VaultiqSessionContextHolder.getContext();
 
-        log.debug("validating condition for mode: {}, type: {}", mode, modelTypes);
+        log.debug("Validating condition - if the any of the model '{}', resolved to Persistence Mode: '{}'; Triggered by: '{}'", mode, modelTypes, className);
 
         for (ModelType type : modelTypes) {
             var cfg = sessionContext.getModelConfig(type);
