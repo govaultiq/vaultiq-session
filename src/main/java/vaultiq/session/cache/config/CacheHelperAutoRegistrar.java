@@ -37,6 +37,10 @@ import vaultiq.session.model.ModelType;
 public class CacheHelperAutoRegistrar {
     public static final Logger log = LoggerFactory.getLogger(CacheHelperAutoRegistrar.class);
 
+    public CacheHelperAutoRegistrar() {
+        log.debug("CacheHelperAutoRegistrar initialized.");
+    }
+
     /**
      * Registers a {@link CacheHelper} bean for the {@link CacheType#SESSION_FINGERPRINTS} cache.
      * This bean is named {@link CacheHelper.BeanNames#SESSION_FINGERPRINT_CACHE_HELPER}.
