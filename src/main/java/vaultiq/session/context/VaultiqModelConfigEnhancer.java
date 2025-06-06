@@ -2,10 +2,9 @@ package vaultiq.session.context;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import vaultiq.session.cache.util.CacheType;
-import vaultiq.session.model.ModelType;
 import vaultiq.session.config.VaultiqSessionProperties;
 import vaultiq.session.config.model.VaultiqModelConfig;
+import vaultiq.session.model.ModelType;
 
 import java.util.*;
 import java.util.function.Function;
@@ -15,14 +14,14 @@ import java.util.stream.Collectors;
  * Utility class responsible for enhancing and normalizing Vaultiq session model configurations.
  * <p>
  * This class processes the raw {@link VaultiqSessionProperties} to produce a complete
- * and resolved {@link Map} of {@link CacheType} to {@link VaultiqModelConfig}.
- * It ensures that every {@link CacheType} defined in the system has an explicit
+ * and resolved {@link Map} of {@link ModelType} to {@link VaultiqModelConfig}.
+ * It ensures that every {@link ModelType} defined in the system has an explicit
  * configuration entry, applying fallback logic based on per-model settings,
  * global settings, and the {@code productionMode} property where applicable.
  * </p>
  * <p>
  * The resulting configuration map represents the effective persistence settings
- * for each cache type used by the library's components, such as
+ * for each model type used by the library's components, such as
  * {@link VaultiqSessionContext}.
  * </p>
  */
@@ -32,20 +31,19 @@ public final class VaultiqModelConfigEnhancer {
     private VaultiqModelConfigEnhancer() { /* utility */ }
 
     /**
-     * Builds a complete and normalized configuration map for all Vaultiq session cache types.
+     * Builds a complete and normalized configuration map for all Vaultiq session model types.
      * Consolidates settings from global, individual model, and production mode properties.
      *
      * @param props The {@link VaultiqSessionProperties} holding the configured settings.
-     * @return A map where each {@link CacheType} is mapped to its resolved {@link VaultiqModelConfig}.
+     * @return A map where each {@link ModelType} is mapped to its resolved {@link VaultiqModelConfig}.
      */
-    public static Map<CacheType, VaultiqModelConfig> enhance(VaultiqSessionProperties props) {
+    public static Map<ModelType, VaultiqModelConfig> enhance(VaultiqSessionProperties props) {
         log.debug("Enhancing session model configs…");
         var prodMode = props.isProductionMode();
         var global = props.getPersistence();
 
         var modelMap = buildModelConfigMap(global);
-        var perCache = buildPerCacheMap(modelMap);
-        return buildFinalConfigs(perCache, global, prodMode);
+        return buildFinalConfigs(modelMap, global, prodMode);
     }
 
     /**
@@ -90,35 +88,20 @@ public final class VaultiqModelConfigEnhancer {
     }
 
     /**
-     * Translates {@link ModelType}-based configurations into {@link CacheType}-based configurations.
-     *
-     * @param modelMap A map from {@link ModelType} to its base configuration.
-     * @return An {@link EnumMap} mapping {@link CacheType} to its corresponding model configuration.
-     */
-    private static Map<CacheType, VaultiqSessionProperties.ModelPersistenceConfig>
-    buildPerCacheMap(Map<ModelType, VaultiqSessionProperties.ModelPersistenceConfig> modelMap) {
-        var perCache = new EnumMap<CacheType, VaultiqSessionProperties.ModelPersistenceConfig>(CacheType.class);
-        modelMap.values()
-                .forEach(mc -> CacheType.getByModelType(mc.getType())
-                        .forEach(ct -> perCache.put(ct, mc)));
-        return perCache;
-    }
-
-    /**
-     * Builds the final map of {@link CacheType} to {@link VaultiqModelConfig}
+     * Builds the final map of {@link ModelType} to {@link VaultiqModelConfig}
      * by resolving {@code useJpa} and {@code useCache} flags based on fallback hierarchy.
      *
-     * @param perCache A map of {@link CacheType} to its base model configuration.
-     * @param global   The global persistence properties.
-     * @param productionMode  The global production mode flag.
-     * @return A map containing the fully resolved {@link VaultiqModelConfig} for each {@link CacheType}.
+     * @param modelMap       A map of {@link ModelType} to its base model configuration.
+     * @param global         The global persistence properties.
+     * @param productionMode The global production mode flag.
+     * @return A map containing the fully resolved {@link VaultiqModelConfig} for each {@link ModelType}.
      */
-    private static Map<CacheType, VaultiqModelConfig> buildFinalConfigs(
-            Map<CacheType, VaultiqSessionProperties.ModelPersistenceConfig> perCache,
+    private static Map<ModelType, VaultiqModelConfig> buildFinalConfigs(
+            Map<ModelType, VaultiqSessionProperties.ModelPersistenceConfig> modelMap,
             VaultiqSessionProperties.Persistence global,
             boolean productionMode) {
 
-        return perCache.entrySet().stream()
+        return modelMap.entrySet().stream()
                 .map(e -> {
                     var type = e.getKey();
                     var modelCfg = e.getValue();
@@ -129,7 +112,7 @@ public final class VaultiqModelConfigEnhancer {
                     var useCache = resolve(modelCfg.getUseCache(),
                             global != null ? global.isUseCache() : null,
                             productionMode);
-                    log.debug("Resolved Cache for Type: {}  -> useJpa={}, useCache={}", type, useJpa, useCache);
+                    log.debug("Resolved Model for Type: {}  -> useJpa={}, useCache={}", type, useJpa, useCache);
 
                     return new VaultiqModelConfig(type, useJpa, useCache);
                 })
@@ -137,16 +120,16 @@ public final class VaultiqModelConfigEnhancer {
                         VaultiqModelConfig::type,
                         Function.identity(),
                         (a, b) -> b,
-                        () -> new EnumMap<>(CacheType.class)
+                        () -> new EnumMap<>(ModelType.class)
                 ));
     }
 
     /**
      * Resolves a boolean config value using a specific > global > productionMode fallback.
      *
-     * @param specific Specific configuration boolean (can be null).
-     * @param global   Global configuration boolean (can be null).
-     * @param productionMode  Default boolean if specific and global are null.
+     * @param specific       Specific configuration boolean (can be null).
+     * @param global         Global configuration boolean (can be null).
+     * @param productionMode Default boolean if specific and global are null.
      * @return The resolved boolean value.
      */
     private static boolean resolve(Boolean specific, Boolean global, boolean productionMode) {

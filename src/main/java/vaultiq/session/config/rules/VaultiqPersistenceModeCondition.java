@@ -5,7 +5,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
-import vaultiq.session.cache.util.CacheType;
+import org.springframework.core.type.ClassMetadata;
+import org.springframework.core.type.MethodMetadata;
+import org.springframework.core.type.StandardAnnotationMetadata;
 import vaultiq.session.model.ModelType;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMode;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
@@ -58,15 +60,18 @@ public class VaultiqPersistenceModeCondition implements Condition {
         Map<String, Object> attrs = metadata.getAnnotationAttributes(
                 ConditionalOnVaultiqPersistence.class.getName());
         if (attrs == null) return false;
+        String className = (metadata instanceof ClassMetadata cm) ? cm.getClassName()
+                : (metadata instanceof MethodMetadata mm) ? mm.getDeclaringClassName()
+                : "Unknown";
 
         VaultiqPersistenceMode mode = (VaultiqPersistenceMode) attrs.get("mode");
-        CacheType[] cacheTypes = (CacheType[]) attrs.get("type");
+        ModelType[] modelTypes = (ModelType[]) attrs.get("type");
 
         VaultiqSessionContext sessionContext = VaultiqSessionContextHolder.getContext();
 
-        log.debug("validating condition for mode: {}, type: {}", mode, cacheTypes);
+        log.debug("Validating condition - if the any of the model '{}', resolved to Persistence Mode: '{}'; Triggered by: '{}'", modelTypes, mode, className);
 
-        for (CacheType type : cacheTypes) {
+        for (ModelType type : modelTypes) {
             var cfg = sessionContext.getModelConfig(type);
             if (cfg == null) continue;
             // Check persistence settings for the model type.

@@ -5,7 +5,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
+import org.springframework.core.type.ClassMetadata;
+import org.springframework.core.type.MethodMetadata;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistence;
+import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistenceRequirement;
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.context.VaultiqSessionContext;
 import vaultiq.session.context.VaultiqSessionContextHolder;
@@ -54,23 +57,25 @@ public class VaultiqPersistenceRequirementByAny implements Condition {
      */
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-//        var beanFactory = context.getBeanFactory();
-//        if (beanFactory == null || beanFactory.getBeanNamesForType(VaultiqSessionContext.class, false, false).length == 0) {
-//            log.error("VaultiqSessionContext not found in the bean factory.");
-//            return false;
-//        }
 
         Map<String, Object> attrs = metadata.getAnnotationAttributes(
-                ConditionalOnVaultiqPersistence.class.getName());
+                ConditionalOnVaultiqPersistenceRequirement.class.getName());
         if (attrs == null) return false;
+        String className = (metadata instanceof ClassMetadata cm) ? cm.getClassName()
+                : (metadata instanceof MethodMetadata mm) ? mm.getDeclaringClassName()
+                : "Unknown";
 
         var method = (VaultiqPersistenceMethod) attrs.get("value");
 
+        log.debug("Validating Condition - if persistence method '{}' required; Triggered by: '{}'", method, className);
+
         VaultiqSessionContext sessionContext = VaultiqSessionContextHolder.getContext();
 
-        return switch (method) {
+        var result = switch (method) {
             case USE_JPA -> sessionContext.isUsingJpa();
             case USE_CACHE -> sessionContext.isUsingCache();
         };
+        log.debug("Condition result: {}", result);
+        return result;
     }
 }

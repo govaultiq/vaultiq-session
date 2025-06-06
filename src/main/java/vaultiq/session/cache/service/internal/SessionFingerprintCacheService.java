@@ -48,6 +48,7 @@ public class SessionFingerprintCacheService {
     ) {
         this.sessionFingerprintsCache = Objects.requireNonNull(sessionFingerprintsCache,
                 "SessionFingerprintsCacheHelper bean not found or is null.");
+        log.debug("SessionFingerprintCacheService initialized.");
     }
 
     /**

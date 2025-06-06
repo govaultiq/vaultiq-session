@@ -18,8 +18,16 @@ import java.util.stream.Collectors;
  * <p>
  * The cache instance is retrieved once during the construction of this helper.
  * If the target cache, identified by its alias, is not registered in the CacheManager
- * at the time of this helper's creation, all subsequent operations (get, put, evict)
- * will silently skip without throwing exceptions.
+ * at the time of this helper's creation, or if the CacheManager itself is not available,
+ * all subsequent operations (get, put, evict) will silently skip without throwing exceptions.
+ * This fail-silent approach allows applications to function gracefully even when caching
+ * infrastructure is not available or properly configured.
+ * </p>
+ * <p>
+ * When a cache operation is skipped due to missing cache infrastructure, appropriate
+ * warning and debug logs are generated to aid in troubleshooting, but the application
+ * flow is not disrupted. For get operations, null values are returned; for collection
+ * operations, empty collections are returned; and for eviction operations, false is returned.
  * </p>
  * <p>
  * This class is intended to be used as a Spring bean, typically configured in a
@@ -39,14 +47,16 @@ public class CacheHelper {
      * The specific {@link Cache} instance is retrieved from the {@link CacheManager}
      * during initialization based on the provided {@code cacheType}.
      *
-     * @param cacheManager The Spring {@link CacheManager} instance, typically autowired by the consuming application.
+     * @param optionalCacheManager The Spring {@code Optional<CacheManager>} instance, which may be empty
+     *                            if no CacheManager is available in the application context.
      * @param cacheType    The specific {@link CacheType} instance that defines the alias of the cache this helper will manage.
-     *                     (e.g., an enum representing various application caches). This generic parameter is
-     *                     scoped to the constructor and ensures the provided {@code cacheType} is valid.
+     *                     (e.g., an enum representing various application caches).
      */
-    public CacheHelper(CacheManager cacheManager, CacheType cacheType) {
+    public CacheHelper(Optional<CacheManager> optionalCacheManager, CacheType cacheType) {
         this.cacheName = cacheType.alias(); // Store cacheName for logging consistency
-        this.cache = cacheManager.getCache(cacheName);
+        this.cache = optionalCacheManager
+                .map(cacheManager -> cacheManager.getCache(cacheName))
+                .orElse(null);
 
         if (this.cache == null) {
             logger.warn("CacheHelper initialized; But cache not found for type: '{}'; Skipping all cache operations silently.", cacheName);

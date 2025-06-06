@@ -3,6 +3,7 @@ package vaultiq.session.config.model;
 import vaultiq.session.cache.util.CacheType;
 import vaultiq.session.context.VaultiqModelConfigEnhancer;
 import vaultiq.session.context.VaultiqSessionContext;
+import vaultiq.session.model.ModelType;
 
 /**
  * Represents the final, resolved configuration for a specific Vaultiq session data model type.
@@ -27,14 +28,14 @@ import vaultiq.session.context.VaultiqSessionContext;
  * @see VaultiqModelConfigEnhancer
  */
 public record VaultiqModelConfig(
-        CacheType type,
+        ModelType type,
         boolean useJpa,
         boolean useCache
 ) {
     @Override
     public String toString() {
         return String.format(
-                "{ \"CacheType\": \"%s\", \"useJpa\": %b, \"useCache\": %b }",
+                "{ \"ModelType\": \"%s\", \"useJpa\": %b, \"useCache\": %b }",
                 type, useJpa, useCache
         );
     }

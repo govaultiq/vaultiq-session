@@ -3,6 +3,7 @@ package vaultiq.session.cache.service.internal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import vaultiq.session.cache.util.CacheHelper;
 import vaultiq.session.config.annotation.ConditionalOnVaultiqModelConfig;
@@ -60,11 +61,12 @@ public class RevokedSIdCacheService {
     public RevokedSIdCacheService(
             @Qualifier(CacheHelper.BeanNames.REVOKED_SIDS_CACHE_HELPER)
             CacheHelper revokedSIdsCache,
-            SessionManager sessionManager
+            @Lazy SessionManager sessionManager
     ) {
         this.revokedSIdsCache = Objects.requireNonNull(revokedSIdsCache,
                 "RevokedSIdsCacheHelper bean not found or is null.");
         this.sessionManager = Objects.requireNonNull(sessionManager, "SessionManager bean not found or is null.");
+        log.debug("RevokedSIdCacheService Initialized.");
     }
 
     /**

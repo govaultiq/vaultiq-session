@@ -12,6 +12,8 @@ import vaultiq.session.config.annotation.ConditionalOnVaultiqPersistenceRequirem
 import vaultiq.session.config.annotation.model.VaultiqPersistenceMethod;
 import vaultiq.session.model.ModelType;
 
+import java.util.Optional;
+
 /**
  * <p>
  * Spring {@code @Configuration} class responsible for automatically registering
@@ -31,11 +33,41 @@ import vaultiq.session.model.ModelType;
  * beans are conditionally registered based on specific {@link ModelType} configurations
  * via {@code @ConditionalOnVaultiqModelConfig}.
  * </p>
+ *
+ * <p>
+ * This registrar is designed to handle the absence of a CacheManager gracefully.
+ * If no CacheManager bean is available in the application context, it will log a warning
+ * and continue to register CacheHelper beans that will silently skip all cache operations.
+ * This approach allows the application to function without caching when a CacheManager
+ * is not configured, without throwing exceptions or disrupting application flow.
+ * </p>
  */
 @Configuration
 @ConditionalOnVaultiqPersistenceRequirement(VaultiqPersistenceMethod.USE_CACHE)
 public class CacheHelperAutoRegistrar {
     public static final Logger log = LoggerFactory.getLogger(CacheHelperAutoRegistrar.class);
+
+    private final CacheManager cacheManager;
+
+    public CacheHelperAutoRegistrar(Optional<CacheManager> optionalCacheManager) {
+        this.cacheManager = optionalCacheManager.orElseGet(() -> {
+            log.warn("CacheManager not available. Required for Caching. Consider defining a bean of CacheManager.");
+            return null;
+        });
+        log.debug("CacheHelperAutoRegistrar initialized.");
+    }
+
+    /**
+     * Provides an {@link Optional} wrapper around the CacheManager instance.
+     * This method is a key part of the silent failure mechanism, ensuring that
+     * CacheHelper instances can be created even when the CacheManager is not available.
+     * 
+     * @return An {@link Optional} containing the CacheManager if it was successfully initialized,
+     *         otherwise an empty Optional if no CacheManager was available at startup.
+     */
+    private Optional<CacheManager> getCacheManger() {
+        return Optional.ofNullable(cacheManager);
+    }
 
     /**
      * Registers a {@link CacheHelper} bean for the {@link CacheType#SESSION_FINGERPRINTS} cache.
@@ -45,14 +77,13 @@ public class CacheHelperAutoRegistrar {
      * requiring {@link VaultiqPersistenceMethod#USE_CACHE} for {@link ModelType#SESSION} data.
      * </p>
      *
-     * @param cacheManager The Spring {@link CacheManager} instance, automatically autowired by Spring.
      * @return A {@link CacheHelper} instance configured to manage the session fingerprints cache.
      */
     @Bean(name = CacheHelper.BeanNames.SESSION_FINGERPRINT_CACHE_HELPER)
     @ConditionalOnVaultiqModelConfig(method = VaultiqPersistenceMethod.USE_CACHE, type = ModelType.SESSION)
-    public CacheHelper sessionFingerprintCacheHelper(CacheManager cacheManager) {
+    public CacheHelper sessionFingerprintCacheHelper() {
         logCacheHelperCreation(CacheType.SESSION_FINGERPRINTS);
-        return new CacheHelper(cacheManager, CacheType.SESSION_FINGERPRINTS);
+        return new CacheHelper(getCacheManger(), CacheType.SESSION_FINGERPRINTS);
     }
 
     /**
@@ -63,14 +94,13 @@ public class CacheHelperAutoRegistrar {
      * requiring {@link VaultiqPersistenceMethod#USE_CACHE} for {@link ModelType#SESSION} data.
      * </p>
      *
-     * @param cacheManager The Spring {@link CacheManager} instance, automatically autowired by Spring.
      * @return A {@link CacheHelper} instance configured to manage the session pool cache.
      */
     @Bean(name = CacheHelper.BeanNames.SESSION_POOL_CACHE_HELPER)
     @ConditionalOnVaultiqModelConfig(method = VaultiqPersistenceMethod.USE_CACHE, type = ModelType.SESSION)
-    public CacheHelper sessionPoolCacheHelper(CacheManager cacheManager) {
+    public CacheHelper sessionPoolCacheHelper() {
         logCacheHelperCreation(CacheType.SESSION_POOL);
-        return new CacheHelper(cacheManager, CacheType.SESSION_POOL);
+        return new CacheHelper(getCacheManger(), CacheType.SESSION_POOL);
     }
 
     /**
@@ -81,14 +111,13 @@ public class CacheHelperAutoRegistrar {
      * requiring {@link VaultiqPersistenceMethod#USE_CACHE} for {@link ModelType#REVOKE} data.
      * </p>
      *
-     * @param cacheManager The Spring {@link CacheManager} instance, automatically autowired by Spring.
      * @return A {@link CacheHelper} instance configured to manage the revoked SIDs cache.
      */
     @Bean(name = CacheHelper.BeanNames.REVOKED_SIDS_CACHE_HELPER)
     @ConditionalOnVaultiqModelConfig(method = VaultiqPersistenceMethod.USE_CACHE, type = ModelType.REVOKE)
-    public CacheHelper revokedSidsCacheHelper(CacheManager cacheManager) {
+    public CacheHelper revokedSidsCacheHelper() {
         logCacheHelperCreation(CacheType.REVOKED_SIDS);
-        return new CacheHelper(cacheManager, CacheType.REVOKED_SIDS);
+        return new CacheHelper(getCacheManger(), CacheType.REVOKED_SIDS);
     }
 
     /**
@@ -99,14 +128,13 @@ public class CacheHelperAutoRegistrar {
      * requiring {@link VaultiqPersistenceMethod#USE_CACHE} for {@link ModelType#REVOKE} data.
      * </p>
      *
-     * @param cacheManager The Spring {@link CacheManager} instance, automatically autowired by Spring.
      * @return A {@link CacheHelper} instance configured to manage the revoked session pool cache.
      */
     @Bean(name = CacheHelper.BeanNames.REVOKED_SESSION_POOL_CACHE_HELPER)
     @ConditionalOnVaultiqModelConfig(method = VaultiqPersistenceMethod.USE_CACHE, type = ModelType.REVOKE)
-    public CacheHelper revokedSessionPoolCacheHelper(CacheManager cacheManager) {
+    public CacheHelper revokedSessionPoolCacheHelper() {
         logCacheHelperCreation(CacheType.REVOKED_SESSION_POOL);
-        return new CacheHelper(cacheManager, CacheType.REVOKED_SESSION_POOL);
+        return new CacheHelper(getCacheManger(), CacheType.REVOKED_SESSION_POOL);
     }
 
     /**

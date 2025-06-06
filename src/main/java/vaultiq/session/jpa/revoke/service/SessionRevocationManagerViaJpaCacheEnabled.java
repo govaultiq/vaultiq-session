@@ -4,6 +4,7 @@ package vaultiq.session.jpa.revoke.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import vaultiq.session.cache.service.internal.RevokedSIdCacheService;
 import vaultiq.session.model.ModelType;
 import vaultiq.session.cache.model.RevokedSessionCacheEntry;
 import vaultiq.session.cache.service.internal.SessionRevocationCacheService;
@@ -37,6 +38,7 @@ public class SessionRevocationManagerViaJpaCacheEnabled implements SessionRevoca
 
     private final RevokedSessionEntityService revokedSessionEntityService;
     private final SessionRevocationCacheService sessionRevocationCacheService;
+    private final RevokedSIdCacheService revokedSIdCacheService;
     private final UserIdentityAware userIdentityAware;
 
     /**
@@ -49,25 +51,35 @@ public class SessionRevocationManagerViaJpaCacheEnabled implements SessionRevoca
     public SessionRevocationManagerViaJpaCacheEnabled(
             RevokedSessionEntityService revokedSessionEntityService,
             SessionRevocationCacheService sessionRevocationCacheService,
+            RevokedSIdCacheService revokedSIdCacheService,
             UserIdentityAware userIdentityAware
     ) {
         this.revokedSessionEntityService = revokedSessionEntityService;
         this.sessionRevocationCacheService = sessionRevocationCacheService;
+        this.revokedSIdCacheService = revokedSIdCacheService;
         this.userIdentityAware = userIdentityAware;
         log.info("SessionRevocationManager Initialized; Persistence via - JPA_AND_CACHE.");
     }
 
     /**
-     * Marks sessions as revoked according to the provided context.
+     * Marks sessions as revoked according to the provided request context.
      * Updates the database and, on successful update, the cache is also refreshed.
      *
-     * @param context the revoke operation context
+     * @param request the revoke operation request
      */
     @Override
-    public void revoke(RevocationRequest context) {
-        log.debug("Blocking sessions with Revocation type/mode: {}", context.getRevocationType().name());
-        var entity = revokedSessionEntityService.revokeSession(context.getIdentifier(), context.getNote());
-        if (entity != null) cacheEntity(entity);
+    public void revoke(RevocationRequest request) {
+        log.debug("Blocking sessions with Revocation type/mode: {}", request.getRevocationType().name());
+        revokedSessionEntityService.revoke(request);
+
+        var revokedIds = sessionRevocationCacheService.revoke(request);
+
+        // cache Ids directly if whole RevokedSessions are cached
+        if(revokedIds != null && !revokedIds.isEmpty())
+            revokedSIdCacheService.revoke(revokedIds);
+        // else cache using request context
+        else
+            revokedSIdCacheService.revoke(request);
     }
 
     /**
@@ -81,23 +93,24 @@ public class SessionRevocationManagerViaJpaCacheEnabled implements SessionRevoca
     public boolean isSessionRevoked(String sessionId) {
         log.debug("Checking if session '{}' is revoked.", sessionId);
 
-        // 1. Check if the session is revoked in the cache
-        if (sessionRevocationCacheService.isSessionRevoked(sessionId)) {
+        // Check if the session is revoked in the cache
+        if (revokedSIdCacheService.isSessionRevoked(sessionId) || sessionRevocationCacheService.isSessionRevoked(sessionId)) {
             return true;
         }
 
-        // 2. If not found in the cache, check the database (JPA)
+        // If not found in the cache, check the database (JPA)
         if (revokedSessionEntityService.isSessionRevoked(sessionId)) {
             var entity = revokedSessionEntityService.getRevokedSession(sessionId);
             return cacheEntity(entity);
         }
 
-        // 3. If not found in cache or db, return false (session is not revoked)
+        // If not found in cache or db, return false (session is not revoked)
         return false;
     }
 
     /**
      * Helper method to cache a RevokedSessionEntity as a RevokedSessionCacheEntry.
+     * Also attempts to cache sessionId to revoked-sids
      *
      * @param entity the JPA entity to cache
      * @return always true (for integration as a predicate)
@@ -112,7 +125,7 @@ public class SessionRevocationManagerViaJpaCacheEnabled implements SessionRevoca
         newEntry.setRevokedAt(entity.getRevokedAt());
 
         sessionRevocationCacheService.revoke(newEntry);
-
+        revokedSIdCacheService.revoke(newEntry.getSessionId());
         return true;
     }
 
