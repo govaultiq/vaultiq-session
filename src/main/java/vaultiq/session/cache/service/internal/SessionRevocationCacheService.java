@@ -66,9 +66,11 @@ public class SessionRevocationCacheService {
             @Qualifier(CacheHelper.BeanNames.REVOKED_SESSION_POOL_CACHE_HELPER)
             CacheHelper revocationPoolCache
     ) {
+        log.debug("Initializing SessionRevocationCacheService; sessionManager available = {}", sessionManager != null);
         this.sessionManager = Objects.requireNonNull(sessionManager, "SessionManager bean not found.");
         this.userIdentityAware = Objects.requireNonNull(userIdentityAware, "UserIdentityAware bean not found.");
         this.revocationPoolCache = Objects.requireNonNull(revocationPoolCache, "RevocationPoolCacheHelper bean not found.");
+        log.debug("SessionRevocationCacheService Initialized.");
     }
 
     // -------------------------------------------------------------------------

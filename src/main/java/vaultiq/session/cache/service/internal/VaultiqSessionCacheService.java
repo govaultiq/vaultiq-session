@@ -61,6 +61,7 @@ public class VaultiqSessionCacheService {
         this.fingerprintGenerator = Objects.requireNonNull(fingerprintGenerator, "DeviceFingerprintGenerator cannot be null.");
         this.sessionPoolCache = Objects.requireNonNull(sessionPoolCache, "SessionPoolCacheHelper cannot be null.");
         this.sessionRevocationCacheService = Objects.requireNonNull(sessionRevocationCacheService, "SessionRevocationCacheService cannot be null.");
+        log.debug("SessionCacheService initialized.");
     }
 
     // -------------------------------------------------------------------------
