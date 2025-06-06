@@ -3,6 +3,7 @@ package vaultiq.session.cache.service.internal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import vaultiq.session.cache.util.CacheHelper;
 import vaultiq.session.cache.model.RevokedSessionCacheEntry;
@@ -60,7 +61,7 @@ public class SessionRevocationCacheService {
      *                              This is autowired by Spring using its bean name. Cannot be null.
      */
     public SessionRevocationCacheService(
-            SessionManager sessionManager,
+            @Lazy SessionManager sessionManager,
             UserIdentityAware userIdentityAware,
             @Qualifier(CacheHelper.BeanNames.REVOKED_SESSION_POOL_CACHE_HELPER)
             CacheHelper revocationPoolCache
